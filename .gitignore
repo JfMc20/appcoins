@@ -1,2 +1,54 @@
 # Archivo .gitignore global para AdminCoins
-# Dejar vacío por ahora, las reglas específicas estarán en backend/ y frontend/ 
+
+# Archivos de entorno
+# Ignorar todos los archivos .env y variaciones, excepto los archivos de ejemplo.
+.env
+.env.*
+*.env
+!.env.example
+!.env.sample
+
+# Directorios de dependencias de Node.js
+node_modules/
+*/node_modules/ # Esto cubrirá node_modules en subdirectorios como backend/ o frontend/
+
+# Archivos de log
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Directorios de compilación comunes (descomentar y ajustar según sea necesario)
+# build/
+# dist/
+# .parcel-cache/
+# .cache/
+# .next/
+# .nuxt/
+# .svelte-kit/
+# .output/
+# .vite/
+
+# Archivos de configuración de IDEs (descomentar los que uses)
+# .idea/
+# .vscode/
+# *.swp
+# *~
+# *.bak
+# *.tmp
+
+# Archivos de test (descomentar si aplica)
+# coverage/
+# .nyc_output/
+
+# Comentario original adaptado:
+# Las reglas más específicas para subdirectorios (ej. backend/, frontend/)
+# pueden definirse en sus propios archivos .gitignore si fuera necesario.
+# El comentario original era: "# Dejar vacío por ahora, las reglas específicas estarán en backend/ y frontend/" 

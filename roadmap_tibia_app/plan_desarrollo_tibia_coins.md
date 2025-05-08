@@ -7,7 +7,7 @@
 **2. Tecnologías Propuestas (Ejemplos, podemos ajustarlas):**
 
 *   **Backend:** Node.js con Express.
-*   **Frontend:** React con TypeScript (TS).
+*   **Frontend:** React with TypeScript (TS).
 *   **Base de Datos:** MongoDB (NoSQL).
     *   *Pros:* Esquema flexible (ideal para variabilidad de datos de juegos/productos), natural para JavaScript/Node.js (documentos BSON/JSON), buena escalabilidad horizontal.
     *   *Contras:* Generalmente requiere un servidor separado (local o en la nube), las relaciones complejas entre datos pueden necesitar una planificación cuidadosa del diseño de documentos.
@@ -23,6 +23,15 @@
 *   **Diseño Responsivo:** La interfaz de usuario será diseñada para ofrecer una experiencia óptima en una variedad de dispositivos (escritorio, tablet, móvil).
 *   **Escalabilidad:** Aunque se empiece con una configuración sencilla (ej. MongoDB), las decisiones de diseño deben tener en cuenta la posible necesidad de escalar la aplicación en el futuro.
 *   **Seguridad:** Se considerarán las mejores prácticas de seguridad en todas las capas de la aplicación, especialmente en la autenticación, autorización y manejo de datos sensibles.
+
+**2.B. Configuración de Acceso y Dominio**
+
+*   **Dominio Principal de la Aplicación:** Inicialmente configurado como `https://appcoinsadmin.duckdns.org`. Este dominio se gestionará a través de variables de entorno (ej. `APP_DOMAIN` para la configuración de Docker/Traefik y `VITE_ALLOWED_HOSTNAME` para la configuración de desarrollo de Vite) para facilitar cambios futuros.
+*   **Gestión de Tráfico y SSL:** Se utilizará Traefik como reverse proxy para gestionar el tráfico entrante y la terminación SSL (HTTPS) para el dominio configurado, utilizando certificados de Let's Encrypt.
+*   **Estructura de URIs (bajo el dominio configurado):**
+    *   El frontend será servido directamente.
+    *   La API del backend será accesible a través del path `/api`. Traefik se encargará de enrutar las peticiones `/api/*` al servicio del backend.
+    *   El frontend se configurará (a través de `VITE_API_BASE_URL=/api`) para hacer sus peticiones a la API usando este path relativo, lo que lo hace independiente del nombre de dominio específico.
 
 **3. Fases de Desarrollo:**
 

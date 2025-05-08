@@ -1,4 +1,6 @@
 import axios from 'axios';
+import AppSettingsModel, { IAppSettings, ICurrentRateDetail } from '../models/AppSettingsModel'; // Importar el modelo y las interfaces
+import { logger } from '../utils/logger'; // Importar el logger
 
 // Interfaz refinada para la respuesta de un exchange específico dentro de CriptoYa
 interface CriptoYaExchangeData {
@@ -15,6 +17,8 @@ interface CriptoYaApiResponse {
 }
 
 const CRIPTOYA_API_BASE_URL = 'https://criptoya.com/api';
+const DEFAULT_CRYPTO_COIN = 'USDT'; // Moneda base para las tasas fiat
+const PREFERRED_EXCHANGE = 'binancep2p';
 
 /**
  * Obtiene las tasas de cambio para un par Cripto/Fiat específico desde CriptoYa.
@@ -28,35 +32,122 @@ export const getRatesFromCriptoYa = async (
   coin: string,
   fiat: string,
   volume: number = 1
-): Promise<CriptoYaApiResponse> => {
+): Promise<CriptoYaApiResponse | null> => {
   // Convertir a minúsculas para la URL de la API
   const lowerCoin = coin.toLowerCase();
   const lowerFiat = fiat.toLowerCase();
   const url = `${CRIPTOYA_API_BASE_URL}/${lowerCoin}/${lowerFiat}/${volume}`;
-  console.log(`Consultando CriptoYa: ${url}`); // Log para ver la URL consultada
+  logger.debug(`Consultando CriptoYa: ${url}`); // Usar debug para la URL
 
   try {
     const response = await axios.get<CriptoYaApiResponse>(url);
 
     if (response.data && typeof response.data === 'object' && Object.keys(response.data).length > 0) {
-      console.log(`Respuesta de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()} (vol ${volume}):`);
-      // No imprimiremos toda la respuesta aquí para evitar spam, solo en el script de prueba.
+      logger.debug(`Respuesta de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()} (vol ${volume}) obtenida.`); // Usar debug
       return response.data;
     } else {
-      console.warn(`Respuesta vacía o inesperada de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()}:`, response.data);
-      throw new Error(`Respuesta inesperada o vacía de la API de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()}`);
+      logger.warn(`Respuesta vacía o inesperada de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()}:`, response.data);
+      return null;
     }
   } catch (error: any) {
-    console.error(`Error al obtener tasas de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()}: ${error.message}`);
+    logger.error(`Error al obtener tasas de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()}: ${error.message}`);
     if (error.response) {
-      console.error('Detalles del error de CriptoYa (Respuesta):', error.response.data);
-      console.error('Status:', error.response.status);
+      logger.debug('Detalles del error de CriptoYa (Respuesta):', error.response.data);
+      logger.debug('Status:', error.response.status);
     } else if (error.request) {
-      console.error(`No se recibió respuesta de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()} (Request):`, error.request);
+      logger.debug(`No se recibió respuesta de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()} (Request):`, error.request);
     } else {
-      console.error(`Error inesperado al obtener ${coin.toUpperCase()}/${fiat.toUpperCase()}:`, error);
+      logger.error(`Error inesperado al obtener ${coin.toUpperCase()}/${fiat.toUpperCase()}:`, error);
     }
-    throw new Error(`No se pudieron obtener las tasas de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()}.`);
+    return null;
+  }
+};
+
+/**
+ * Actualiza las tasas de cambio fiat en AppSettings desde CriptoYa, usando Binance P2P como preferido.
+ */
+export const updateFiatExchangeRates = async (): Promise<void> => {
+  logger.info('Iniciando actualización de tasas de cambio fiat...');
+  let appSettings = await AppSettingsModel.findOne({ configIdentifier: 'global_settings' });
+
+  if (!appSettings) {
+    logger.error('Configuración global (AppSettings) no encontrada. No se pueden actualizar las tasas.');
+    // Opcionalmente, crear configuraciones por defecto si no existen:
+    // appSettings = new AppSettingsModel({ defaultTransactionFees: { type: 'percentage', sellRate: 0, buyRate: 0 }, notifications: {lowStockAlertsEnabled: true} });
+    // console.log('Creando AppSettings por defecto...');
+    return;
+  }
+
+  if (!appSettings.supportedFiatCurrencies || appSettings.supportedFiatCurrencies.length === 0) {
+    logger.warn('No hay monedas fiat soportadas configuradas en AppSettings. No se actualizarán tasas.');
+    return;
+  }
+
+  const activeFiatCurrencies = appSettings.supportedFiatCurrencies.filter(fc => fc.isActive);
+  if (activeFiatCurrencies.length === 0) {
+    logger.info('No hay monedas fiat activas para actualizar.');
+    return;
+  }
+
+  let ratesUpdatedCount = 0;
+  if (!appSettings.currentExchangeRates) {
+    appSettings.currentExchangeRates = new Map<string, ICurrentRateDetail>();
+  }
+
+  for (const fiatCurrency of activeFiatCurrencies) {
+    const pairKey = `${DEFAULT_CRYPTO_COIN}_${fiatCurrency.code}`;
+    logger.debug(`Procesando par: ${pairKey}`);
+
+    const criptoYaData = await getRatesFromCriptoYa(DEFAULT_CRYPTO_COIN, fiatCurrency.code);
+
+    if (criptoYaData && criptoYaData[PREFERRED_EXCHANGE]) {
+      const preferredRateData = criptoYaData[PREFERRED_EXCHANGE];
+      const newAsk = preferredRateData.ask;
+      const newBid = preferredRateData.bid;
+      // Usaremos ASK como la 'currentRate' por defecto
+      const newCurrentRate = newAsk;
+
+      const existingRateDetail = appSettings.currentExchangeRates.get(pairKey);
+      const previousRate = existingRateDetail?.currentRate;
+
+      let change: number | undefined = undefined;
+      let changePercent: number | undefined = undefined;
+
+      if (previousRate && newCurrentRate) {
+        change = newCurrentRate - previousRate;
+        if (previousRate !== 0) { // Evitar división por cero
+            changePercent = (change / previousRate) * 100;
+        }
+      }
+      
+      const rateDetail: ICurrentRateDetail = {
+        currentRate: newCurrentRate,
+        previousRate: previousRate,
+        ask: newAsk,
+        bid: newBid,
+        change: change,
+        changePercent: changePercent,
+        lastUpdated: new Date(),
+        source: `CriptoYa - ${PREFERRED_EXCHANGE}`,
+      };
+
+      appSettings.currentExchangeRates.set(pairKey, rateDetail);
+      logger.info(`Tasa para ${pairKey} actualizada: current=${newCurrentRate.toFixed(4)}, ask=${newAsk.toFixed(4)}, bid=${newBid.toFixed(4)}`);
+      ratesUpdatedCount++;
+    } else {
+      logger.warn(`No se encontró la tasa de ${PREFERRED_EXCHANGE} para ${pairKey} en CriptoYa, o hubo un error al obtenerla.`);
+    }
+  }
+
+  if (ratesUpdatedCount > 0) {
+    try {
+      await appSettings.save();
+      logger.success(`${ratesUpdatedCount} tasas de cambio fiat actualizadas exitosamente en AppSettings.`);
+    } catch (error) {
+      logger.error('Error al guardar AppSettings con las nuevas tasas:', error);
+    }
+  } else {
+    logger.info('No se actualizaron nuevas tasas en esta ejecución.');
   }
 };
 

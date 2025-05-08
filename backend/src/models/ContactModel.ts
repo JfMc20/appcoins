@@ -1,107 +1,141 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
-// import { IGame } from './GameModel'; // Para la referencia opcional en ContactMethod
+// import { IUser } from './UserModel'; // Si los contactos están vinculados a un usuario/operador específico
 
-interface IContactMethod {
-  platform: string; // ej: "WhatsApp", "Telegram", "Discord", "InGame", "Email", "Phone"
-  identifier: string; // ej: "+123456789", "usuarioDiscord#1234", "correo@dominio.com"
-  gameId?: Types.ObjectId; // Opcional, referencia a Game si es un contacto InGame
+// Interfaz para el subdocumento de información de contacto adicional
+export interface IContactDetail {
+  type: 'email' | 'phone' | 'whatsapp' | 'telegram' | 'discord' | 'game_username' | 'other';
+  value: string;
+  label?: string; // Ej. "Principal", "Secundario", "Trabajo"
+  isPrimary?: boolean;
 }
 
-const ContactMethodSchema: Schema<IContactMethod> = new Schema({
-  platform: { type: String, required: true, trim: true },
-  identifier: { type: String, required: true, trim: true },
-  gameId: { type: Schema.Types.ObjectId, ref: 'Game' }, // Referencia a Game
-}, { _id: false });
-
-
-interface ITotalVolume {
-  amount: number;
-  currency: string; // ej. "USDT"
+// Interfaz para el subdocumento de dirección
+export interface IAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  label?: string; // Ej. "Casa", "Oficina"
 }
 
-const TotalVolumeSchema: Schema<ITotalVolume> = new Schema({
-    amount: { type: Number, required: true, default: 0 },
-    currency: { type: String, required: true, trim: true },
-}, { _id: false });
-
-
+// Interfaz para el documento Contact
 export interface IContact extends Document {
-  displayName: string;
-  firstName?: string;
-  lastName?: string;
-  type: 'Cliente' | 'Proveedor' | 'Ambos' | 'Otro';
-  primaryContactMethod?: IContactMethod;
-  additionalContactMethods?: IContactMethod[];
+  // userId?: Types.ObjectId | IUser; // A qué usuario del sistema pertenece este contacto (si aplica)
+  contactType: 'client' | 'provider' | 'other'; // Tipo de contacto
+  name: string; // Nombre completo o de la empresa
+  nickname?: string; // Apodo o nombre corto
+  primaryEmail?: string; // Email principal (para conveniencia, aunque también puede estar en contactDetails)
+  primaryPhone?: string; // Teléfono principal
+  companyName?: string; // Si es una empresa
+  taxId?: string; // CIF/NIF/RIF u otro identificador fiscal
+  contactDetails?: IContactDetail[]; // Array de múltiples formas de contacto
+  addresses?: IAddress[]; // Array de direcciones
+  status: 'active' | 'inactive' | 'potential' | 'blocked';
   notes?: string;
-  tags?: string[];
-  status: 'active' | 'inactive' | 'blocked';
-  lastTransactionDate?: Date;
-  totalTransactionsCount?: number;
-  totalVolume?: ITotalVolume;
-  profileImageUrl?: string;
-  // createdAt y updatedAt son añadidos automáticamente por timestamps: true
+  // Timestamps de Mongoose
+  createdAt?: Date;
+  updatedAt?: Date;
 }
+
+const ContactDetailSchema: Schema<IContactDetail> = new Schema({
+  type: {
+    type: String,
+    required: true,
+    enum: ['email', 'phone', 'whatsapp', 'telegram', 'discord', 'game_username', 'other'],
+  },
+  value: { type: String, required: true, trim: true },
+  label: { type: String, trim: true },
+  isPrimary: { type: Boolean, default: false },
+}, { _id: false });
+
+const AddressSchema: Schema<IAddress> = new Schema({
+  street: { type: String, trim: true },
+  city: { type: String, trim: true },
+  state: { type: String, trim: true },
+  postalCode: { type: String, trim: true },
+  country: { type: String, trim: true },
+  label: { type: String, trim: true },
+}, { _id: false });
 
 const ContactSchema: Schema<IContact> = new Schema(
   {
-    displayName: {
+    // userId: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: 'User',
+    //   // Considerar si es requerido o si los contactos son globales
+    // },
+    contactType: {
+      type: String,
+      required: true,
+      enum: ['client', 'provider', 'other'],
+    },
+    name: {
       type: String,
       required: true,
       trim: true,
-      index: true,
+      maxlength: 200,
+      index: true, // Para búsquedas por nombre
     },
-    firstName: {
+    nickname: {
       type: String,
       trim: true,
+      maxlength: 100,
     },
-    lastName: {
+    primaryEmail: {
       type: String,
       trim: true,
+      lowercase: true,
+      sparse: true, // No todos los contactos tendrán email, pero si lo tienen, podría ser único
+      // index: { unique: true, sparse: true } // Si se quiere unicidad de email
+      // match: /regex_email/ // Validación de formato
     },
-    type: {
+    primaryPhone: {
       type: String,
-      enum: ['Cliente', 'Proveedor', 'Ambos', 'Otro'],
-      default: 'Cliente',
-      index: true,
+      trim: true,
+      sparse: true,
+      // index: { unique: true, sparse: true } // Si se quiere unicidad de teléfono
     },
-    primaryContactMethod: ContactMethodSchema, // Subdocumento embebido
-    additionalContactMethods: [ContactMethodSchema], // Array de subdocumentos
+    companyName: {
+      type: String,
+      trim: true,
+      maxlength: 200,
+    },
+    taxId: {
+      type: String,
+      trim: true,
+      sparse: true,
+      // index: { unique: true, sparse: true } // Si se quiere unicidad de taxId
+    },
+    contactDetails: {
+      type: [ContactDetailSchema],
+      default: [],
+    },
+    addresses: {
+      type: [AddressSchema],
+      default: [],
+    },
+    status: {
+      type: String,
+      enum: ['active', 'inactive', 'potential', 'blocked'],
+      default: 'active',
+      required: true,
+    },
     notes: {
       type: String,
       trim: true,
-    },
-    tags: [{ type: String, trim: true, index: true }],
-    status: {
-      type: String,
-      enum: ['active', 'inactive', 'blocked'],
-      default: 'active',
-      index: true,
-    },
-    lastTransactionDate: {
-      type: Date,
-      index: true,
-    },
-    totalTransactionsCount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    totalVolume: TotalVolumeSchema, // Subdocumento embebido
-    profileImageUrl: {
-      type: String,
-      trim: true,
+      maxlength: 5000,
     },
   },
   {
-    timestamps: true,
+    timestamps: true, // Añade createdAt y updatedAt automáticamente
   }
 );
 
-// Índices sugeridos adicionales
-ContactSchema.index({ 'primaryContactMethod.platform': 1, 'primaryContactMethod.identifier': 1 });
-// Considerar si el siguiente índice es realmente necesario o si las búsquedas serán más generales
-// ContactSchema.index({ 'additionalContactMethods.platform': 1, 'additionalContactMethods.identifier': 1 });
-
+// Índices sugeridos
+ContactSchema.index({ contactType: 1 });
+ContactSchema.index({ status: 1 });
+ContactSchema.index({ 'contactDetails.value': 1 }); // Para buscar por algún valor en los detalles de contacto
 
 const ContactModel = mongoose.model<IContact>('Contact', ContactSchema);
 

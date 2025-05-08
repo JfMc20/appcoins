@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { logger } from '../utils/logger';
 
 dotenv.config(); // Asegurarse de que las variables de entorno estén cargadas
 
@@ -11,19 +12,19 @@ const MONGO_URI = process.env.MONGODB_URI || MONGO_URI_DEFAULT;
 const connectDB = async () => {
   try {
     await mongoose.connect(MONGO_URI);
-    console.log('MongoDB conectado exitosamente.');
+    logger.db('Conectado exitosamente a MongoDB.');
 
     // Opcional: Escuchar eventos de conexión después de la conexión inicial
     mongoose.connection.on('error', (err) => {
-      console.error(`Error en la conexión a MongoDB: ${err.message}`);
+      logger.error('Error en la conexión a MongoDB:', err.message);
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB desconectado.');
+      logger.warn('MongoDB desconectado.');
     });
 
   } catch (error) {
-    console.error('Error al conectar con MongoDB:', error);
+    logger.error('Error fatal al conectar con MongoDB:', error);
     // Salir del proceso con fallo si no se puede conectar a la BD
     // En un entorno de producción, podrías querer reintentar o manejarlo de otra forma.
     process.exit(1);

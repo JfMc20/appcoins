@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 // import { IUser } from './UserModel';
 // import { IGame } from './GameModel';
 
-interface ISupportedFiatCurrency {
+export interface ISupportedFiatCurrency {
   code: string;
   symbol: string;
   name: string;
@@ -72,6 +72,28 @@ const BusinessInfoSchema: Schema<IBusinessInfo> = new Schema({
   contactEmail: { type: String, trim: true, lowercase: true },
 }, { _id: false });
 
+// Nuevo Sub-esquema para el detalle de una tasa de cambio actual
+export interface ICurrentRateDetail {
+  currentRate?: number;   // Tasa más reciente (ask o bid según estrategia)
+  previousRate?: number; // Tasa anterior
+  ask?: number;          // Tasa Ask (para referencia, si se almacena)
+  bid?: number;          // Tasa Bid (para referencia, si se almacena)
+  change?: number;      // Diferencia numérica (currentRate - previousRate)
+  changePercent?: number; // Cambio porcentual
+  lastUpdated?: Date;   // Fecha de currentRate
+  source?: string;       // Fuente (ej: \'CriptoYa - Binance P2P\')
+}
+
+const CurrentRateDetailSchema: Schema<ICurrentRateDetail> = new Schema({
+  currentRate: { type: Number },
+  previousRate: { type: Number },
+  ask: { type: Number },
+  bid: { type: Number },
+  change: { type: Number },
+  changePercent: { type: Number },
+  lastUpdated: { type: Date },
+  source: { type: String, trim: true },
+}, { _id: false });
 
 export interface IAppSettings extends Document {
   configIdentifier: string; // ej: "global_settings"
@@ -80,6 +102,7 @@ export interface IAppSettings extends Document {
   activeGameIds?: Types.ObjectId[]; // Referencias a Game
   defaultTransactionFees: IDefaultTransactionFees;
   exchangeRateAPIs?: IExchangeRateAPI[];
+  currentExchangeRates?: Map<string, ICurrentRateDetail>; // Mapa para "USDT_VES" -> DetalleDeTasa
   notifications: INotificationsSettings;
   businessInfo?: IBusinessInfo;
   lastModifiedBy?: Types.ObjectId; // Referencia a User
@@ -109,6 +132,11 @@ const AppSettingsSchema: Schema<IAppSettings> = new Schema(
       required: true,
     },
     exchangeRateAPIs: [ExchangeRateAPISchema],
+    currentExchangeRates: {
+      type: Map,
+      of: CurrentRateDetailSchema,
+      default: {},
+    },
     notifications: {
       type: NotificationsSettingsSchema,
       required: true,

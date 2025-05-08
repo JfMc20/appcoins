@@ -1,102 +1,82 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
-import { IGame } from './GameModel'; // Asumiendo que IGame está en GameModel.ts
+import { IGame } from './GameModel'; // Para la referencia a Game
 
-// Interface para los atributos dinámicos
-interface IAttribute {
+// Interfaz para el subdocumento de atributos dinámicos
+export interface IItemAttribute {
   key: string;
-  value: string;
+  value: string | number | boolean | Date; // Valor puede ser de varios tipos
+  // Podría añadirse un 'displayType' si se quisiera controlar cómo se muestra en el frontend
 }
 
-// Interface para el costo promedio en moneda de referencia
-interface IAverageCostRef {
+// Interfaz para el subdocumento de costo promedio ponderado
+export interface IAverageCost {
   amount: number;
-  currency: string;
+  currency: string; // Moneda de referencia, ej. USDT
 }
 
-// Interface para la información de precios del GameItem
-interface IPricingInfo {
-  strategy: 'fixed' | 'margin' | 'other';
-  referenceCurrency: string; // ej. "USDT"
-  sellPricePerUnit?: number; // Opcional si solo compras
-  buyPricePerUnit?: number;  // Opcional si solo vendes
-  lastUpdated?: Date;
-}
-
+// Interfaz para el documento GameItem
 export interface IGameItem extends Document {
-  gameId: Types.ObjectId | IGame; // Puede ser ObjectId o el documento poblado de Game
-  name: string;
-  itemCode?: string;
-  type: string;
+  gameId: Types.ObjectId | IGame; // Referencia al juego al que pertenece
+  name: string; // Nombre del ítem/moneda
+  itemCode?: string; // Código corto o identificador interno
+  type: string; // Categoría del ítem (ej. "Moneda", "Equipamiento", "Consumible")
   description?: string;
   iconUrl?: string;
-  stackable: boolean;
-  isTradable: boolean;
-  defaultUnit?: string;
-  managesStock: boolean;
-  currentStock: number;
-  lowStockThreshold?: number;
-  status: 'active' | 'archived' | 'rare_find';
-  attributes?: IAttribute[];
-  averageCostRef?: IAverageCostRef;
-  pricing?: IPricingInfo; // Información de precios
-  // createdAt y updatedAt son añadidos automáticamente por timestamps: true
+  stackable: boolean; // Si el ítem se puede apilar
+  isTradable: boolean; // Si el usuario de la app lo comercializa activamente
+  defaultUnit?: string; // Unidad estándar para transacciones (ej. "unidad", "k", "kk")
+  managesStock: boolean; // Si se gestiona un stock propio de este ítem
+  currentStock: number; // Cantidad actual en stock (si managesStock es true)
+  lowStockThreshold?: number; // Umbral para alerta de stock bajo
+  status: 'active' | 'archived' | 'rare_find'; // Estado del ítem
+  attributes?: IItemAttribute[]; // Propiedades dinámicas
+  averageCostRef?: IAverageCost; // Costo promedio ponderado en moneda de referencia
+  // Timestamps de Mongoose
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const AttributeSchema: Schema<IAttribute> = new Schema({
+const ItemAttributeSchema: Schema<IItemAttribute> = new Schema({
   key: { type: String, required: true, trim: true },
-  value: { type: String, required: true, trim: true },
-}, { _id: false }); // _id: false para subdocumentos si no se necesita un ID individual para cada atributo
-
-const AverageCostRefSchema: Schema<IAverageCostRef> = new Schema({
-  amount: { type: Number, required: true },
-  currency: { type: String, required: true, trim: true },
+  value: { type: Schema.Types.Mixed, required: true }, // Mixed permite varios tipos de datos
 }, { _id: false });
 
-const PricingSchema: Schema<IPricingInfo> = new Schema({
-  strategy: {
-    type: String,
-    enum: ['fixed', 'margin', 'other'],
-    required: true,
-    default: 'fixed',
-  },
-  referenceCurrency: {
-    type: String,
-    required: true,
-    default: 'USDT', // Podría tomarse de appSettings.defaultReferenceCurrency
-    uppercase: true,
-    trim: true,
-  },
-  sellPricePerUnit: { type: Number, min: 0 },
-  buyPricePerUnit: { type: Number, min: 0 },
-  lastUpdated: { type: Date, default: Date.now },
+const AverageCostSchema: Schema<IAverageCost> = new Schema({
+  amount: { type: Number, required: true },
+  currency: { type: String, required: true, uppercase: true, trim: true },
 }, { _id: false });
 
 const GameItemSchema: Schema<IGameItem> = new Schema(
   {
     gameId: {
       type: Schema.Types.ObjectId,
-      ref: 'Game', // Referencia al modelo Game
+      ref: 'Game',
       required: true,
     },
     name: {
       type: String,
       required: true,
       trim: true,
+      maxlength: 200,
     },
     itemCode: {
       type: String,
       trim: true,
-      // Considerar un índice compuesto (gameId, itemCode) { unique: true, sparse: true } si itemCode debe ser único por juego
+      uppercase: true,
+      sparse: true, // Único dentro del mismo gameId si se proporciona
+      maxlength: 50,
     },
     type: {
       type: String,
       required: true,
       trim: true,
-      // Podría ser un enum si los tipos son fijos: enum: ['Moneda', 'Equipamiento', 'Consumible', ...]
+      maxlength: 50,
+      // Se podría usar un enum si las categorías son fijas
     },
     description: {
       type: String,
       trim: true,
+      maxlength: 2000,
     },
     iconUrl: {
       type: String,
@@ -113,15 +93,23 @@ const GameItemSchema: Schema<IGameItem> = new Schema(
     defaultUnit: {
       type: String,
       trim: true,
+      maxlength: 20,
     },
     managesStock: {
       type: Boolean,
-      default: false,
+      default: false, // Cambiado a false según el documento, para ítems "por pedido"
     },
     currentStock: {
       type: Number,
       default: 0,
       min: 0, // El stock no puede ser negativo
+      // Validador condicional: requerido si managesStock es true
+      validate: {
+        validator: function (this: IGameItem, value: number) {
+          return !this.managesStock || (this.managesStock && typeof value === 'number');
+        },
+        message: 'currentStock es requerido si managesStock es true.'
+      }
     },
     lowStockThreshold: {
       type: Number,
@@ -131,21 +119,29 @@ const GameItemSchema: Schema<IGameItem> = new Schema(
       type: String,
       enum: ['active', 'archived', 'rare_find'],
       default: 'active',
+      required: true,
     },
-    attributes: [AttributeSchema], // Array de subdocumentos
-    averageCostRef: AverageCostRefSchema, // Subdocumento embebido
-    pricing: PricingSchema, // Campo de precios añadido
+    attributes: {
+      type: [ItemAttributeSchema],
+      default: [],
+    },
+    averageCostRef: {
+      type: AverageCostSchema,
+      // No hay default, se calculará y establecerá por lógica de negocio
+    },
   },
   {
-    timestamps: true,
+    timestamps: true, // Añade createdAt y updatedAt automáticamente
   }
 );
 
-// Índice para asegurar que itemCode sea único dentro de un mismo gameId, si se decide implementarlo así.
-// GameItemSchema.index({ gameId: 1, itemCode: 1 }, { unique: true, sparse: true });
-
-// Índice para asegurar que el nombre del item sea único dentro de un mismo juego (sugerido en el doc)
+// Índices sugeridos
+GameItemSchema.index({ gameId: 1 });
 GameItemSchema.index({ gameId: 1, name: 1 }, { unique: true });
+GameItemSchema.index({ gameId: 1, itemCode: 1 }, { unique: true, sparse: true }); // Asegura unicidad si itemCode existe
+GameItemSchema.index({ type: 1 });
+GameItemSchema.index({ status: 1 });
+GameItemSchema.index({ managesStock: 1 });
 
 const GameItemModel = mongoose.model<IGameItem>('GameItem', GameItemSchema);
 

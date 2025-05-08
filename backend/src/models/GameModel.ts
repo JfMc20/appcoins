@@ -1,52 +1,61 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// Interface para describir la estructura de un documento Game (opcional pero buena práctica)
+// Interfaz para el documento Game
 export interface IGame extends Document {
-  name: string;
-  shortName?: string; // Opcional
-  description?: string; // Opcional
-  iconUrl?: string; // Opcional
-  status: 'active' | 'archived' | 'coming_soon';
-  // createdAt y updatedAt son añadidos automáticamente por timestamps: true
+  name: string; // Nombre del juego, ej: "Tibia", "Albion Online"
+  shortName?: string; // Nombre corto o código, ej: "TB", "AO"
+  description?: string; // Descripción breve del juego
+  iconUrl?: string; // URL a un logo o ícono del juego
+  status: 'active' | 'archived' | 'coming_soon'; // Estado del juego en la plataforma
+  // Timestamps de Mongoose
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-// Definición del Esquema
 const GameSchema: Schema<IGame> = new Schema(
   {
     name: {
       type: String,
       required: true,
-      trim: true, // Elimina espacios en blanco al inicio y al final
-      unique: true, // Asegura que el nombre del juego sea único
+      unique: true, // Asumiendo que el nombre del juego debe ser único
+      trim: true,
+      maxlength: 100,
     },
     shortName: {
       type: String,
-      trim: true,
       unique: true,
-      sparse: true, // Permite múltiples documentos sin este campo, pero si está presente, debe ser único
+      sparse: true, // Permite múltiples documentos con shortName null/undefined, pero si existe, debe ser único
+      trim: true,
+      uppercase: true,
+      maxlength: 10,
     },
     description: {
       type: String,
       trim: true,
+      maxlength: 1000,
     },
     iconUrl: {
       type: String,
       trim: true,
+      // Se podría añadir validación de URL si se desea
     },
     status: {
       type: String,
       enum: ['active', 'archived', 'coming_soon'],
       default: 'active',
+      required: true,
     },
   },
   {
-    timestamps: true, // Añade automáticamente los campos createdAt y updatedAt
+    timestamps: true, // Añade createdAt y updatedAt automáticamente
   }
 );
 
-// Crear y exportar el modelo
-// El primer argumento es el nombre singular de la colección a la que este modelo pertenece.
-// Mongoose automáticamente buscará la versión plural en minúsculas de este nombre (ej. 'games')
+// Índices sugeridos por el documento de diseño
+// El índice unique en 'name' ya está definido en el schema.
+// El índice unique y sparse en 'shortName' ya está definido en el schema.
+GameSchema.index({ status: 1 });
+
 const GameModel = mongoose.model<IGame>('Game', GameSchema);
 
 export default GameModel; 

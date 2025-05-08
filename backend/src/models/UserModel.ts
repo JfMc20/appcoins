@@ -1,17 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
-// Aquí iría la lógica para el hasheo de contraseñas, ej: import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   username: string;
   email: string;
-  password?: string; // Se omite en las respuestas de la API, solo para creación/actualización
-  role: 'operator' | 'admin';
-  displayName?: string;
+  passwordHash: string;
+  fullName?: string;
+  role: 'admin' | 'operator';
   status: 'active' | 'inactive' | 'pending_verification';
-  lastLoginAt?: Date;
-  failedLoginAttempts: number;
-  lockedUntil?: Date;
-  // createdAt y updatedAt son añadidos automáticamente por timestamps: true
+  lastLogin?: Date;
+  failedLoginAttempts?: number;
+  lockUntil?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+
+  comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
 const UserSchema: Schema<IUser> = new Schema(
@@ -21,8 +24,8 @@ const UserSchema: Schema<IUser> = new Schema(
       required: true,
       unique: true,
       trim: true,
-      lowercase: true, // Buena práctica para usernames
-      index: true,
+      minlength: 3,
+      maxlength: 30,
     },
     email: {
       type: String,
@@ -30,40 +33,35 @@ const UserSchema: Schema<IUser> = new Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      index: true,
-      // Podrías añadir una validación de formato de email con match: /regex_para_email/
     },
-    password: {
+    passwordHash: {
       type: String,
       required: true,
-      // Select false para que no se devuelva por defecto en las consultas
-      // La contraseña solo se debe manejar en la creación y actualización, con hasheo.
-      select: false,
+    },
+    fullName: {
+      type: String,
+      trim: true,
+      maxlength: 100,
     },
     role: {
       type: String,
-      enum: ['operator', 'admin'],
+      enum: ['admin', 'operator'],
       required: true,
       default: 'operator',
-    },
-    displayName: {
-      type: String,
-      trim: true,
     },
     status: {
       type: String,
       enum: ['active', 'inactive', 'pending_verification'],
       default: 'active',
-      index: true,
     },
-    lastLoginAt: {
+    lastLogin: {
       type: Date,
     },
     failedLoginAttempts: {
       type: Number,
       default: 0,
     },
-    lockedUntil: {
+    lockUntil: {
       type: Date,
     },
   },
@@ -72,25 +70,22 @@ const UserSchema: Schema<IUser> = new Schema(
   }
 );
 
-// Middleware pre-save para hashear la contraseña antes de guardarla
-// UserSchema.pre<IUser>('save', async function (next) {
-//   if (!this.isModified('password') || !this.password) {
-//     return next();
-//   }
-//   try {
-//     const salt = await bcrypt.genSalt(10);
-//     this.password = await bcrypt.hash(this.password, salt);
-//     next();
-//   } catch (error: any) {
-//     next(error);
-//   }
-// });
+UserSchema.pre<IUser>('save', async function (next) {
+  if (!this.isModified('passwordHash')) {
+    return next();
+  }
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    return next();
+  } catch (err: any) { 
+    return next(err);
+  }
+});
 
-// Método para comparar contraseñas (se añadiría al esquema)
-// UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
-//   if (!this.password) return false;
-//   return bcrypt.compare(candidatePassword, this.password);
-// };
+UserSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
+  return bcrypt.compare(candidatePassword, this.passwordHash);
+};
 
 const UserModel = mongoose.model<IUser>('User', UserSchema);
 

@@ -45,8 +45,17 @@ Los tipos de transacciones principales que manejará el módulo son:
     *   Impacto: Puede disminuir saldo de una `fundingSource` (reembolso), puede aumentar stock.
 *   **`DEVOLUCION_PROVEEDOR`**: Se devuelve un ítem/producto a un proveedor.
     *   Impacto: Puede aumentar saldo de una `fundingSource` (crédito/reembolso), puede disminuir stock.
-*   **`DECLARACION_SALDO_INICIAL_CAPITAL`**: Registro o ajuste del saldo de una o varias `fundingSources`.
+*   **`DECLARACION_SALDO_INICIAL_CAPITAL`**: Usado principalmente cuando se crea una `FundingSource` con un saldo inicial, o para importaciones masivas de saldos. Normalmente realizado por un administrador o automáticamente por el sistema.
     *   Impacto: Actualiza `currentBalance` en las `fundingSources` especificadas. No afecta stock.
+    *   Permisos: Generalmente `admin` o sistema.
+*   **`DECLARACION_OPERADOR_INICIO_DIA`**: Un operador (rol `operator` o `admin` actuando como tal) declara el saldo con el que inicia su jornada en una `fundingSource` específica.
+    *   Impacto: Actualiza `currentBalance` en la `fundingSource` especificada.
+    *   Restricciones: Se permite solo una transacción de este tipo por `operatorUserId`, `fundingSourceId` y día natural. Debe contener exactamente una entrada en `capitalDeclaration`.
+    *   Permisos: `operator`, `admin`.
+*   **`AJUSTE_ADMIN_CAPITAL`**: Un administrador (rol `admin`) realiza un ajuste manual al saldo de una o varias `fundingSources`.
+    *   Impacto: Actualiza `currentBalance` en las `fundingSources` especificadas.
+    *   Restricciones: No tiene la restricción de unicidad diaria.
+    *   Permisos: Exclusivamente `admin`.
 *   **(Futuro) `TRANSFERENCIA_ENTRE_FUENTES`**: Movimiento de capital entre dos `fundingSources` propias del usuario.
     *   Impacto: Disminuye saldo de `fundingSource` origen, aumenta saldo de `fundingSource` destino. No afecta stock.
 
@@ -70,7 +79,7 @@ La estructura detallada de la colección `transactions` se encuentra en el docum
     *   `valueInReferenceCurrency`: Valor equivalente en USDT (o la moneda de referencia definida).
     *   `fundingSourceBalanceBefore`: Saldo de la fuente antes (opcional, para auditoría).
     *   `fundingSourceBalanceAfter`: Saldo de la fuente después (opcional, para auditoría).
-*   **Declaración de Capital (`capitalDeclaration`):** (Presente solo para `type: DECLARACION_SALDO_INICIAL_CAPITAL`)
+*   **Declaración de Capital (`capitalDeclaration`):** (Presente para tipos: `DECLARACION_SALDO_INICIAL_CAPITAL`, `DECLARACION_OPERADOR_INICIO_DIA`, `AJUSTE_ADMIN_CAPITAL`)
     *   Array de objetos, cada uno con: `fundingSourceId`, `declaredBalance`, `currency`, `previousBalance`.
 *   **Detalles de Ganancia (`profitDetails`):** (Principalmente para ventas)
     *   `costOfGoods`: Costo del ítem vendido.
@@ -112,6 +121,19 @@ El módulo de transacciones interactuará cercanamente con:
 *   **Devolución de Proveedor (con crédito/reembolso):**
     *   El `currentBalance` de la `fundingSourceId` se incrementará.
 *   **Declaración de Saldo Inicial/Ajuste de Capital (`DECLARACION_SALDO_INICIAL_CAPITAL`):**
+    *   Utilizado principalmente al crear una `FundingSource` con saldo inicial o para cargas masivas.
+    *   Para cada entrada en el array `capitalDeclaration`:
+        *   Se buscará la `fundingSource` por `fundingSourceId`.
+        *   Se registrará su `currentBalance` actual como `previousBalance` en la transacción.
+        *   Se actualizará el `currentBalance` de la `fundingSource` al `declaredBalance` especificado.
+*   **Declaración de Operador Inicio de Día (`DECLARACION_OPERADOR_INICIO_DIA`):**
+    *   Realizada por un `operator` (o `admin`) para una única `fundingSource`.
+    *   Se verifica que no exista otra declaración para el mismo operador, fuente y día.
+    *   La entrada única en `capitalDeclaration` especifica la `fundingSourceId` y el `declaredBalance`.
+    *   Se registra el `previousBalance` de la `fundingSource`.
+    *   Se actualiza el `currentBalance` de la `fundingSource` al `declaredBalance`.
+*   **Ajuste de Administrador de Capital (`AJUSTE_ADMIN_CAPITAL`):**
+    *   Realizada exclusivamente por un `admin` para una o varias `fundingSources`.
     *   Para cada entrada en el array `capitalDeclaration`:
         *   Se buscará la `fundingSource` por `fundingSourceId`.
         *   Se registrará su `currentBalance` actual como `previousBalance` en la transacción.
@@ -132,7 +154,7 @@ El módulo de transacciones interactuará cercanamente con:
 
 *   El usuario (administrador) necesitará una interfaz para:
     *   **Crear** nuevas fuentes de fondos (ej. nueva cuenta bancaria, nueva billetera cripto).
-        *   Campos: `name`, `currency`, `type`, `details` (info específica de la cuenta), `initialBalance` (que generaría una transacción de `DECLARACION_SALDO_INICIAL_CAPITAL`).
+        *   Campos: `name`, `currency`, `type`, `details` (info específica de la cuenta), `initialBalance` (que generaría una transacción de `DECLARACION_SALDO_INICIAL_CAPITAL` o, si la crea un admin directamente, podría considerarse un `AJUSTE_ADMIN_CAPITAL` inicial).
     *   **Listar/Ver** todas las fuentes de fondos activas con sus saldos actuales.
     *   **Editar** los detalles de una fuente de fondos (ej. actualizar nombre, notas, pero no directamente el saldo, que se maneja por transacciones).
     *   **Desactivar/Archivar** fuentes de fondos que ya no se usan (en lugar de borrar, para mantener integridad histórica).
@@ -172,15 +194,24 @@ A continuación, se listan los endpoints de API propuestos para el backend que d
 
 *   **`POST /api/transactions`**
     *   **Descripción:** Crea una nueva transacción (compra, venta, ajuste, declaración de saldo, etc.).
-    *   **Autenticación:** Requerida (Operador/Admin).
+    *   **Autenticación:** Requerida (Token JWT válido). Los permisos específicos por tipo de transacción y rol se manejan dentro del controlador.
     *   **Cuerpo (Payload):** Objeto `Transaction` conforme al `type` especificado. El servidor validará la estructura y los datos.
     *   **Lógica Principal:** 
-        *   Validar datos de entrada.
-        *   Actualizar `currentStock` en `gameItems` o `externalProducts` si aplica.
-        *   Actualizar `currentBalance` en la `fundingSource` involucrada si aplica.
-        *   Registrar `fundingSourceBalanceBefore` y `fundingSourceBalanceAfter` si se configura.
-        *   Calcular y guardar `profitDetails` si aplica.
-        *   Guardar la transacción en la base de datos.
+        *   Validar datos de entrada y rol del usuario (`req.user.role`).
+        *   Para `DECLARACION_OPERADOR_INICIO_DIA`:
+            *   Permitir a `operator` o `admin`.
+            *   Validar unicidad (una entrada en `capitalDeclaration`).
+            *   Verificar que no exista otra declaración para el mismo operador, fuente y día.
+            *   El operador solo puede declarar saldo en fuentes que le pertenecen (mismo `userId`), a menos que sea `admin`.
+        *   Para `AJUSTE_ADMIN_CAPITAL`:
+            *   Permitir solo a `admin`.
+            *   Puede afectar múltiples fuentes en `capitalDeclaration`.
+        *   Para `DECLARACION_SALDO_INICIAL_CAPITAL`:
+            *   Normalmente permitido a `admin` o sistema (ej. al crear una `FundingSource` con saldo).
+        *   Actualizar `currentStock` en `gameItems` o `externalProducts` si aplica para otros tipos de transacción.
+        *   Actualizar `currentBalance` en la(s) `fundingSource`(s) involucrada(s) para los tipos que apliquen, registrando `previousBalance`.
+        *   Registrar `fundingSourceBalanceBefore` y `fundingSourceBalanceAfter` en `paymentDetails` si se configura para transacciones monetarias.
+        *   Calcular y guardar `profitDetails` si aplica (ej. para ventas).
     *   **Respuesta Exitosa (201):** El documento de la transacción creada.
     *   **Respuestas de Error:** 400 (Bad Request - datos inválidos), 401 (Unauthorized), 403 (Forbidden), 500 (Internal Server Error).
 

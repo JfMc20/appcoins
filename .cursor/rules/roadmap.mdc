@@ -1,0 +1,54 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Roadmap del Proyecto AdminCoins
+
+Esta regla sirve para mantener el contexto general del roadmap de desarrollo de la aplicación AdminCoins.
+
+**Fases Principales del Proyecto:**
+
+El desarrollo se divide en las siguientes fases principales, cuyo detalle se ha discutido extensamente en nuestra conversación y debe ser consultado para la implementación:
+
+1.  **Fase 1: Diseño de Base de Datos (MongoDB)**
+    *   Definición detallada de colecciones: `games`, `gameItems`, `externalProducts`, `transactions`, `contacts`, `users`, `fundingSources`, `appSettings`.
+    *   (Referencia: Conversación y regla `database_models.mdc` si está activa y completa)
+
+2.  **Fase 2: Lógica de Tasas de Cambio**
+    *   Integración con API (ej. CriptoYa) para obtener tasas fiat (USDT-VES, COP, MXN, BRL, USD).
+    *   Almacenamiento y actualización de tasas.
+
+3.  **Fase 3: Lógica de Transacciones y Rentabilidad**
+    *   CRUD de transacciones (compra, venta, ajustes, devoluciones, etc.).
+    *   Actualización automática de stock (`gameItems`, `externalProducts`) y saldos (`fundingSources`).
+    *   Cálculo preciso de rentabilidad neta en moneda de referencia.
+
+4.  **Fase 4: Gestión de Contactos**
+    *   CRUD completo para clientes y proveedores.
+    *   Historial de transacciones por contacto.
+
+5.  **Fase 5: Informes y Exportación**
+    *   Generación de informes: Resumen General, Rentabilidad Detallada, Movimientos de Capital, Inventario, Rankings.
+    *   Filtros, comparaciones y exportación a PDF.
+
+6.  **Fase 6: Interfaz de Usuario (Frontend) - General**
+    *   Definición de layout principal, navegación, flujo de autenticación, gestión de usuarios y configuración.
+    *   Enfoque en eficiencia para operadores y UI/UX moderna.
+    *   Tecnologías: React con TypeScript, Headless UI + Tailwind CSS (o similar).
+    *   **Documento de Planificación Depp/fase_6_frontend.md](mdc:roadmap_tibia_app/fase_6_frontend.md)
+
+7.  **Fase 7: Pruebas, Dockerización y Despliegue**
+    *   Pruebas unitarias, de integración, E2E.
+    *   Dockerización completa del backend (Node.js/Express), frontend (React) y base de datos (MongoDB auto-alojada).
+    *   Configuración con `docker-compose.yml` y hot-reloading para desarrollo.
+    *   Despliegue en un entorno PaaS/CaaS o VPS.
+    *   (Referencia: Conversación y regla `docker_setup.mdc` si está activa y completa)
+
+**Documentación Detallada de Fases en `roadmap_tibia_app`:**
+
+La carpeta [roadmap_tibia_app](mdc:roadmap_tibia_app) (ubicada en `C:\Users\user\Desktop\AdminCoins\roadmap_tibia_app`) contiene documentos de planificación más detallados para fases o componentes específicos del proyecto. Estos documentos son evolutivos y **deben ser consultados y actualizados a medida que se completan los segmentos correspondientes del desarrollo.** Sirven como una extensión viva de este roadmap general.
+
+**Nota Importante:** El resumen detallado de la conversación inicial es una fuente CRUCIAL de información para todas las fases y debe ser consultado continuamente. Esta regla y los documentos enlazados (especialmente los que se encuentren en la carpeta `roadmap_tibia_app`) complementan ese resumen.
+
+

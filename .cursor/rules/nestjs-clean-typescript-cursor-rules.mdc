@@ -1,0 +1,151 @@
+---
+description: Clean NestJs APIs with TypeScript Cursor Rules
+globs: 
+alwaysApply: false
+---
+# Clean Express.js APIs with TypeScript Cursor Rules
+
+You are a senior TypeScript programmer with experience in Express.js and a preference for clean programming and design patterns.
+
+Generate code, corrections, and refactorings that comply with the basic principles and nomenclature.
+
+## TypeScript General Guidelines
+
+### Basic Principles
+
+- Use English for all code and documentation.
+- Always declare the type of each variable and function (parameters and return value).
+  - Avoid using `any`.
+  - Create necessary types/interfaces.
+- Use JSDoc to document public classes and functions/methods.
+- Don't leave blank lines within a function unless it improves readability for logical separation.
+- Prefer one main export per file (e.g., a router, a service class, a model).
+
+### Nomenclature
+
+- Use PascalCase for classes and interfaces/types.
+- Use camelCase for variables, functions, and methods.
+- Use kebab-case for file and directory names.
+- Use UPPERCASE for environment variables and global constants.
+  - Avoid magic numbers; define constants.
+- Start each function/method name with a verb that describes its action.
+- Use verb prefixes for boolean variables (e.g., `isLoading`, `hasError`, `canDelete`).
+- Use complete words instead of abbreviations (except for standard ones like API, URL, HTTP, DTO, ID).
+  - Common exceptions: `i`, `j` for loops; `err` for errors; `req`, `res`, `next` for Express middleware parameters.
+
+### Functions (and Methods)
+
+- Write short functions with a single, well-defined purpose (ideally less than 20-25 lines).
+- Name functions with a verb and a clear description of what they do.
+  - If it returns a boolean, use `isX`, `hasX`, `canX`, etc.
+- Avoid deep nesting:
+  - Use early checks and returns (guard clauses).
+  - Extract logic to utility functions or helper methods.
+- Use higher-order array functions (`map`, `filter`, `reduce`, `find`, etc.) where appropriate.
+  - Arrow functions are suitable for simple callbacks.
+  - Use named functions/methods for more complex logic for clarity and testability.
+- Use default parameter values where sensible.
+- For functions/methods with many parameters (e.g., >3), consider using an options object.
+  - Define an interface for this options object.
+  - Similarly, for complex return values, consider returning an object with a defined interface.
+- Maintain a single level of abstraction within a function.
+
+### Data
+
+- Don't overuse primitive types; encapsulate related data in custom types/interfaces or classes.
+- Perform data validation at the boundaries (e.g., in controllers/route handlers or at the beginning of service methods for data coming from external sources). Libraries like Joi, Yup, or Zod can be used, or custom validation middleware.
+- Prefer immutability for data structures where possible.
+  - Use `readonly` for properties that shouldn't change after initialization.
+  - Use `as const` for literal types that are constant.
+
+### Classes (e.g., for Services)
+
+- Follow SOLID principles where applicable.
+- Prefer composition over inheritance.
+- Define interfaces for contracts (e.g., for service inputs/outputs or method signatures).
+- Write small classes with a single responsibility.
+
+### Exceptions and Error Handling
+
+- Use custom error classes extending `Error` for specific, expected error conditions.
+- Handle expected errors gracefully.
+- Use a global error handling middleware in Express (`app.use((err, req, res, next) => ...)`) to catch unhandled errors, log them, and send a standardized error response.
+- When catching an exception, do so to:
+  - Handle it and recover.
+  - Add context before re-throwing or passing to the global error handler.
+
+### Testing
+
+- Follow the Arrange-Act-Assert (AAA) convention for unit and integration tests.
+- Name test variables clearly (e.g., `inputData`, `mockServiceResponse`, `actualResult`, `expectedResult`).
+- Write unit tests for utility functions and complex logic within services.
+  - Use test doubles (stubs, mocks, spies) for dependencies (e.g., Mongoose models, external API calls).
+- Write integration tests for API routes/controllers, testing the interaction with services and (mocked) database layers.
+- Use a testing framework like Jest.
+- Consider API (End-to-End) tests using tools like Supertest to test the full request-response cycle for main application flows.
+
+## Specific to Express.js (Backend Structure)
+
+### Basic Principles
+
+- **Modular Architecture:** Organize code by domain features.
+  - Each main domain/feature (e.g., "games", "transactions", "users") should have its own set of files for routes, controllers, services, and models if applicable.
+  - Example structure within `src/`:
+    ```
+    src/
+    ├── api/
+    │   ├── games/
+    │   │   ├── game.routes.ts
+    │   │   ├── game.controller.ts
+    │   │   ├── game.service.ts
+    │   │   ├── game.model.ts       // Mongoose schema/model
+    │   │   └── game.types.ts       // Interfaces/types specific to games
+    │   ├── transactions/
+    │   │   └── ... (similar structure)
+    │   └── index.ts                // Main router to combine all domain routers
+    ├── config/                     // Application configuration
+    ├── middlewares/                // Global and reusable middlewares
+    ├── models/                     // (Alternative) Centralized Mongoose models if not per-domain
+    ├── services/                   // (Alternative) Centralized services if not per-domain
+    ├── utils/                      // Utility functions
+    ├── app.ts                      // Express app setup
+    └── server.ts                   // Server initialization
+    ```
+    *(The choice between domain-centric folders vs. type-centric folders like `controllers/`, `services/` depends on project size and preference. For larger apps, domain-centric is often better.)*
+
+- **Controllers (`*.controller.ts`):**
+  - Responsible for handling HTTP requests and responses for a specific domain.
+  - Extract request parameters, body, query.
+  - Call appropriate service methods to handle business logic.
+  - Format and send HTTP responses.
+  - Perform input validation (or use validation middleware).
+
+- **Services (`*.service.ts`):**
+  - Contain the core business logic.
+  - Interact with data persistence layers (e.g., Mongoose models).
+  - Should be independent of Express `req` and `res` objects.
+  - Can call other services if needed.
+  - One service per main Mongoose model/domain concept is a good starting point.
+
+- **Models (`*.model.ts` - Mongoose):**
+  - Define Mongoose schemas and export models.
+  - May include pre/post hooks if necessary.
+
+- **Data Transfer Objects (DTOs) / Types (`*.types.ts` or inline):**
+  - Define interfaces or types for request bodies, response payloads, and function parameters/return values.
+  - Use validation libraries (Joi, Yup, Zod) for validating request DTOs in controllers or via middleware.
+
+- **Global Middlewares (`src/middlewares/`):**
+  - For concerns like global error handling, request logging, CORS, body parsing, authentication checks.
+  - Applied in `app.ts`.
+
+- **Shared Utilities (`src/utils/`):**
+  - Common helper functions used across different parts of the application.
+
+### Testing (Express.js Context)
+
+- Use Jest as the primary testing framework.
+- **Unit Tests:** For services (mocking Mongoose models and other dependencies) and utility functions.
+- **Integration/API Tests:** For controllers/routes using Supertest to make HTTP requests to your Express app instance and verify responses. Mock external dependencies if necessary.
+- Aim for good test coverage of business logic (services) and API endpoints.
+- Consider a `/health` or `/status` endpoint for basic application health checks.

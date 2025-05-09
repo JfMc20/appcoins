@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/authController';
+import { registerUser, loginUser, getRegistrationStatus } from '../controllers/authController';
 import { logger } from '../utils/logger';
 
 const router = express.Router();
@@ -10,6 +10,9 @@ router.post('/register', registerUser);
 
 // POST /api/auth/login - Autenticar un usuario y obtener token JWT
 router.post('/login', loginUser);
+
+// GET /api/auth/registration-status - Verificar si el registro está abierto
+router.get('/registration-status', getRegistrationStatus);
 
 // Se podrían añadir otras rutas relacionadas con auth aquí en el futuro
 // ej. /password-reset, /verify-email, /refresh-token

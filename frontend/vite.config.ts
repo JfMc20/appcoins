@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default ({ mode }: { mode: string }) => {
@@ -11,7 +12,10 @@ export default ({ mode }: { mode: string }) => {
   const allowedHostname = env.VITE_ALLOWED_HOSTNAME || 'localhost'
 
   return defineConfig({
-    plugins: [react()],
+    plugins: [
+      react(),
+      tailwindcss(),
+    ],
     server: {
       // host: '0.0.0.0', // Esto ya lo manejas con el flag --host 0.0.0.0 en package.json
       port: parseInt(env.VITE_PORT) || 5173,

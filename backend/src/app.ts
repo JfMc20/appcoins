@@ -2,12 +2,17 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import { logger } from './utils/logger'; // Importar logger
+import { WachstumRateLimiter } from './middleware/rateLimiter'; // Asegúrate que la ruta sea correcta
+import { NotFoundError, AppError } from './utils/errorHandler';
+import { globalErrorHandler } from './middleware/errorHandlingMiddleware';
 
 // Importar rutas
 import settingsRoutes from './routes/settingsRoutes';
 import fundingSourceRoutes from './routes/fundingSourceRoutes';
 import authRoutes from './routes/authRoutes';
 import transactionRoutes from './routes/transactionRoutes';
+import adminRoutes from './routes/adminRoutes'; // Importar las nuevas rutas de admin
+import userRoutes from './routes/UserRoutes'; // <--- AÑADIR ESTA IMPORTACIÓN
 
 // Inicializar la aplicación Express
 const app: Application = express();
@@ -40,20 +45,31 @@ app.use('/api/settings', settingsRoutes);
 logger.info('[App] Montando rutas de fundingSources en /api/funding-sources...');
 app.use('/api/funding-sources', fundingSourceRoutes);
 
-logger.info('[App] Montando rutas de transactions en /api/transactions...');
-app.use('/api/transactions', transactionRoutes);
+// logger.info('[App] Montando rutas de transactions en /api/transactions...');
+// app.use('/api/transactions', transactionRoutes); // Comentado previamente para diagnóstico
+
+logger.info('[App] Montando rutas de gestión de usuarios en /api/admin/users...'); // <--- AÑADIR LOG
+app.use('/api/admin/users', userRoutes); // <--- MONTAR LAS NUEVAS RUTAS
+
+// logger.info('[App] Montando rutas de admin en /api/admin...');
+// app.use('/api/admin', adminRoutes); // Comentado previamente para diagnóstico
 
 // app.use('/api/games', gameRoutes);
 // ... etc
 
-// Middleware de manejo de errores (usando logger)
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  logger.error('Error no manejado:', err.stack);
-  // Evitar enviar detalles del error en producción por seguridad
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode; // Si no se puso status antes, default a 500
-  res.status(statusCode).json({
-    message: process.env.NODE_ENV === 'production' ? 'Error interno del servidor' : err.message
-  });
+// Manejo de rutas no encontradas (404) - Alternativa
+// app.all('*', (req, res, next) => {
+//   const err = new NotFoundError(`No se encuentra la ruta ${req.originalUrl} en este servidor.`);
+//   next(err);
+// }); // Este es el que causaba problemas, lo dejamos comentado y eliminado su referencia de "mantener comentado"
+
+// Alternativa para manejo de 404: middleware sin ruta específica
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const err = new NotFoundError(`No se encuentra la ruta ${req.originalUrl} en este servidor.`);
+  next(err);
 });
+
+// Middleware global de manejo de errores
+app.use(globalErrorHandler);
 
 export default app; 

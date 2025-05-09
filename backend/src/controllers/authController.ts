@@ -27,10 +27,27 @@ const generateToken = (id: string, role: string): string => {
  * @access  Public (o protegido por Admin en algunos casos)
  */
 export const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { username, email, password, fullName, role } = req.body;
+  const { username, email, password, fullName } = req.body;
 
   try {
-    // Verificar si el usuario ya existe
+    // Contar cuántos usuarios existen en la base de datos
+    const userCount = await UserModel.countDocuments();
+
+    let userRole: 'admin' | 'operator';
+
+    if (userCount === 0) {
+      // Si no hay usuarios, este es el primer usuario y debe ser administrador
+      userRole = 'admin';
+      logger.info('Primer usuario registrándose. Se asignará rol de administrador.');
+    } else {
+      // Si ya hay usuarios, el registro público está deshabilitado.
+      // Un administrador deberá crear nuevos usuarios operadores.
+      logger.warn(`Intento de registro público bloqueado. Ya existen ${userCount} usuarios.`);
+      res.status(403).json({ message: 'El registro de nuevos usuarios está actualmente deshabilitado. Contacte a un administrador.' });
+      return;
+    }
+
+    // Verificar si el email o username ya existe (esta verificación es válida para el primer admin también)
     const userExists = await UserModel.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
       res.status(400).json({ message: 'El usuario o email ya existe.' });
@@ -43,7 +60,7 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
       email,
       passwordHash: password, // Pasamos la contraseña plana aquí, el pre-save hook hashea
       fullName,
-      role: role || 'operator', // Default a operator si no se especifica
+      role: userRole, // Usamos el userRole determinado por la lógica anterior
     });
 
     if (user) {
@@ -117,6 +134,25 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     }
   } catch (error) {
     logger.error('Error durante el login:', error);
+    next(error);
+  }
+};
+
+/**
+ * @desc    Verificar el estado del registro público
+ * @route   GET /api/auth/registration-status
+ * @access  Public
+ */
+export const getRegistrationStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userCount = await UserModel.countDocuments();
+    if (userCount === 0) {
+      res.status(200).json({ status: 'open', message: 'El registro está abierto.' });
+    } else {
+      res.status(200).json({ status: 'closed', message: 'El registro de nuevos usuarios está actualmente deshabilitado. Contacte a un administrador.' });
+    }
+  } catch (error) {
+    logger.error('Error al obtener el estado del registro:', error);
     next(error);
   }
 }; 

@@ -14,6 +14,15 @@ export interface IAverageCost {
   currency: string; // Moneda de referencia, ej. USDT
 }
 
+// Interfaz para el subdocumento de precios
+export interface IPricingStrategy {
+  strategy: 'fixed' | 'margin' | 'other';
+  referenceCurrency: string; // ej. "USDT"
+  sellPricePerUnit?: number;
+  buyPricePerUnit?: number;
+  lastUpdated?: Date;
+}
+
 // Interfaz para el documento GameItem
 export interface IGameItem extends Document {
   gameId: Types.ObjectId | IGame; // Referencia al juego al que pertenece
@@ -31,6 +40,7 @@ export interface IGameItem extends Document {
   status: 'active' | 'archived' | 'rare_find'; // Estado del ítem
   attributes?: IItemAttribute[]; // Propiedades dinámicas
   averageCostRef?: IAverageCost; // Costo promedio ponderado en moneda de referencia
+  pricing?: IPricingStrategy; // Información de precios
   // Timestamps de Mongoose
   createdAt?: Date;
   updatedAt?: Date;
@@ -44,6 +54,33 @@ const ItemAttributeSchema: Schema<IItemAttribute> = new Schema({
 const AverageCostSchema: Schema<IAverageCost> = new Schema({
   amount: { type: Number, required: true },
   currency: { type: String, required: true, uppercase: true, trim: true },
+}, { _id: false });
+
+const PricingStrategySchema: Schema<IPricingStrategy> = new Schema({
+  strategy: {
+    type: String,
+    enum: ['fixed', 'margin', 'other'],
+    required: true,
+    default: 'fixed',
+  },
+  referenceCurrency: {
+    type: String,
+    required: true,
+    uppercase: true,
+    trim: true,
+    default: 'USDT', // Asumiendo USDT como default, puede ser configurable
+  },
+  sellPricePerUnit: {
+    type: Number,
+    min: 0,
+  },
+  buyPricePerUnit: {
+    type: Number,
+    min: 0,
+  },
+  lastUpdated: {
+    type: Date,
+  },
 }, { _id: false });
 
 const GameItemSchema: Schema<IGameItem> = new Schema(
@@ -128,6 +165,10 @@ const GameItemSchema: Schema<IGameItem> = new Schema(
     averageCostRef: {
       type: AverageCostSchema,
       // No hay default, se calculará y establecerá por lógica de negocio
+    },
+    pricing: {
+      type: PricingStrategySchema,
+      // Se definirá al crear/actualizar el ítem si es 'tradable'
     },
   },
   {

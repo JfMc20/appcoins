@@ -11,7 +11,7 @@ API RESTful para la aplicación AdminCoins, construida con Node.js, Express, Typ
     PORT=3002
     MONGODB_URI=mongodb://localhost:27017/AdminCoins # Ajusta si tu MongoDB está en otro lugar
     API_SECRET_KEY=tu_clave_secreta_aqui # Clave para autenticación básica de API de settings
-    JWT_SECRET=tu_jwt_secret_super_seguro_aqui # Secreto para firmar los JSON Web Tokens
+    JWT_SECRET=Token_JWT # Secreto para firmar los JSON Web Tokens
     JWT_EXPIRES_IN=30d # Tiempo de expiración para los JWT (ej. 30d, 1h, 60m)
     # LOG_LEVEL=debug # Opcional: para ver más logs
     ```

@@ -34,9 +34,9 @@ export const createUserByAdmin = async (req: Request, res: Response, next: NextF
 
     if (user) {
       logger.info(`Usuario creado por admin: ${user.username} (${user.email}) con rol ${user.role}`);
-      // Excluimos passwordHash de la respuesta
-      const userResponse = user.toObject();
-      delete userResponse.passwordHash;
+      // Excluimos passwordHash de la respuesta usando desestructuración
+      const userObj = user.toObject();
+      const { passwordHash, ...userResponse } = userObj;
       res.status(201).json(userResponse);
     } else {
       // Esto no debería ocurrir si .create no lanza error, pero por si acaso.
@@ -136,9 +136,9 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     // Guardar los cambios
     const updatedUser = await user.save();
     
-    // Devolver usuario actualizado sin passwordHash
-    const userResponse = updatedUser.toObject();
-    delete userResponse.passwordHash;
+    // Devolver usuario actualizado sin passwordHash usando desestructuración
+    const userObj = updatedUser.toObject();
+    const { passwordHash, ...userResponse } = userObj;
     
     res.status(200).json(userResponse);
     logger.info(`Usuario actualizado: ${user.username} (${user.email})`);
@@ -175,7 +175,8 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
       }
     }
     
-    await user.remove();
+    // Usar deleteOne() en lugar de remove() que está obsoleto
+    await UserModel.deleteOne({ _id: user._id });
     
     res.status(200).json({ message: 'Usuario eliminado exitosamente' });
     logger.info(`Usuario eliminado: ${user.username} (${user.email})`);

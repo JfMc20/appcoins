@@ -32,22 +32,15 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
   try {
     // Contar cuántos usuarios existen en la base de datos
     const userCount = await UserModel.countDocuments();
+    const testUser = await UserModel.findOne({ email: 'test@test.com' });
+    
+    // Contar usuarios reales (excluyendo el usuario de prueba)
+    const realUserCount = testUser ? userCount - 1 : userCount;
 
-    let userRole: 'admin' | 'operator';
-
-    // Permitir hasta 2 usuarios mediante registro público
-    if (userCount === 0) {
-      // Si no hay usuarios, este es el primer usuario y debe ser administrador
-      userRole = 'admin';
-      logger.info('Primer usuario registrándose. Se asignará rol de administrador.');
-    } else if (userCount === 1) {
-      // Si hay un usuario, este es el segundo y será operador
-      userRole = 'operator';
-      logger.info('Segundo usuario registrándose. Se asignará rol de operador.');
-    } else {
-      // A partir del tercer usuario, el registro público está deshabilitado
-      logger.warn(`Intento de registro público bloqueado. Ya existen ${userCount} usuarios.`);
-      res.status(403).json({ message: 'El registro de nuevos usuarios está actualmente deshabilitado. Contacte a un administrador.' });
+    // Si ya existe un usuario real (diferente del test@test.com), bloquear el registro
+    if (realUserCount >= 1) {
+      logger.warn(`Intento de registro público bloqueado. Ya existe un usuario administrador.`);
+      res.status(403).json({ message: 'El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador.' });
       return;
     }
 
@@ -58,18 +51,18 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    // Crear usuario
+    // El nuevo usuario será administrador
     const user = await UserModel.create({
       username,
       email,
       passwordHash: password, // Pasamos la contraseña plana aquí, el pre-save hook hashea
       fullName,
-      role: userRole,
+      role: 'admin', // Este usuario será el administrador real
       status: 'active',
     });
 
     if (user) {
-      logger.info(`Usuario registrado: ${user.username} (${user.email}) con rol ${user.role}`);
+      logger.info(`Usuario administrador registrado: ${user.username} (${user.email})`);
       
       // Devolver los datos del usuario sin el token (requiere login explícito)
       res.status(201).json({ _id: user._id, username: user.username, email: user.email, role: user.role });
@@ -134,11 +127,20 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
  */
 export const getRegistrationStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    // Contar usuarios en la base de datos
     const userCount = await UserModel.countDocuments();
-    if (userCount < 2) {
-      res.status(200).json({ status: 'open', message: 'El registro está abierto.' });
+    
+    // Verificar si existe el usuario de prueba
+    const testUser = await UserModel.findOne({ email: 'test@test.com' });
+    
+    // Contar usuarios reales (excluyendo el usuario de prueba)
+    const realUserCount = testUser ? userCount - 1 : userCount;
+    
+    // Si no hay usuarios reales, el registro está abierto
+    if (realUserCount < 1) {
+      res.status(200).json({ status: 'open', message: 'El registro está abierto para crear un usuario administrador.' });
     } else {
-      res.status(200).json({ status: 'closed', message: 'El registro de nuevos usuarios está actualmente deshabilitado. Contacte a un administrador.' });
+      res.status(200).json({ status: 'closed', message: 'El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador.' });
     }
   } catch (error) {
     logger.error('Error al obtener el estado del registro:', error);

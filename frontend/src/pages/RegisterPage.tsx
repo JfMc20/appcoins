@@ -21,7 +21,7 @@ const RegisterPage: React.FC = () => {
   const { registerUser, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
-  // Usuario de prueba (operador)
+  // Usuario de prueba
   const testUser = {
     username: 'testuser',
     email: 'test@test.com',
@@ -231,7 +231,7 @@ const RegisterPage: React.FC = () => {
                 variant="secondary"
                 fullWidth
               >
-                Completar con usuario de prueba (operador)
+                Completar con usuario de prueba
               </Button>
             </div>
           </div>

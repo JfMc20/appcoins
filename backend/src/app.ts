@@ -11,8 +11,8 @@ import settingsRoutes from './routes/settingsRoutes';
 import fundingSourceRoutes from './routes/fundingSourceRoutes';
 import authRoutes from './routes/authRoutes';
 import transactionRoutes from './routes/transactionRoutes';
-import adminRoutes from './routes/adminRoutes'; // Importar las nuevas rutas de admin
-import userRoutes from './routes/UserRoutes'; // <--- AÑADIR ESTA IMPORTACIÓN
+import adminRoutes from './routes/adminRoutes'; // Importar las rutas de admin
+import userRoutes from './routes/UserRoutes'; // Importar rutas de gestión de usuarios
 
 // Inicializar la aplicación Express
 const app: Application = express();
@@ -45,25 +45,19 @@ app.use('/api/settings', settingsRoutes);
 logger.info('[App] Montando rutas de fundingSources en /api/funding-sources...');
 app.use('/api/funding-sources', fundingSourceRoutes);
 
-// logger.info('[App] Montando rutas de transactions en /api/transactions...');
-// app.use('/api/transactions', transactionRoutes); // Comentado previamente para diagnóstico
+logger.info('[App] Montando rutas de transactions en /api/transactions...');
+app.use('/api/transactions', transactionRoutes);
 
-logger.info('[App] Montando rutas de gestión de usuarios en /api/admin/users...'); // <--- AÑADIR LOG
-app.use('/api/admin/users', userRoutes); // <--- MONTAR LAS NUEVAS RUTAS
+logger.info('[App] Montando rutas de gestión de usuarios en /api/admin/users...');
+app.use('/api/admin/users', userRoutes);
 
-// logger.info('[App] Montando rutas de admin en /api/admin...');
-// app.use('/api/admin', adminRoutes); // Comentado previamente para diagnóstico
+logger.info('[App] Montando rutas de admin en /api/admin...');
+app.use('/api/admin', adminRoutes);
 
 // app.use('/api/games', gameRoutes);
 // ... etc
 
-// Manejo de rutas no encontradas (404) - Alternativa
-// app.all('*', (req, res, next) => {
-//   const err = new NotFoundError(`No se encuentra la ruta ${req.originalUrl} en este servidor.`);
-//   next(err);
-// }); // Este es el que causaba problemas, lo dejamos comentado y eliminado su referencia de "mantener comentado"
-
-// Alternativa para manejo de 404: middleware sin ruta específica
+// Manejo de rutas no encontradas (404)
 app.use((req: Request, res: Response, next: NextFunction) => {
   const err = new NotFoundError(`No se encuentra la ruta ${req.originalUrl} en este servidor.`);
   next(err);

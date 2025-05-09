@@ -3,18 +3,20 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import HomePage from '../pages/HomePage'; // Crearemos esta página simple pronto
+import UserManagementPage from '../pages/admin/UserManagementPage'; // Importar la nueva página
 import { useAuth } from '../contexts/AuthContext';
 import { Layout, LoadingSpinner } from '../components/common';
 
 // Definimos las props para ProtectedRoute
 interface ProtectedRouteProps {
   children: React.JSX.Element; // Esperamos un elemento JSX como hijo
+  requireAdmin?: boolean; // Nueva prop para rutas que requieren ser admin
 }
 
 // Componente para rutas protegidas
 // Especificamos que retorna React.JSX.Element o null
-const ProtectedRoute = ({ children }: ProtectedRouteProps): React.JSX.Element | null => {
-  const { isAuthenticated, isLoading } = useAuth();
+const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps): React.JSX.Element | null => {
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return <LoadingSpinner message="Verificando autenticación..." />;
@@ -22,6 +24,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps): React.JSX.Element | 
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Verificación adicional para rutas de administración
+  if (requireAdmin && user?.role !== 'admin') {
+    return <Navigate to="/" replace />;
   }
 
   return children;
@@ -47,6 +54,16 @@ const AppRouter: React.FC = () => {
             element={
               <ProtectedRoute>
                 <HomePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de administración */}
+          <Route 
+            path="/admin/users" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <UserManagementPage />
               </ProtectedRoute>
             }
           />

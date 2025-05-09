@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface LayoutProps {
@@ -30,6 +30,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate('/login');
   };
 
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
       {/* Barra de navegación */}
@@ -38,15 +42,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
-                <span className="text-xl font-bold text-gray-800 dark:text-white">AppCoins</span>
+                <Link to="/" className="text-xl font-bold text-gray-800 dark:text-white">AppCoins</Link>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <a 
-                  href="/" 
+                <Link 
+                  to="/" 
                   className="border-transparent text-gray-900 dark:text-gray-100 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                 >
                   Inicio
-                </a>
+                </Link>
               </div>
             </div>
             <div className="flex items-center">
@@ -81,8 +85,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10">
                       <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
                         {user.email}
+                        {user.role === 'admin' && (
+                          <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                            Admin
+                          </span>
+                        )}
                       </div>
-                      <div className="border-t border-gray-200 dark:border-gray-700"></div>
+                      
+                      {/* Opciones de administración (solo para admin) */}
+                      {user.role === 'admin' && (
+                        <>
+                          <div className="border-t border-gray-200 dark:border-gray-700"></div>
+                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Administración
+                          </div>
+                          <Link
+                            to="/admin/users"
+                            onClick={closeMenu}
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            Gestión de Usuarios
+                          </Link>
+                        </>
+                      )}
+                      
+                      <div className="border-t border-gray-200 dark:border-gray-700 mt-1"></div>
                       <button
                         onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -94,12 +121,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               ) : (
                 <div className="ml-3 flex items-center">
-                  <a
-                    href="/login"
+                  <Link
+                    to="/login"
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-white"
                   >
                     Iniciar sesión
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>

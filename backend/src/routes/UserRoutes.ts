@@ -1,10 +1,10 @@
 import express from 'express';
 import {
   createUserByAdmin,
-  // getUsers, // Descomentar cuando se implementen
-  // getUserById,
-  // updateUser,
-  // deleteUser
+  getUsers,
+  getUserById,
+  updateUser,
+  deleteUser
 } from '../controllers/UserController';
 import { protectWithJwt, restrictTo } from '../middleware/authMiddleware';
 import { logger } from '../utils/logger';
@@ -20,12 +20,12 @@ router.use(restrictTo('admin')); // Luego, asegurar que el usuario es admin
 router.post('/', createUserByAdmin);
 
 // GET / (ej. /api/admin/users) - Listar todos los usuarios
-// router.get('/', getUsers);
+router.get('/', getUsers);
 
 // Rutas para un usuario específico por ID
-// router.route('/:id')
-//   .get(getUserById)
-//   .put(updateUser)
-//   .delete(deleteUser);
+router.route('/:id')
+  .get(getUserById)
+  .put(updateUser)
+  .delete(deleteUser);
 
 export default router; 

@@ -21,10 +21,10 @@ const RegisterPage: React.FC = () => {
   const { registerUser, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
-  // Usuario de prueba actualizado
+  // Usuario de prueba actualizado con el email correcto
   const testUser = {
     username: 'testuser',
-    email: 'test@testm',
+    email: 'test@test.com',
     password: 'test12345',
     fullName: 'Usuario de Prueba'
   };

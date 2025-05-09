@@ -35,42 +35,44 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
 
     let userRole: 'admin' | 'operator';
 
+    // Permitir hasta 2 usuarios mediante registro público
     if (userCount === 0) {
       // Si no hay usuarios, este es el primer usuario y debe ser administrador
       userRole = 'admin';
       logger.info('Primer usuario registrándose. Se asignará rol de administrador.');
+    } else if (userCount === 1) {
+      // Si hay un usuario, este es el segundo y será operador
+      userRole = 'operator';
+      logger.info('Segundo usuario registrándose. Se asignará rol de operador.');
     } else {
-      // Si ya hay usuarios, el registro público está deshabilitado.
-      // Un administrador deberá crear nuevos usuarios operadores.
+      // A partir del tercer usuario, el registro público está deshabilitado
       logger.warn(`Intento de registro público bloqueado. Ya existen ${userCount} usuarios.`);
       res.status(403).json({ message: 'El registro de nuevos usuarios está actualmente deshabilitado. Contacte a un administrador.' });
       return;
     }
 
-    // Verificar si el email o username ya existe (esta verificación es válida para el primer admin también)
+    // Verificar si el email o username ya existe
     const userExists = await UserModel.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
       res.status(400).json({ message: 'El usuario o email ya existe.' });
       return;
     }
 
-    // Crear usuario (la contraseña en texto plano se pasa a passwordHash, el hook pre-save la hasheará)
+    // Crear usuario
     const user = await UserModel.create({
       username,
       email,
       passwordHash: password, // Pasamos la contraseña plana aquí, el pre-save hook hashea
       fullName,
-      role: userRole, // Usamos el userRole determinado por la lógica anterior
+      role: userRole,
+      status: 'active',
     });
 
     if (user) {
-      logger.info(`Usuario registrado: ${user.username} (${user.email})`);
-      // Opcional: devolver el token directamente al registrar
-      // const token = generateToken(user._id.toString(), user.role);
-      // res.status(201).json({ _id: user._id, username: user.username, email: user.email, role: user.role, token });
+      logger.info(`Usuario registrado: ${user.username} (${user.email}) con rol ${user.role}`);
       
-      // O simplemente devolver los datos del usuario sin el token (requiere login explícito)
-       res.status(201).json({ _id: user._id, username: user.username, email: user.email, role: user.role });
+      // Devolver los datos del usuario sin el token (requiere login explícito)
+      res.status(201).json({ _id: user._id, username: user.username, email: user.email, role: user.role });
     } else {
       res.status(400).json({ message: 'Datos de usuario inválidos.' });
     }
@@ -99,17 +101,11 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    // Buscar usuario por email (el campo passwordHash no se selecciona por defecto si usamos select: false)
-    // Necesitamos pedirlo explícitamente si lo necesitamos para comparar.
-    // Edit: Cambiamos el schema a no usar select: false en passwordHash, así que ya viene.
-    const user = await UserModel.findOne({ email }); //.select('+passwordHash'); // Descomentar si se usa select: false en el modelo
+    // Buscar usuario por email
+    const user = await UserModel.findOne({ email });
 
     if (user && (await user.comparePassword(password))) {
       logger.info(`Login exitoso para: ${user.email}`);
-      // Resetear intentos fallidos si se implementa bloqueo
-      // user.failedLoginAttempts = 0;
-      // user.lockUntil = undefined;
-      // await user.save();
       
       const token = generateToken(user.id, user.role);
       res.json({
@@ -118,18 +114,11 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
         email: user.email,
         role: user.role,
         fullName: user.fullName,
+        status: user.status,
         token,
       });
     } else {
       logger.warn(`Intento de login fallido para: ${email}`);
-      // Implementar lógica de bloqueo por intentos fallidos si se desea
-      // if (user) {
-      //   user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
-      //   if (user.failedLoginAttempts >= 5) { // Ejemplo: bloquear tras 5 intentos
-      //     user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Bloquear por 15 min
-      //   }
-      //   await user.save();
-      // }
       res.status(401).json({ message: 'Email o contraseña inválidos.' });
     }
   } catch (error) {
@@ -146,7 +135,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
 export const getRegistrationStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userCount = await UserModel.countDocuments();
-    if (userCount === 0) {
+    if (userCount < 2) {
       res.status(200).json({ status: 'open', message: 'El registro está abierto.' });
     } else {
       res.status(200).json({ status: 'closed', message: 'El registro de nuevos usuarios está actualmente deshabilitado. Contacte a un administrador.' });

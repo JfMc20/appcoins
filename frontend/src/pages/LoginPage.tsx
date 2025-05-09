@@ -12,9 +12,15 @@ const LoginPage: React.FC = () => {
   const { loginUser, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
-  // Usuario de prueba
+  // Usuario de prueba (operador)
   const testUser = {
     email: 'test@test.com',
+    password: 'test12345'
+  };
+
+  // Credenciales de administrador (no mostrar en producción)
+  const adminUser = {
+    email: 'admin.secure@appcoins.com',
     password: 'test12345'
   };
 
@@ -33,6 +39,11 @@ const LoginPage: React.FC = () => {
   const handleUseTestUser = () => {
     setEmail(testUser.email);
     setPassword(testUser.password);
+  };
+
+  const handleUseAdminUser = () => {
+    setEmail(adminUser.email);
+    setPassword(adminUser.password);
   };
 
   return (
@@ -110,8 +121,32 @@ const LoginPage: React.FC = () => {
                 variant="secondary"
                 fullWidth
               >
-                Usar cuenta de prueba
+                Usar cuenta de prueba (operador)
               </Button>
+            </div>
+            
+            <div className="mt-2">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-medium">
+                    Acceso administrativo
+                  </span>
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <Button
+                  onClick={handleUseAdminUser}
+                  variant="secondary"
+                  fullWidth
+                  className="bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 dark:text-purple-300 border-purple-300 dark:border-purple-800"
+                >
+                  Usar cuenta de administrador
+                </Button>
+              </div>
             </div>
           </div>
 

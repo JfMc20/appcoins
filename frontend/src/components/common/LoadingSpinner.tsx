@@ -31,7 +31,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     <div className={container}>
       <div className="flex flex-col items-center justify-center">
         <svg 
-          className={`animate-spin ${sizeClasses[size]} text-primary dark:text-primary-light`} 
+          className={`animate-spin ${sizeClasses[size]} text-gray-700 dark:text-gray-300`} 
           xmlns="http://www.w3.org/2000/svg" 
           fill="none" 
           viewBox="0 0 24 24"

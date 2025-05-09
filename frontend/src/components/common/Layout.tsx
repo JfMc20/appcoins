@@ -38,7 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center">
-                <span className="text-xl font-bold text-primary dark:text-primary-light">AppCoins</span>
+                <span className="text-xl font-bold text-gray-800 dark:text-white">AppCoins</span>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 <a 
@@ -69,10 +69,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <div>
                     <button 
                       onClick={() => setMenuOpen(!menuOpen)}
-                      className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                      className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                     >
                       <span className="sr-only">Abrir menú de usuario</span>
-                      <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-full bg-gray-700 text-white flex items-center justify-center">
                         {user.email.charAt(0).toUpperCase()}
                       </div>
                     </button>
@@ -96,7 +96,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="ml-3 flex items-center">
                   <a
                     href="/login"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
                   >
                     Iniciar sesión
                   </a>

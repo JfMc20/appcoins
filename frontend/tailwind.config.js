@@ -8,24 +8,24 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          light: '#9061F9',
-          DEFAULT: '#6D28D9',
-          dark: '#4C1D95',
+          light: '#4B5563',
+          DEFAULT: '#374151',
+          dark: '#1F2937',
         },
         background: {
-          light: '#ffffff',
-          DEFAULT: '#f3f4f6',
-          dark: '#1f2937',
-        },
-        surface: {
-          light: '#f9fafb',
-          DEFAULT: '#ffffff',
+          light: '#F9FAFB',
+          DEFAULT: '#F3F4F6',
           dark: '#111827',
         },
+        surface: {
+          light: '#FFFFFF',
+          DEFAULT: '#F9FAFB',
+          dark: '#1F2937',
+        },
         text: {
-          light: '#f9fafb',
-          DEFAULT: '#1f2937',
-          dark: '#f9fafb',
+          light: '#FFFFFF',
+          DEFAULT: '#111827',
+          dark: '#FFFFFF',
         },
       },
     },

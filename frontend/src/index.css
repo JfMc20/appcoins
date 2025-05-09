@@ -20,7 +20,7 @@
   }
 
   a {
-    @apply text-primary hover:text-primary-dark dark:text-primary-light dark:hover:text-blue-400;
+    @apply text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white;
   }
 }
 

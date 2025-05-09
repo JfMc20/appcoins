@@ -17,14 +17,15 @@ const RegisterPage: React.FC = () => {
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatusResponse | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
   const [statusError, setStatusError] = useState<string | null>(null);
+  const [showTestUserDetails, setShowTestUserDetails] = useState(false);
   const { registerUser, isLoading, error } = useAuth();
   const navigate = useNavigate();
 
-  // Usuario de prueba predefinido
+  // Usuario de prueba actualizado
   const testUser = {
-    username: 'usertest',
-    email: 'test@example.com',
-    password: 'password123',
+    username: 'testuser',
+    email: 'test@testm',
+    password: 'test12345',
     fullName: 'Usuario de Prueba'
   };
 
@@ -65,6 +66,10 @@ const RegisterPage: React.FC = () => {
     setFullName(testUser.fullName);
   };
 
+  const toggleTestUserDetails = () => {
+    setShowTestUserDetails(!showTestUserDetails);
+  };
+
   if (statusLoading) {
     return <LoadingSpinner fullScreen message="Verificando disponibilidad de registro..." />;
   }
@@ -80,7 +85,7 @@ const RegisterPage: React.FC = () => {
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <Card className="px-4 py-8 sm:px-10">
+          <Card className="px-4 py-8 sm:px-10 bg-gray-50 dark:bg-gray-800">
             <div className="text-center">
               <p className="mb-4 text-gray-700 dark:text-gray-300">
                 {statusError || registrationStatus?.message || 'El registro de nuevos usuarios está temporalmente desactivado.'}
@@ -88,11 +93,24 @@ const RegisterPage: React.FC = () => {
               <p className="mb-6 text-gray-700 dark:text-gray-300">
                 Puedes utilizar nuestro usuario de prueba para acceder al sistema.
               </p>
-              <div className="mb-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-md text-left">
-                <p className="font-medium text-gray-900 dark:text-white mb-2">Datos de usuario de prueba:</p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">Email: {testUser.email}</p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">Contraseña: {testUser.password}</p>
-              </div>
+              
+              <Button
+                onClick={toggleTestUserDetails}
+                variant="secondary"
+                fullWidth
+                className="mb-4"
+              >
+                {showTestUserDetails ? 'Ocultar datos de prueba' : 'Mostrar datos de prueba'}
+              </Button>
+              
+              {showTestUserDetails && (
+                <div className="mb-6 bg-gray-200 dark:bg-gray-700 p-4 rounded-md text-left border border-gray-300 dark:border-gray-600">
+                  <p className="font-medium text-gray-900 dark:text-white mb-2">Datos de usuario de prueba:</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">Email: {testUser.email}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">Contraseña: {testUser.password}</p>
+                </div>
+              )}
+              
               <Button
                 onClick={() => navigate('/login')}
                 variant="primary"
@@ -116,7 +134,7 @@ const RegisterPage: React.FC = () => {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <Card className="px-4 py-8 sm:px-10">
+        <Card className="px-4 py-8 sm:px-10 bg-gray-50 dark:bg-gray-800">
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="Nombre de Usuario"
@@ -125,6 +143,7 @@ const RegisterPage: React.FC = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              className="bg-gray-200 dark:bg-gray-700"
             />
             
             <Input
@@ -135,6 +154,7 @@ const RegisterPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="bg-gray-200 dark:bg-gray-700"
             />
 
             <Input
@@ -145,6 +165,7 @@ const RegisterPage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="bg-gray-200 dark:bg-gray-700"
             />
 
             <Input
@@ -153,6 +174,7 @@ const RegisterPage: React.FC = () => {
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              className="bg-gray-200 dark:bg-gray-700"
             />
 
             {error && !registrationSuccess && (
@@ -197,7 +219,7 @@ const RegisterPage: React.FC = () => {
                 <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                <span className="px-2 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                   O usa datos de prueba
                 </span>
               </div>

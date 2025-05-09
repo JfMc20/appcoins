@@ -1,9 +1,23 @@
-// import './App.css'; // Ya no necesitamos los estilos específicos de App.css por ahora
-import { AppRouter } from './router'; // Importar AppRouter desde el directorio router (index.tsx)
+import React, { useEffect } from 'react';
+import AppRouter from './router/AppRouter';
+import { AuthProvider } from './contexts/AuthContext';
+import './App.css';
 
 function App() {
+  // Inicializar dark mode basado en localStorage o preferencia del sistema
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('darkMode') === 'true';
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme || (prefersDark && savedTheme === null)) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
   return (
-    <AppRouter />
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 }
 

@@ -1,0 +1,35 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Guía de Integración de HeroUI en AdminCoins Frontend
+
+Este documento describe la integración de la biblioteca de componentes **HeroUI** en el frontend del proyecto AdminCoins.
+
+## Configuración Principal
+
+La configuración de HeroUI involucra los siguientes archivos clave:
+
+1.  **Instalación de Dependencias:**
+    *   HeroUI (`@heroui/react`) y su par (`framer-motion`) se instalan como dependencias del proyecto frontend. Ver `[frontend/package.json](mdc:frontend/package.json)`.
+
+2.  **Configuración de Tailwind CSS:**
+    *   El plugin de HeroUI se añade a la configuración de Tailwind CSS para permitir el uso de sus estilos y temas.
+    *   Es crucial que la directiva `content` en `tailwind.config.js` incluya la ruta a los componentes de HeroUI para que Tailwind procese sus clases.
+    *   Referencia: `[frontend/tailwind.config.js](mdc:frontend/tailwind.config.js)`
+
+3.  **Proveedor Principal de HeroUI:**
+    *   La aplicación debe estar envuelta por `HeroUIProvider`. Esto generalmente se hace en el punto de entrada de la aplicación.
+    *   Referencia: `[frontend/src/main.tsx](mdc:frontend/src/main.tsx)`
+
+## Uso de Componentes
+
+Una vez configurado, los componentes de HeroUI (como `Button`, `Input`, `Card`, etc.) pueden ser importados directamente desde `@heroui/react` y utilizados en los archivos `.tsx` del proyecto.
+
+Ejemplo de importación:
+```typescript
+import { Button, Input } from '@heroui/react';
+```
+
+Se recomienda consultar la documentation oficial de HeroUI para la lista completa de componentes y sus APIs.

@@ -13,6 +13,8 @@ import authRoutes from './routes/authRoutes';
 import transactionRoutes from './routes/transactionRoutes';
 import adminRoutes from './routes/adminRoutes'; // Importar las rutas de admin
 import userRoutes from './routes/UserRoutes'; // Importar rutas de gestión de usuarios
+import gameRoutes from './routes/gameRoutes'; // Importar rutas de juegos
+import gameItemRoutes from './routes/gameItemRoutes'; // Importar rutas de ítems de juego
 
 // Inicializar la aplicación Express
 const app: Application = express();
@@ -54,8 +56,11 @@ app.use('/api/admin/users', userRoutes);
 logger.info('[App] Montando rutas de admin en /api/admin...');
 app.use('/api/admin', adminRoutes);
 
-// app.use('/api/games', gameRoutes);
-// ... etc
+logger.info('[App] Montando rutas de juegos en /api/games...');
+app.use('/api/games', gameRoutes);
+
+logger.info('[App] Montando rutas de ítems de juego en /api/game-items...');
+app.use('/api/game-items', gameItemRoutes);
 
 // Manejo de rutas no encontradas (404)
 app.use((req: Request, res: Response, next: NextFunction) => {

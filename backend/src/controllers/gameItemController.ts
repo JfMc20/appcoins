@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import GameItemModel, { IGameItem } from '../models/GameItemModel';
 import GameModel from '../models/GameModel';
 import mongoose from 'mongoose';
-import logger from '../utils/logger';
+import { logger } from '../utils/logger';
 
 // Obtener todos los ítems de juego (con filtros opcionales)
 export const getAllGameItems = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -53,7 +53,7 @@ export const getAllGameItems = async (req: Request, res: Response, next: NextFun
       count: gameItems.length,
       data: gameItems
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al obtener ítems de juego: ${error}`);
     next(error);
   }
@@ -77,7 +77,7 @@ export const getGameItemById = async (req: Request, res: Response, next: NextFun
       success: true,
       data: gameItem
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al obtener ítem de juego por ID: ${error}`);
     next(error);
   }
@@ -108,7 +108,7 @@ export const createGameItem = async (req: Request, res: Response, next: NextFunc
       success: true,
       data: newGameItem
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al crear ítem de juego: ${error}`);
     
     // Manejo específico para error de duplicación
@@ -160,7 +160,7 @@ export const updateGameItem = async (req: Request, res: Response, next: NextFunc
       success: true,
       data: updatedGameItem
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al actualizar ítem de juego: ${error}`);
     
     // Manejo específico para error de duplicación
@@ -221,7 +221,7 @@ export const updateGameItemStock = async (req: Request, res: Response, next: Nex
       message: 'Stock actualizado exitosamente',
       data: gameItem
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al actualizar stock de ítem: ${error}`);
     next(error);
   }
@@ -267,7 +267,7 @@ export const deleteGameItem = async (req: Request, res: Response, next: NextFunc
         data: {}
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al eliminar ítem de juego: ${error}`);
     next(error);
   }

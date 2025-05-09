@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import GameModel, { IGame } from '../models/GameModel';
-import logger from '../utils/logger';
+import { logger } from '../utils/logger';
 
 // Obtener todos los juegos (con filtros opcionales)
 export const getAllGames = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -25,7 +25,7 @@ export const getAllGames = async (req: Request, res: Response, next: NextFunctio
       count: games.length,
       data: games
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al obtener juegos: ${error}`);
     next(error);
   }
@@ -48,7 +48,7 @@ export const getGameById = async (req: Request, res: Response, next: NextFunctio
       success: true,
       data: game
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al obtener juego por ID: ${error}`);
     next(error);
   }
@@ -63,7 +63,7 @@ export const createGame = async (req: Request, res: Response, next: NextFunction
       success: true,
       data: newGame
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al crear juego: ${error}`);
     
     // Manejo específico para error de duplicación (nombre único)
@@ -103,7 +103,7 @@ export const updateGame = async (req: Request, res: Response, next: NextFunction
       success: true,
       data: updatedGame
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al actualizar juego: ${error}`);
     
     // Manejo específico para error de duplicación (nombre único)
@@ -159,7 +159,7 @@ export const deleteGame = async (req: Request, res: Response, next: NextFunction
         data: {}
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Error al eliminar juego: ${error}`);
     next(error);
   }

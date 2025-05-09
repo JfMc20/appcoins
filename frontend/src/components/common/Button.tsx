@@ -23,12 +23,12 @@ const Button: React.FC<ButtonProps> = ({
   children,
   className = '',
 }) => {
-  const baseClasses = 'rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:ring-offset-gray-900';
   
   const variantClasses = {
-    primary: 'bg-primary hover:bg-primary-dark text-white focus:ring-primary',
+    primary: 'bg-primary hover:bg-primary-dark text-white focus:ring-primary dark:bg-primary-light dark:hover:bg-primary dark:focus:ring-primary-light',
     secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 focus:ring-gray-500',
-    outline: 'bg-transparent border border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary',
+    outline: 'bg-transparent border border-primary text-primary hover:bg-primary hover:text-white focus:ring-primary dark:border-primary-light dark:text-primary-light dark:hover:bg-primary-light dark:hover:text-gray-900',
     danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
   };
   

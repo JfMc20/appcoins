@@ -4,7 +4,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import HomePage from '../pages/HomePage'; // Crearemos esta página simple pronto
 import { useAuth } from '../contexts/AuthContext';
-import { Layout } from '../components/common';
+import { Layout, LoadingSpinner } from '../components/common';
 
 // Definimos las props para ProtectedRoute
 interface ProtectedRouteProps {
@@ -17,7 +17,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps): React.JSX.Element | 
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Cargando autenticación...</div>; // O un spinner/loader
+    return <LoadingSpinner message="Verificando autenticación..." />;
   }
 
   if (!isAuthenticated) {
@@ -31,7 +31,7 @@ const AppRouter: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth(); // Para la lógica de redirección inicial
 
   if (isLoading) {
-    return <div>Cargando...</div>; // Evita renderizar rutas antes de saber el estado de auth
+    return <LoadingSpinner fullScreen size="lg" message="Cargando aplicación..." />;
   }
 
   return (

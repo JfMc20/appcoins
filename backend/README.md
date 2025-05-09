@@ -19,6 +19,27 @@ API RESTful para la aplicación AdminCoins, construida con Node.js, Express, Typ
 5.  Ejecuta el servidor de desarrollo (con Nodemon y ts-node): `npm run dev`
     *   El servidor escuchará en el puerto especificado (ej. 3002).
 
+## Sistema de Usuarios y Autenticación
+
+### Roles y Restricciones
+
+La aplicación AdminCoins implementa un sistema de control de acceso basado en roles:
+
+1. **Roles disponibles**:
+   - `admin`: Tiene acceso completo a todas las funcionalidades del sistema.
+   - `operator`: Acceso limitado a operaciones específicas.
+
+2. **Lógica de Registro**:
+   - La aplicación permite un único usuario administrador real.
+   - Existe un usuario de prueba (`test@test.com`) con rol operador que siempre está disponible.
+   - El registro público está abierto únicamente cuando no existe ningún usuario administrador real.
+   - Una vez se ha creado un usuario administrador, el registro adicional solo puede ser realizado por dicho administrador.
+
+3. **Usuario de Prueba**:
+   - Email: `test@test.com`
+   - Contraseña: `test12345`
+   - Este usuario tiene el rol de `operator` y es útil para probar el sistema sin necesidad de registro.
+
 ## Endpoints de API Protegidos
 
 Algunos endpoints requieren una API Key para ser consumidos. Esta debe ser enviada en la cabecera `X-API-Key`.
@@ -61,33 +82,58 @@ Algunos endpoints requieren una API Key para ser consumidos. Esta debe ser envia
 
 La mayoría de los endpoints de la API requieren autenticación mediante JSON Web Tokens (JWT).
 
-### 1. Registrar un Nuevo Usuario
+### 1. Verificar Estado de Registro
+
+*   **`GET /api/auth/registration-status`**
+    *   Descripción: Verifica si el registro está disponible (solo cuando no existe un usuario administrador real).
+    *   Acceso: Público.
+    *   Respuesta cuando el registro está abierto (200):
+        ```json
+        {
+          "status": "open",
+          "message": "El registro está abierto para crear un usuario administrador."
+        }
+        ```
+    *   Respuesta cuando el registro está cerrado (200):
+        ```json
+        {
+          "status": "closed",
+          "message": "El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador."
+        }
+        ```
+
+### 2. Registrar un Nuevo Usuario
 
 *   **`POST /api/auth/register`**
-    *   Descripción: Crea un nuevo usuario en el sistema.
-    *   Acceso: Público (o restringido a administradores según configuración futura).
+    *   Descripción: Crea un nuevo usuario administrador en el sistema (solo disponible cuando no existe un admin).
+    *   Acceso: Público (pero restringido por lógica de negocio).
     *   Cuerpo (Payload):
         ```json
         {
-          "username": "nuevooperador",
-          "email": "operador@example.com",
+          "username": "adminuser",
+          "email": "admin@example.com",
           "password": "contraseñaSegura123",
-          "fullName": "Nombre Apellido Operador",
-          "role": "operator" // Opcional, default: "operator". Puede ser "admin".
+          "fullName": "Nombre Apellido Admin"
         }
         ```
     *   Respuesta Exitosa (201):
         ```json
         {
           "_id": "userIdGenerado",
-          "username": "nuevooperador",
-          "email": "operador@example.com",
-          "role": "operator"
+          "username": "adminuser",
+          "email": "admin@example.com",
+          "role": "admin"
+        }
+        ```
+    *   Respuesta si el registro está cerrado (403):
+        ```json
+        {
+          "message": "El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador."
         }
         ```
     *   Nota: Este endpoint no devuelve un token directamente. El usuario debe hacer login después de registrarse.
 
-### 2. Iniciar Sesión
+### 3. Iniciar Sesión
 
 *   **`POST /api/auth/login`**
     *   Descripción: Autentica a un usuario y devuelve un JWT.
@@ -95,7 +141,7 @@ La mayoría de los endpoints de la API requieren autenticación mediante JSON We
     *   Cuerpo (Payload):
         ```json
         {
-          "email": "operador@example.com",
+          "email": "admin@example.com",
           "password": "contraseñaSegura123"
         }
         ```
@@ -103,15 +149,15 @@ La mayoría de los endpoints de la API requieren autenticación mediante JSON We
         ```json
         {
           "_id": "userIdGenerado",
-          "username": "nuevooperador",
-          "email": "operador@example.com",
-          "role": "operator",
-          "fullName": "Nombre Apellido Operador",
-          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJJZEdlbmVyYWRvIiwicm9sZSI6Im9wZXJhdG9yIiwiaWF0IjoxNjE2Njg2MDk2LCJleHAiOjE2MTkyNzgwOTZ9.signature"
+          "username": "adminuser",
+          "email": "admin@example.com",
+          "role": "admin",
+          "fullName": "Nombre Apellido Admin",
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXJJZEdlbmVyYWRvIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjE2Njg2MDk2LCJleHAiOjE2MTkyNzgwOTZ9.signature"
         }
         ```
 
-### 3. Usar el Token JWT
+### 4. Usar el Token JWT
 
 Para acceder a rutas protegidas, incluye el token obtenido en el paso anterior en el header `Authorization` de tus peticiones, con el prefijo `Bearer `.
 

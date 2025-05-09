@@ -1,46 +1,84 @@
-# Getting Started with Create React App
+# AdminCoins - Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Interfaz de usuario para la aplicación AdminCoins, construida con React, TypeScript y Tailwind CSS.
 
-## Available Scripts
+## Características Principales
 
-In the project directory, you can run:
+- **Panel de administración** para gestión de operaciones financieras
+- **Sistema de autenticación** con dos roles: administrador y operador
+- **Interfaz responsive** adaptada a dispositivos móviles y escritorio
+- **Tema claro/oscuro** que se adapta a las preferencias del usuario
+
+## Requisitos
+
+- Node.js (v14 o superior)
+- npm o yarn
+
+## Instalación y Uso
+
+1. Clona este repositorio
+2. Navega a la carpeta frontend: `cd frontend`
+3. Instala las dependencias: `npm install` o `yarn install`
+4. Inicia el servidor de desarrollo: `npm start` o `yarn start`
+5. Abre [http://localhost:5173](http://localhost:5173) para ver la aplicación
+
+## Sistema de Autenticación
+
+La aplicación implementa un sistema de autenticación que:
+
+1. **Permite un único usuario administrador real**
+2. **Incluye un usuario de prueba** con rol operador:
+   - Email: `test@test.com`
+   - Contraseña: `test12345`
+
+### Flujo de registro
+
+- Al iniciar la aplicación, se verifica si existe un usuario administrador
+- Si no existe, el formulario de registro está disponible para crear uno
+- Una vez existe un administrador, el registro público se cierra
+- Los usuarios adicionales solo pueden ser creados por el administrador
+
+## Estructura de Carpetas
+
+```
+frontend/
+├── public/           # Archivos estáticos
+├── src/              # Código fuente
+│   ├── components/   # Componentes reutilizables
+│   ├── contexts/     # Contextos de React (autenticación, tema, etc.)
+│   ├── pages/        # Páginas/vistas de la aplicación
+│   ├── services/     # Servicios para comunicación con la API
+│   ├── types/        # Definiciones de TypeScript
+│   └── utils/        # Utilidades y helpers
+├── package.json      # Dependencias y scripts
+└── tsconfig.json     # Configuración de TypeScript
+```
+
+## Scripts Disponibles
 
 ### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Inicia el servidor de desarrollo en [http://localhost:5173](http://localhost:5173).
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Compila la aplicación para producción en la carpeta `build`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### `npm test`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Ejecuta las pruebas.
 
 ### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+**Nota: esta es una operación irreversible. Una vez 'ejectado', no puedes volver atrás.**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Si no estás satisfecho con la configuración de herramientas de construcción, puedes 'ejectar' en cualquier momento.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Tecnologías Utilizadas
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **React**: Biblioteca principal para la construcción de interfaces
+- **TypeScript**: Superconjunto tipado de JavaScript
+- **Tailwind CSS**: Framework de utilidades CSS
+- **React Router**: Navegación entre páginas
+- **Axios**: Cliente HTTP para comunicarse con el backend
+- **Context API**: Gestión de estado global

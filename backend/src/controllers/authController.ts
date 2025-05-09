@@ -30,15 +30,14 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
   const { username, email, password, fullName } = req.body;
 
   try {
-    // Contar cuántos usuarios existen en la base de datos
-    const userCount = await UserModel.countDocuments();
-    const testUser = await UserModel.findOne({ email: 'test@test.com' });
-    
-    // Contar usuarios reales (excluyendo el usuario de prueba)
-    const realUserCount = testUser ? userCount - 1 : userCount;
+    // Verificar si ya existe un administrador real (diferente de test@test.com)
+    const adminCount = await UserModel.countDocuments({
+      role: 'admin',
+      email: { $ne: 'test@test.com' }
+    });
 
-    // Si ya existe un usuario real (diferente del test@test.com), bloquear el registro
-    if (realUserCount >= 1) {
+    // Si ya existe un administrador real, bloquear el registro
+    if (adminCount > 0) {
       logger.warn(`Intento de registro público bloqueado. Ya existe un usuario administrador.`);
       res.status(403).json({ message: 'El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador.' });
       return;
@@ -127,20 +126,24 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
  */
 export const getRegistrationStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Contar usuarios en la base de datos
-    const userCount = await UserModel.countDocuments();
+    // Verificar si existe algún administrador real (diferente de test@test.com)
+    const adminCount = await UserModel.countDocuments({
+      role: 'admin',
+      email: { $ne: 'test@test.com' }
+    });
     
-    // Verificar si existe el usuario de prueba
-    const testUser = await UserModel.findOne({ email: 'test@test.com' });
-    
-    // Contar usuarios reales (excluyendo el usuario de prueba)
-    const realUserCount = testUser ? userCount - 1 : userCount;
-    
-    // Si no hay usuarios reales, el registro está abierto
-    if (realUserCount < 1) {
-      res.status(200).json({ status: 'open', message: 'El registro está abierto para crear un usuario administrador.' });
+    if (adminCount === 0) {
+      // No hay administradores reales, registro abierto
+      res.status(200).json({ 
+        status: 'open', 
+        message: 'El registro está abierto para crear un usuario administrador.'
+      });
     } else {
-      res.status(200).json({ status: 'closed', message: 'El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador.' });
+      // Hay al menos un administrador, registro cerrado
+      res.status(200).json({ 
+        status: 'closed', 
+        message: 'El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador.'
+      });
     }
   } catch (error) {
     logger.error('Error al obtener el estado del registro:', error);

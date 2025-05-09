@@ -4,6 +4,8 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import HomePage from '../pages/HomePage'; // Crearemos esta página simple pronto
 import UserManagementPage from '../pages/admin/UserManagementPage'; // Importar la nueva página
+import GameManagementPage from '../pages/admin/games/GameManagementPage'; // Importar página de gestión de juegos
+import GameItemsPage from '../pages/admin/games/GameItemsPage'; // Importar página de gestión de ítems de juegos
 import { useAuth } from '../contexts/AuthContext';
 import { Layout, LoadingSpinner } from '../components/common';
 
@@ -58,12 +60,31 @@ const AppRouter: React.FC = () => {
             }
           />
 
-          {/* Rutas de administración */}
+          {/* Rutas de administración de usuarios */}
           <Route 
             path="/admin/users" 
             element={
               <ProtectedRoute requireAdmin={true}>
                 <UserManagementPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de administración de juegos */}
+          <Route 
+            path="/admin/games" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <GameManagementPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route 
+            path="/admin/games/:gameId/items" 
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <GameItemsPage />
               </ProtectedRoute>
             }
           />

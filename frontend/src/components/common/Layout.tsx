@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { UserGroupIcon, PuzzlePieceIcon } from '@heroicons/react/24/outline';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -33,6 +34,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const closeMenu = () => {
     setMenuOpen(false);
   };
+
+  const adminNavItems = [
+    { to: '/admin/users', icon: UserGroupIcon, text: 'Gestión de Usuarios' },
+    { to: '/admin/games', icon: PuzzlePieceIcon, text: 'Gestión de Juegos' },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
@@ -99,13 +105,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                           <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Administración
                           </div>
-                          <Link
-                            to="/admin/users"
-                            onClick={closeMenu}
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            Gestión de Usuarios
-                          </Link>
+                          {adminNavItems.map((item) => (
+                            <Link
+                              key={item.to}
+                              to={item.to}
+                              onClick={closeMenu}
+                              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              {item.text}
+                            </Link>
+                          ))}
                         </>
                       )}
                       

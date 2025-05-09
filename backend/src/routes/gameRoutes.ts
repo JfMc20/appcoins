@@ -6,7 +6,7 @@ import {
   updateGame, 
   deleteGame 
 } from '../controllers/gameController';
-import { isAuthenticated } from '../middleware/authMiddleware';
+import { protectWithJwt } from '../middleware/authMiddleware';
 import { isAdmin } from '../middleware/roleMiddleware';
 
 const router = express.Router();
@@ -14,18 +14,18 @@ const router = express.Router();
 // Ruta: /api/games
 
 // Obtener todos los juegos
-router.get('/', isAuthenticated, getAllGames);
+router.get('/', protectWithJwt, getAllGames);
 
 // Obtener un juego por ID
-router.get('/:id', isAuthenticated, getGameById);
+router.get('/:id', protectWithJwt, getGameById);
 
 // Crear un nuevo juego (solo admin)
-router.post('/', isAuthenticated, isAdmin, createGame);
+router.post('/', protectWithJwt, isAdmin, createGame);
 
 // Actualizar un juego existente (solo admin)
-router.put('/:id', isAuthenticated, isAdmin, updateGame);
+router.put('/:id', protectWithJwt, isAdmin, updateGame);
 
 // Eliminar un juego (solo admin)
-router.delete('/:id', isAuthenticated, isAdmin, deleteGame);
+router.delete('/:id', protectWithJwt, isAdmin, deleteGame);
 
 export default router; 

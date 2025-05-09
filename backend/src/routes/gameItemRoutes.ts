@@ -7,7 +7,7 @@ import {
   updateGameItemStock,
   deleteGameItem 
 } from '../controllers/gameItemController';
-import { isAuthenticated } from '../middleware/authMiddleware';
+import { protectWithJwt } from '../middleware/authMiddleware';
 import { isAdmin } from '../middleware/roleMiddleware';
 
 const router = express.Router();
@@ -15,21 +15,21 @@ const router = express.Router();
 // Ruta: /api/game-items
 
 // Obtener todos los ítems de juego
-router.get('/', isAuthenticated, getAllGameItems);
+router.get('/', protectWithJwt, getAllGameItems);
 
 // Obtener un ítem de juego por ID
-router.get('/:id', isAuthenticated, getGameItemById);
+router.get('/:id', protectWithJwt, getGameItemById);
 
 // Crear un nuevo ítem de juego (solo admin)
-router.post('/', isAuthenticated, isAdmin, createGameItem);
+router.post('/', protectWithJwt, isAdmin, createGameItem);
 
 // Actualizar un ítem de juego existente (solo admin)
-router.put('/:id', isAuthenticated, isAdmin, updateGameItem);
+router.put('/:id', protectWithJwt, isAdmin, updateGameItem);
 
 // Actualizar el stock de un ítem de juego (puede ser accesible a operador)
-router.patch('/:id/stock', isAuthenticated, updateGameItemStock);
+router.patch('/:id/stock', protectWithJwt, updateGameItemStock);
 
 // Eliminar un ítem de juego (solo admin)
-router.delete('/:id', isAuthenticated, isAdmin, deleteGameItem);
+router.delete('/:id', protectWithJwt, isAdmin, deleteGameItem);
 
 export default router; 

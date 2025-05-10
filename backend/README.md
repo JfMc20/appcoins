@@ -23,19 +23,26 @@ API RESTful para la aplicación AdminCoins, construida con Node.js, Express, Typ
 
 ### Roles y Restricciones
 
-La aplicación AdminCoins implementa un sistema de control de acceso basado en roles:
+La aplicación AdminCoins implementa un sistema de control de acceso basado en roles con jerarquía:
 
 1. **Roles disponibles**:
-   - `admin`: Tiene acceso completo a todas las funcionalidades del sistema.
-   - `operator`: Acceso limitado a operaciones específicas.
+   - `admin`: Tiene acceso completo a todas las funcionalidades del sistema. Puede crear y gestionar operadores.
+   - `operator`: Acceso limitado a operaciones específicas. Cada operador está asignado a un administrador específico.
 
-2. **Lógica de Registro**:
+2. **Jerarquía de Usuarios**:
+   - Los administradores pueden crear operadores que quedan asignados a ellos.
+   - Los administradores solo pueden ver y gestionar a sus propios operadores.
+   - Un administrador puede transferir un operador a otro administrador.
+   - Si un operador se convierte en administrador, pierde su asignación.
+   - Si un administrador se convierte en operador, se asigna automáticamente al administrador que realizó el cambio.
+
+3. **Lógica de Registro**:
    - La aplicación permite un único usuario administrador real.
    - Existe un usuario de prueba (`test@test.com`) con rol operador que siempre está disponible.
    - El registro público está abierto únicamente cuando no existe ningún usuario administrador real.
    - Una vez se ha creado un usuario administrador, el registro adicional solo puede ser realizado por dicho administrador.
 
-3. **Usuario de Prueba**:
+4. **Usuario de Prueba**:
    - Email: `test@test.com`
    - Contraseña: `test12345`
    - Este usuario tiene el rol de `operator` y es útil para probar el sistema sin necesidad de registro.
@@ -165,6 +172,51 @@ Para acceder a rutas protegidas, incluye el token obtenido en el paso anterior e
 curl -H "Authorization: Bearer tu_token_jwt_aqui" http://localhost:3002/api/ruta-protegida
 ```
 
+## API de Administración de Usuarios (`/api/admin/users`)
+
+Endpoints para la gestión de usuarios por parte de los administradores. Todas las rutas requieren autenticación JWT y rol de administrador.
+
+*   **`GET /api/admin/users`**
+    *   Descripción: Obtiene todos los usuarios accesibles para el administrador actual (sus operadores asignados y él mismo).
+    *   Respuesta Exitosa (200): Lista de usuarios con sus detalles (sin contraseñas).
+    *   Notas: La respuesta incluye información sobre a qué administrador está asignado cada operador.
+
+*   **`GET /api/admin/users/:id`**
+    *   Descripción: Obtiene los detalles de un usuario específico por su ID.
+    *   Respuesta Exitosa (200): Detalles del usuario solicitado.
+    *   Respuesta de Error (404): Si el usuario no existe o no es accesible para el administrador actual.
+
+*   **`POST /api/admin/users`**
+    *   Descripción: Crea un nuevo usuario (operador o administrador).
+    *   Cuerpo (Payload):
+        ```json
+        {
+          "username": "nuevooperador",
+          "email": "operador@example.com",
+          "password": "contraseñaSegura123",
+          "fullName": "Nombre del Operador",
+          "role": "operator", // "admin" u "operator"
+          "assignedTo": "idDelAdministrador" // Solo para operadores
+        }
+        ```
+    *   Respuesta Exitosa (201): Detalles del usuario creado.
+    *   Notas: Si se crea un operador, se asigna automáticamente al administrador que lo crea a menos que se especifique otro administrador en `assignedTo`.
+
+*   **`PUT /api/admin/users/:id`**
+    *   Descripción: Actualiza los datos de un usuario existente.
+    *   Cuerpo (Payload): Campos a actualizar (similares a los de creación).
+    *   Respuesta Exitosa (200): Detalles del usuario actualizado.
+    *   Notas: 
+        - Si se cambia el rol de un operador a administrador, pierde su asignación.
+        - Si se cambia el rol de un administrador a operador, se asigna al administrador que realiza el cambio.
+        - Un administrador solo puede modificar a sus propios operadores asignados.
+
+*   **`DELETE /api/admin/users/:id`**
+    *   Descripción: Elimina un usuario del sistema.
+    *   Respuesta Exitosa (200): Mensaje de confirmación.
+    *   Respuesta de Error (400): Si se intenta eliminar el último administrador del sistema.
+    *   Notas: Se implementan verificaciones de seguridad para evitar eliminar el último administrador.
+
 ## API de Fuentes de Fondos (`/api/funding-sources`)
 
 Endpoints para gestionar las fuentes de capital (cuentas bancarias, efectivo, billeteras cripto, etc.). Todas las rutas requieren autenticación JWT.
@@ -266,18 +318,72 @@ Endpoints para registrar todas las operaciones financieras y de inventario. Toda
 
     *   _(Otros tipos de transacciones como COMPRA_ITEM_JUEGO, VENTA_ITEM_JUEGO, etc., se documentarán a medida que se implementen completamente su lógica de `itemDetails`, `paymentDetails` y `profitDetails`.)_
 
+## API de Juegos y Productos (`/api/games`)
+
+Endpoints para gestionar juegos y sus ítems. Todas las rutas requieren autenticación JWT.
+
+*   **`GET /api/games`**
+    *   Descripción: Obtiene la lista de todos los juegos disponibles.
+    *   Respuesta Exitosa (200): Array de juegos.
+
+*   **`GET /api/games/:id`**
+    *   Descripción: Obtiene los detalles de un juego específico.
+    *   Respuesta Exitosa (200): Detalles del juego solicitado.
+
+*   **`POST /api/games`** (Admin)
+    *   Descripción: Crea un nuevo juego.
+    *   Cuerpo (Payload):
+        ```json
+        {
+          "name": "Tibia",
+          "slug": "tibia",
+          "description": "MMORPG creado en 1997",
+          "websiteUrl": "https://www.tibia.com",
+          "iconUrl": "https://example.com/tibia-icon.png",
+          "status": "active",
+          "serverOptions": ["Global", "Optional-PvP", "Open-PvP", "Hardcore-PvP"]
+        }
+        ```
+    *   Respuesta Exitosa (201): Detalles del juego creado.
+
+*   **`PUT /api/games/:id`** (Admin)
+    *   Descripción: Actualiza los detalles de un juego.
+    *   Cuerpo (Payload): Campos a actualizar (similares a los de creación).
+    *   Respuesta Exitosa (200): Detalles del juego actualizado.
+
 ## Base de Datos (MongoDB)
 
 La aplicación utiliza MongoDB como base de datos. Los modelos principales definidos en `src/models/` son:
 
-*   `Game`: Información de los juegos soportados.
-*   `GameItem`: Ítems/monedas específicas de cada juego.
-*   `ExternalProduct`: Productos externos (software, servicios).
-*   `Transaction`: Registro de todas las operaciones.
-*   `Contact`: Clientes y proveedores.
-*   `User`: Operadores/Administradores de la aplicación.
-*   `FundingSource`: Fuentes de capital (cuentas, billeteras).
-*   `AppSetting`: Configuración global de la aplicación (singleton).
+*   `GameModel`: Información de los juegos soportados.
+*   `GameItemModel`: Ítems/monedas específicas de cada juego.
+*   `ExternalProductModel`: Productos externos (software, servicios).
+*   `TransactionModel`: Registro de todas las operaciones financieras y de inventario.
+*   `ContactModel`: Clientes y proveedores.
+*   `UserModel`: Operadores/Administradores de la aplicación, con jerarquía de asignación.
+*   `FundingSourceModel`: Fuentes de capital (cuentas, billeteras).
+*   `AppSettingModel`: Configuración global de la aplicación (singleton).
+
+### Modelo de Usuario (`UserModel`)
+
+El modelo de usuario incluye los siguientes campos principales:
+
+*   `username`: Nombre de usuario único.
+*   `email`: Correo electrónico único.
+*   `passwordHash`: Contraseña hasheada con bcrypt.
+*   `fullName`: Nombre completo del usuario (opcional).
+*   `role`: Rol del usuario (`admin` o `operator`).
+*   `status`: Estado del usuario (`active`, `inactive`, `pending_verification`).
+*   `assignedTo`: Referencia al administrador que creó/gestiona este operador (solo para operadores).
+*   `lastLogin`: Fecha del último inicio de sesión.
+*   `failedLoginAttempts`: Contador de intentos fallidos de inicio de sesión.
+*   `lockUntil`: Fecha hasta la que el usuario está bloqueado por intentos fallidos.
+*   `createdAt` y `updatedAt`: Fechas de creación y última modificación.
+
+El campo `assignedTo` permite implementar la jerarquía entre administradores y operadores, facilitando:
+- Que cada administrador vea solo sus propios operadores
+- Transferencia de operadores entre administradores
+- Seguimiento de quién creó cada operador
 
 ### Configuración Global (`AppSetting`)
 
@@ -297,6 +403,16 @@ Existe un único documento en la colección `appsettings` (identificado por `con
     *   Se encarga de obtener tasas de cambio fiat desde APIs externas (CriptoYa).
     *   Implementa la lógica para seleccionar la tasa preferida (Binance P2P).
     *   Actualiza periódicamente el campo `currentExchangeRates` en el documento `AppSetting` de la base de datos. (Se usa un cron job para esto).
+
+*   **`UserService` (`src/services/UserService.ts`)**:
+    *   Gestiona la creación, modificación y eliminación de usuarios.
+    *   Implementa la lógica de jerarquía entre administradores y operadores.
+    *   Maneja la asignación y reasignación de operadores a administradores.
+
+*   **`AuthService` (`src/services/AuthService.ts`)**:
+    *   Administra la autenticación y autorización de usuarios.
+    *   Genera y verifica tokens JWT.
+    *   Controla la lógica de registro condicionado a la existencia previa de administradores.
 
 *   **`Logger` (`src/utils/logger.ts`)**:
     *   Módulo centralizado para el registro de eventos de la aplicación.
@@ -318,5 +434,35 @@ Existe un único documento en la colección `appsettings` (identificado por `con
 *   `/backend`: API RESTful (Node.js, Express, TypeScript, MongoDB)
 *   `/frontend`: Interfaz de usuario (React, TypeScript, Vite)
 *   `/roadmap_tibia_app`: Documentos de planificación detallada.
+
+## Estado Actual del Desarrollo
+
+El backend actualmente tiene implementado:
+
+1. **Sistema de usuarios completo**:
+   - Autenticación con JWT
+   - Roles (admin/operator) con jerarquía
+   - CRUD completo de usuarios
+   - Asignación de operadores a administradores
+
+2. **Sistema de juegos y fuentes de fondos**:
+   - Modelos completos
+   - Endpoints CRUD
+
+3. **Sistema de transacciones básico**:
+   - Modelo completo
+   - Endpoints para operaciones CRUD
+   - Soporte para diferentes tipos de transacciones
+
+4. **Sistema de tasas de cambio**:
+   - Integración con API externa (CriptoYa)
+   - Actualización automática mediante cron job
+   - Almacenamiento en la configuración global
+
+Los próximos pasos incluyen:
+- Completar la lógica para diferentes tipos de transacciones
+- Desarrollar el sistema de contactos
+- Implementar sistema de informes
+- Mejorar la configuración de precios y estrategias
 
 _(Más secciones se añadirán a medida que el proyecto avance: Despliegue, Contribución, etc.)_ 

@@ -17,7 +17,7 @@ import {
 interface NavItem {
   title: string;
   path: string;
-  icon: JSX.Element;
+  icon: any; // Usando any para evitar problemas de tipado con los iconos
   roles?: ('admin' | 'operator')[];
 }
 
@@ -28,26 +28,36 @@ interface NavSection {
   roles?: ('admin' | 'operator')[];
 }
 
+// Crear funciones para los iconos para evitar problemas de tipado
+const HomeIcon = ({ className }: { className?: string }) => <FaHome className={className} />;
+const UsersIcon = ({ className }: { className?: string }) => <FaUsers className={className} />;
+const GamepadIcon = ({ className }: { className?: string }) => <FaGamepad className={className} />;
+const HistoryIcon = ({ className }: { className?: string }) => <FaHistory className={className} />;
+const PlusIcon = ({ className }: { className?: string }) => <FaPlus className={className} />;
+const CoinsIcon = ({ className }: { className?: string }) => <FaCoins className={className} />;
+const ChevronLeftIcon = ({ className }: { className?: string }) => <FaChevronLeft className={className} />;
+const ChevronRightIcon = ({ className }: { className?: string }) => <FaChevronRight className={className} />;
+
 const navSections: NavSection[] = [
   {
     title: 'General',
     items: [
-      { title: 'Dashboard', path: Pathnames.home, icon: <FaHome /> },
+      { title: 'Dashboard', path: Pathnames.home, icon: <HomeIcon /> },
     ]
   },
   {
     title: 'Administración',
     roles: ['admin'],
     items: [
-      { title: 'Usuarios', path: Pathnames.admin.users, icon: <FaUsers /> },
-      { title: 'Juegos', path: Pathnames.admin.games.root, icon: <FaGamepad /> },
+      { title: 'Usuarios', path: Pathnames.admin.users, icon: <UsersIcon /> },
+      { title: 'Juegos', path: Pathnames.admin.games.root, icon: <GamepadIcon /> },
     ]
   },
   {
     title: 'Transacciones',
     items: [
-      { title: 'Historial', path: '/transactions', icon: <FaHistory /> },
-      { title: 'Nueva Transacción', path: '/transactions/new', icon: <FaPlus /> },
+      { title: 'Historial', path: '/transactions', icon: <HistoryIcon /> },
+      { title: 'Nueva Transacción', path: '/transactions/new', icon: <PlusIcon /> },
     ]
   },
 ];
@@ -71,16 +81,16 @@ const SidePanel: React.FC = () => {
       <div className="p-4 flex justify-between items-center">
         {!isCollapsed && (
           <div className="flex items-center">
-            <FaCoins className="text-yellow-500 text-2xl mr-2" />
+            <CoinsIcon className="text-yellow-500 text-2xl mr-2" />
             <h1 className="font-bold text-xl">AppCoins</h1>
           </div>
         )}
-        {isCollapsed && <FaCoins className="text-yellow-500 text-xl mx-auto" />}
+        {isCollapsed && <CoinsIcon className="text-yellow-500 text-xl mx-auto" />}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="text-gray-400 hover:text-white"
         >
-          {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+          {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
         </button>
       </div>
 

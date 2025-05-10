@@ -22,12 +22,33 @@ const app: Application = express();
 // Middlewares
 app.use(cors()); // Habilitar CORS para todas las rutas
 
-// Usar Morgan con el formato 'dev' si estamos en desarrollo, o 'combined' en producción
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
+// Configuración personalizada de Morgan para logs detallados
+morgan.token('body', (req: Request) => JSON.stringify(req.body));
+morgan.token('query', (req: Request) => JSON.stringify(req.query));
+
+// Formato personalizado de Morgan que incluye todos los detalles
+const morganFormat = ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms - Body: :body - Query: :query';
+
+// Middleware para registrar todas las solicitudes con formato detallado
+app.use(morgan(morganFormat, {
+  immediate: false, // Registra después de completarse la solicitud (incluye códigos de estado)
+  stream: {
+    write: (message: string) => {
+      // Quitamos el salto de línea del final
+      logger.info(message.trim());
+    }
+  }
+}));
+
+// Middleware para rastrear el tiempo de respuesta
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.http(req.method, req.url, res.statusCode, duration);
+  });
+  next();
+});
 
 app.use(express.json()); // Para parsear application/json
 app.use(express.urlencoded({ extended: true })); // Para parsear application/x-www-form-urlencoded

@@ -1,46 +1,45 @@
-import React, { useState, FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { LoginCredentials } from '../types/auth.types';
-import Card from '../components/common/Card';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
+import type React from 'react'
+import { useState, type FormEvent } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import type { LoginCredentials } from '../types/auth.types'
+import Card from '../components/common/Card'
+import Input from '../components/common/Input'
+import Button from '../components/common/Button'
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const { loginUser, isLoading, error } = useAuth();
-  const navigate = useNavigate();
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const { loginUser, isLoading, error } = useAuth()
+  const navigate = useNavigate()
 
   // Usuario de prueba
   const testUser = {
     email: 'test@test.com',
-    password: 'test12345'
-  };
+    password: 'test12345',
+  }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const credentials: LoginCredentials = { email, password };
+    e.preventDefault()
+    const credentials: LoginCredentials = { email, password }
     try {
-      await loginUser(credentials);
-      navigate('/'); // Redirigir a la página principal después del login
+      await loginUser(credentials)
+      navigate('/') // Redirigir a la página principal después del login
     } catch (loginError) {
       // El error ya se maneja y almacena en AuthContext, aquí solo evitamos la navegación
-      console.error('Error de login en la página:', loginError);
+      console.error('Error de login en la página:', loginError)
     }
-  };
+  }
 
   const handleUseTestUser = () => {
-    setEmail(testUser.email);
-    setPassword(testUser.password);
-  };
+    setEmail(testUser.email)
+    setPassword(testUser.password)
+  }
 
   return (
     <div className="min-h-screen bg-gray-200 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-          Iniciar Sesión
-        </h2>
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">Iniciar Sesión</h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -72,21 +71,14 @@ const LoginPage: React.FC = () => {
               <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800">
                 <div className="flex">
                   <div className="ml-3">
-                    <p className="text-sm text-red-700 dark:text-red-400">
-                      {error}
-                    </p>
+                    <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
                   </div>
                 </div>
               </div>
             )}
 
             <div>
-              <Button
-                type="submit"
-                variant="primary"
-                fullWidth
-                isLoading={isLoading}
-              >
+              <Button type="submit" variant="primary" fullWidth isLoading={isLoading}>
                 Iniciar Sesión
               </Button>
             </div>
@@ -95,7 +87,7 @@ const LoginPage: React.FC = () => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+                <div className="w-full border-t border-gray-300 dark:border-gray-700"> </div>
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-medium">
@@ -105,11 +97,7 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div className="mt-4">
-              <Button
-                onClick={handleUseTestUser}
-                variant="secondary"
-                fullWidth
-              >
+              <Button onClick={handleUseTestUser} variant="secondary" fullWidth>
                 Usar cuenta de prueba
               </Button>
             </div>
@@ -118,7 +106,7 @@ const LoginPage: React.FC = () => {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+                <div className="w-full border-t border-gray-300 dark:border-gray-700"> </div>
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-medium">
@@ -139,7 +127,7 @@ const LoginPage: React.FC = () => {
         </Card>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage; 
+export default LoginPage

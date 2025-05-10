@@ -1,58 +1,65 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from '../pages/LoginPage';
-import RegisterPage from '../pages/RegisterPage';
-import HomePage from '../pages/HomePage'; // Crearemos esta página simple pronto
-import UserManagementPage from '../pages/admin/UserManagementPage'; // Importar la nueva página
-import GameManagementPage from '../pages/admin/games/GameManagementPage'; // Importar página de gestión de juegos
-import GameItemsPage from '../pages/admin/games/GameItemsPage'; // Importar página de gestión de ítems de juegos
-import { useAuth } from '../contexts/AuthContext';
-import { Layout, LoadingSpinner } from '../components/common';
+import type React from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import LoginPage from '../pages/LoginPage'
+import RegisterPage from '../pages/RegisterPage'
+import HomePage from '../pages/HomePage' // Crearemos esta página simple pronto
+import UserManagementPage from '../pages/admin/UserManagementPage' // Importar la nueva página
+import GameManagementPage from '../pages/admin/games/GameManagementPage' // Importar página de gestión de juegos
+import GameItemsPage from '../pages/admin/games/GameItemsPage' // Importar página de gestión de ítems de juegos
+import { useAuth } from '../contexts/AuthContext'
+import { Layout, LoadingSpinner } from '../components/common'
+import Pathnames from './pathnames'
 
 // Definimos las props para ProtectedRoute
 interface ProtectedRouteProps {
-  children: React.JSX.Element; // Esperamos un elemento JSX como hijo
-  requireAdmin?: boolean; // Nueva prop para rutas que requieren ser admin
+  children: React.JSX.Element // Esperamos un elemento JSX como hijo
+  requireAdmin?: boolean // Nueva prop para rutas que requieren ser admin
 }
 
 // Componente para rutas protegidas
 // Especificamos que retorna React.JSX.Element o null
 const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps): React.JSX.Element | null => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth()
 
   if (isLoading) {
-    return <LoadingSpinner message="Verificando autenticación..." />;
+    return <LoadingSpinner message="Verificando autenticación..." />
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={Pathnames.auth.login} replace />
   }
 
   // Verificación adicional para rutas de administración
   if (requireAdmin && user?.role !== 'admin') {
-    return <Navigate to="/" replace />;
+    return <Navigate to={Pathnames.home} replace />
   }
 
-  return children;
-};
+  return children
+}
 
 const AppRouter: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth(); // Para la lógica de redirección inicial
+  const { isAuthenticated, isLoading } = useAuth() // Para la lógica de redirección inicial
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen size="lg" message="Cargando aplicación..." />;
+    return <LoadingSpinner fullScreen size="lg" message="Cargando aplicación..." />
   }
 
   return (
     <Router>
       <Layout>
         <Routes>
-          <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />} />
-          <Route path="/register" element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />} />
-          
+          <Route
+            path={Pathnames.auth.login}
+            element={isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <LoginPage />}
+          />
+          <Route
+            path={Pathnames.auth.register}
+            element={isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <RegisterPage />}
+          />
+
           {/* Ruta principal protegida */}
-          <Route 
-            path="/" 
+          <Route
+            path={Pathnames.home}
             element={
               <ProtectedRoute>
                 <HomePage />
@@ -61,8 +68,8 @@ const AppRouter: React.FC = () => {
           />
 
           {/* Rutas de administración de usuarios */}
-          <Route 
-            path="/admin/users" 
+          <Route
+            path={Pathnames.admin.users}
             element={
               <ProtectedRoute requireAdmin={true}>
                 <UserManagementPage />
@@ -71,8 +78,8 @@ const AppRouter: React.FC = () => {
           />
 
           {/* Rutas de administración de juegos */}
-          <Route 
-            path="/admin/games" 
+          <Route
+            path={Pathnames.admin.games.root}
             element={
               <ProtectedRoute requireAdmin={true}>
                 <GameManagementPage />
@@ -80,8 +87,8 @@ const AppRouter: React.FC = () => {
             }
           />
 
-          <Route 
-            path="/admin/games/:gameId/items" 
+          <Route
+            path={Pathnames.admin.games.items}
             element={
               <ProtectedRoute requireAdmin={true}>
                 <GameItemsPage />
@@ -95,11 +102,11 @@ const AppRouter: React.FC = () => {
           */}
 
           {/* Ruta de fallback o página 404 */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to={Pathnames.home} replace />} />
         </Routes>
       </Layout>
     </Router>
-  );
-};
+  )
+}
 
-export default AppRouter; 
+export default AppRouter

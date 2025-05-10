@@ -1,34 +1,38 @@
-import React, { forwardRef } from 'react';
+import type React from 'react'
+import { forwardRef } from 'react'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
-  fullWidth?: boolean;
-  className?: string;
-  labelClassName?: string;
-  inputClassName?: string;
-  errorClassName?: string;
+  label?: string
+  error?: string
+  fullWidth?: boolean
+  className?: string
+  labelClassName?: string
+  inputClassName?: string
+  errorClassName?: string
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ 
-    label, 
-    error, 
-    fullWidth = true, 
-    className = '', 
-    labelClassName = '', 
-    inputClassName = '',
-    errorClassName = '',
-    id,
-    ...rest 
-  }, ref) => {
-    const inputId = id || `input-${rest.name || Math.random().toString(36).substring(2, 9)}`;
-    
+  (
+    {
+      label,
+      error,
+      fullWidth = true,
+      className = '',
+      labelClassName = '',
+      inputClassName = '',
+      errorClassName = '',
+      id,
+      ...rest
+    },
+    ref,
+  ) => {
+    const inputId = id || `input-${rest.name || Math.random().toString(36).substring(2, 9)}`
+
     return (
       <div className={`${fullWidth ? 'w-full' : ''} ${className}`}>
         {label && (
-          <label 
-            htmlFor={inputId} 
+          <label
+            htmlFor={inputId}
             className={`block text-sm font-medium mb-1 text-gray-700 dark:text-gray-200 ${labelClassName}`}
           >
             {label}
@@ -44,16 +48,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                      ${inputClassName}`}
           {...rest}
         />
-        {error && (
-          <p className={`mt-1 text-sm text-red-600 dark:text-red-400 ${errorClassName}`}>
-            {error}
-          </p>
-        )}
+        {error && <p className={`mt-1 text-sm text-red-600 dark:text-red-400 ${errorClassName}`}>{error}</p>}
       </div>
-    );
-  }
-);
+    )
+  },
+)
 
-Input.displayName = 'Input';
+Input.displayName = 'Input'
 
-export default Input; 
+export default Input

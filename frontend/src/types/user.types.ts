@@ -21,6 +21,7 @@ export interface CreateUserData {
   fullName?: string;
   role?: 'admin' | 'operator';
   status?: 'active' | 'inactive' | 'pending_verification';
+  assignedTo?: string; // ID del administrador asignado
 }
 
 // Tipo para actualizar un usuario existente
@@ -31,6 +32,7 @@ export interface UpdateUserData {
   fullName?: string;
   role?: 'admin' | 'operator';
   status?: 'active' | 'inactive' | 'pending_verification';
+  assignedTo?: string; // ID del administrador asignado
 }
 
 // Filtros para búsqueda de usuarios

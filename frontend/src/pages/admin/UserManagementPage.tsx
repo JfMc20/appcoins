@@ -11,6 +11,7 @@ import { LoadingSpinner } from '../../components/common';
 
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [admins, setAdmins] = useState<User[]>([]); // Lista de administradores para asignar
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -23,6 +24,7 @@ const UserManagementPage: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'admin' | 'operator'>('operator');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [assignedTo, setAssignedTo] = useState<string>('');
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -44,6 +46,15 @@ const UserManagementPage: React.FC = () => {
     try {
       const data = await userService.getAllUsers();
       setUsers(data);
+      
+      // Filtrar administradores para mostrarlos en el dropdown de asignación
+      const adminsList = data.filter(u => u.role === 'admin');
+      setAdmins(adminsList);
+      
+      // Si el usuario actual es admin, pre-seleccionarlo en la lista de asignación
+      if (user && user.role === 'admin') {
+        setAssignedTo(user._id);
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al cargar usuarios');
       console.error('Error al cargar usuarios:', err);
@@ -66,6 +77,11 @@ const UserManagementPage: React.FC = () => {
         fullName,
         role
       };
+      
+      // Si es un operador, asignar al admin seleccionado
+      if (role === 'operator' && assignedTo) {
+        userData.assignedTo = assignedTo;
+      }
 
       const newUser = await userService.createUser(userData);
       setUsers(prevUsers => [...prevUsers, newUser]);
@@ -92,6 +108,12 @@ const UserManagementPage: React.FC = () => {
   if (isLoading && users.length === 0) {
     return <LoadingSpinner fullScreen message="Cargando usuarios..." />;
   }
+
+  // Función para obtener el nombre del administrador asignado
+  const getAssignedAdminName = (userId: string): string => {
+    const admin = admins.find(a => a._id === userId);
+    return admin ? (admin.fullName || admin.username) : 'No asignado';
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -176,6 +198,28 @@ const UserManagementPage: React.FC = () => {
                 </select>
               </div>
 
+              {/* Selector de administrador asignado - solo visible si el rol es operador */}
+              {role === 'operator' && admins.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Asignar a Administrador
+                  </label>
+                  <select
+                    id="assignedTo"
+                    value={assignedTo}
+                    onChange={(e) => setAssignedTo(e.target.value)}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value="">Seleccionar Administrador</option>
+                    {admins.map(admin => (
+                      <option key={admin._id} value={admin._id}>
+                        {admin.fullName || admin.username}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3 mt-6">
                 <Button
                   type="button"
@@ -220,6 +264,9 @@ const UserManagementPage: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Estado
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Asignado a
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -253,6 +300,23 @@ const UserManagementPage: React.FC = () => {
                         >
                           {user.status === 'active' ? 'Activo' : 'Inactivo'}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {user.role === 'operator' ? (
+                          user.assignedTo ? (
+                            <span className="text-indigo-600 dark:text-indigo-400">
+                              {getAssignedAdminName(user.assignedTo)}
+                            </span>
+                          ) : (
+                            <span className="text-yellow-600 dark:text-yellow-400">
+                              No asignado
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-600">
+                            N/A
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}

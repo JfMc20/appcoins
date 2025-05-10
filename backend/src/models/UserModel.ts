@@ -8,6 +8,7 @@ export interface IUser extends Document {
   fullName?: string;
   role: 'admin' | 'operator';
   status: 'active' | 'inactive' | 'pending_verification';
+  assignedTo?: mongoose.Types.ObjectId | string; // Referencia al administrador que creó este operador
   lastLogin?: Date;
   failedLoginAttempts?: number;
   lockUntil?: Date;
@@ -53,6 +54,11 @@ const UserSchema: Schema<IUser> = new Schema(
       type: String,
       enum: ['active', 'inactive', 'pending_verification'],
       default: 'active',
+    },
+    assignedTo: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      // Solo se establece para operadores, no para administradores
     },
     lastLogin: {
       type: Date,

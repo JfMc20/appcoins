@@ -7,6 +7,7 @@ export interface User {
   role: 'admin' | 'operator';
   fullName?: string;
   status?: 'active' | 'inactive' | 'pending_verification';
+  assignedTo?: string;
   // cualquier otros campos del usuario que devuelva el backend al hacer login
 }
 

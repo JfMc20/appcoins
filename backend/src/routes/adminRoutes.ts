@@ -4,8 +4,22 @@ import {
   updateGameItemPricing,
   updateExternalProductPricing,
 } from '../controllers/adminController';
+import {
+  createUserByAdmin,
+  deleteUser,
+  getUserById,
+  getUsers,
+  updateUser
+} from '../controllers/UserController';
 
 const router = express.Router();
+
+// Rutas para la gestión de usuarios
+router.get('/users', protectWithJwt, restrictTo('admin'), getUsers);
+router.get('/users/:id', protectWithJwt, restrictTo('admin'), getUserById);
+router.post('/users', protectWithJwt, restrictTo('admin'), createUserByAdmin);
+router.put('/users/:id', protectWithJwt, restrictTo('admin'), updateUser);
+router.delete('/users/:id', protectWithJwt, restrictTo('admin'), deleteUser);
 
 // Rutas para la gestión de precios por parte del administrador
 

@@ -1,10 +1,27 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
+import mongoose, { Schema, Document, Types, Model } from 'mongoose';
 import { IUser } from './UserModel';
 import { IContact } from './ContactModel';
 import { IGameItem } from './GameItemModel';
 import { IExternalProduct } from './ExternalProductModel';
 import { IFundingSource } from './FundingSourceModel';
 import { IGame } from './GameModel';
+
+// Tipos de transacciones
+export type TransactionType = 
+  | 'COMPRA_ITEM_JUEGO' 
+  | 'VENTA_ITEM_JUEGO' 
+  | 'COMPRA_PRODUCTO_EXTERNO' 
+  | 'VENTA_PRODUCTO_EXTERNO'
+  | 'AJUSTE_STOCK_POSITIVO'
+  | 'AJUSTE_STOCK_NEGATIVO'
+  | 'DEVOLUCION_CLIENTE'
+  | 'DEVOLUCION_PROVEEDOR'
+  | 'DECLARACION_SALDO_INICIAL_CAPITAL'
+  | 'DECLARACION_OPERADOR_INICIO_DIA'
+  | 'AJUSTE_ADMIN_CAPITAL'
+  | 'TRANSFERENCIA_ENTRE_FUENTES'
+  | 'GASTO_OPERATIVO'
+  | 'INGRESO_NO_OPERACIONAL';
 
 // Interfaz para el subdocumento de detalles de ítem/producto en una transacción
 export interface ITransactionItemDetail {
@@ -81,13 +98,8 @@ export interface IProfitDetail {
 // Interfaz principal para el documento Transaction
 export interface ITransaction extends Document {
   transactionDate: Date; // Fecha y hora de la transacción
-  // Tipo de transacción (basado en fase_3_transacciones.md)
-  type: 'COMPRA_ITEM_JUEGO' | 'VENTA_ITEM_JUEGO' | 'COMPRA_PRODUCTO_EXTERNO' | 'VENTA_PRODUCTO_EXTERNO' |
-        'AJUSTE_STOCK_POSITIVO' | 'AJUSTE_STOCK_NEGATIVO' | 'DEVOLUCION_CLIENTE' | 'DEVOLUCION_PROVEEDOR' |
-        'DECLARACION_SALDO_INICIAL_CAPITAL' |
-        'DECLARACION_OPERADOR_INICIO_DIA' |
-        'AJUSTE_ADMIN_CAPITAL' |
-        'TRANSFERENCIA_ENTRE_FUENTES' | 'GASTO_OPERATIVO' | 'INGRESO_NO_OPERACIONAL';
+  // Tipo de transacción
+  type: TransactionType;
   contactId?: Types.ObjectId | IContact; // Cliente o proveedor (si aplica)
   operatorUserId: Types.ObjectId | IUser; // Usuario que registró la transacción
   
@@ -104,6 +116,19 @@ export interface ITransaction extends Document {
   // Timestamps de Mongoose
   createdAt?: Date;
   updatedAt?: Date;
+
+  // Métodos de instancia
+  calculateTotalAmount(): number | null; // Calcula el monto total de la transacción
+  getReferenceCurrencyAmount(): { amount: number; currency: string } | null; // Obtiene el monto en moneda de referencia
+  affectsInventory(): boolean; // Determina si la transacción afecta el inventario
+  affectsCapital(): boolean; // Determina si la transacción afecta el capital
+}
+
+// Interfaz para el modelo estático
+export interface ITransactionModel extends Model<ITransaction> {
+  getTransactionsByContact(contactId: string): Promise<ITransaction[]>;
+  getTransactionsByFundingSource(fundingSourceId: string): Promise<ITransaction[]>;
+  getTransactionsByItem(itemId: string, itemType: 'GameItem' | 'ExternalProduct'): Promise<ITransaction[]>;
 }
 
 // ---- Schemas ----
@@ -214,11 +239,139 @@ const TransactionSchema: Schema<ITransaction> = new Schema(
   }
 );
 
+// Validación a nivel de esquema completo
+TransactionSchema.pre('validate', function(this: ITransaction, next) {
+  const type = this.type;
+
+  // Validaciones específicas por tipo de transacción
+  if (['COMPRA_ITEM_JUEGO', 'VENTA_ITEM_JUEGO', 'COMPRA_PRODUCTO_EXTERNO', 'VENTA_PRODUCTO_EXTERNO'].includes(type)) {
+    // Transacciones de compra/venta de items o productos siempre requieren itemDetails
+    if (!this.itemDetails) {
+      return next(new Error(`La transacción de tipo ${type} requiere detalles del ítem (itemDetails)`));
+    }
+    
+    // Transacciones de compra/venta siempre requieren paymentDetails
+    if (!this.paymentDetails) {
+      return next(new Error(`La transacción de tipo ${type} requiere detalles de pago (paymentDetails)`));
+    }
+  }
+  
+  if (['AJUSTE_STOCK_POSITIVO', 'AJUSTE_STOCK_NEGATIVO'].includes(type)) {
+    // Ajustes de stock siempre requieren itemDetails
+    if (!this.itemDetails) {
+      return next(new Error(`La transacción de tipo ${type} requiere detalles del ítem (itemDetails)`));
+    }
+  }
+  
+  if (['DECLARACION_SALDO_INICIAL_CAPITAL', 'DECLARACION_OPERADOR_INICIO_DIA', 'AJUSTE_ADMIN_CAPITAL'].includes(type)) {
+    // Transacciones de capital siempre requieren capitalDeclaration
+    if (!this.capitalDeclaration || !this.capitalDeclaration.length) {
+      return next(new Error(`La transacción de tipo ${type} requiere declaración de capital (capitalDeclaration)`));
+    }
+  }
+  
+  if (['TRANSFERENCIA_ENTRE_FUENTES'].includes(type)) {
+    // Transferencias siempre requieren paymentDetails
+    if (!this.paymentDetails) {
+      return next(new Error(`La transacción de tipo ${type} requiere detalles de pago (paymentDetails)`));
+    }
+    
+    // TO-DO: Aquí podríamos validar que exista un paymentDetails para la fuente origen y otro para la destino
+  }
+
+  next();
+});
+
+// Métodos de instancia
+TransactionSchema.methods.calculateTotalAmount = function(this: ITransaction): number | null {
+  if (this.itemDetails && this.itemDetails.totalAmount) {
+    return this.itemDetails.totalAmount.amount;
+  }
+  
+  if (this.paymentDetails) {
+    return Math.abs(this.paymentDetails.amount);
+  }
+  
+  if (this.capitalDeclaration && this.capitalDeclaration.length) {
+    // Sumar todos los montos declarados
+    return this.capitalDeclaration.reduce((sum, entry) => sum + entry.declaredBalance, 0);
+  }
+  
+  return null;
+};
+
+TransactionSchema.methods.getReferenceCurrencyAmount = function(this: ITransaction): { amount: number; currency: string } | null {
+  if (this.paymentDetails && this.paymentDetails.valueInReferenceCurrency) {
+    return this.paymentDetails.valueInReferenceCurrency;
+  }
+  
+  if (this.profitDetails && this.profitDetails.netProfit) {
+    return {
+      amount: this.profitDetails.netProfit.amount,
+      currency: this.profitDetails.netProfit.currency
+    };
+  }
+  
+  return null;
+};
+
+TransactionSchema.methods.affectsInventory = function(this: ITransaction): boolean {
+  return [
+    'COMPRA_ITEM_JUEGO', 
+    'VENTA_ITEM_JUEGO', 
+    'COMPRA_PRODUCTO_EXTERNO', 
+    'VENTA_PRODUCTO_EXTERNO',
+    'AJUSTE_STOCK_POSITIVO', 
+    'AJUSTE_STOCK_NEGATIVO',
+    'DEVOLUCION_CLIENTE',
+    'DEVOLUCION_PROVEEDOR'
+  ].includes(this.type);
+};
+
+TransactionSchema.methods.affectsCapital = function(this: ITransaction): boolean {
+  return [
+    'COMPRA_ITEM_JUEGO', 
+    'VENTA_ITEM_JUEGO', 
+    'COMPRA_PRODUCTO_EXTERNO', 
+    'VENTA_PRODUCTO_EXTERNO',
+    'DECLARACION_SALDO_INICIAL_CAPITAL',
+    'DECLARACION_OPERADOR_INICIO_DIA',
+    'AJUSTE_ADMIN_CAPITAL',
+    'TRANSFERENCIA_ENTRE_FUENTES',
+    'GASTO_OPERATIVO',
+    'INGRESO_NO_OPERACIONAL'
+  ].includes(this.type);
+};
+
+// Métodos estáticos
+TransactionSchema.statics.getTransactionsByContact = function(contactId: string): Promise<ITransaction[]> {
+  return this.find({ contactId }).sort({ transactionDate: -1 }).exec();
+};
+
+TransactionSchema.statics.getTransactionsByFundingSource = function(fundingSourceId: string): Promise<ITransaction[]> {
+  return this.find({
+    $or: [
+      { 'paymentDetails.fundingSourceId': fundingSourceId },
+      { 'capitalDeclaration.fundingSourceId': fundingSourceId }
+    ]
+  }).sort({ transactionDate: -1 }).exec();
+};
+
+TransactionSchema.statics.getTransactionsByItem = function(itemId: string, itemType: 'GameItem' | 'ExternalProduct'): Promise<ITransaction[]> {
+  return this.find({
+    'itemDetails.itemId': itemId,
+    'itemDetails.itemType': itemType
+  }).sort({ transactionDate: -1 }).exec();
+};
+
 // Índices compuestos y específicos
 TransactionSchema.index({ 'itemDetails.itemId': 1, 'itemDetails.itemType': 1 });
 TransactionSchema.index({ 'paymentDetails.fundingSourceId': 1 });
+TransactionSchema.index({ 'capitalDeclaration.fundingSourceId': 1 });
 TransactionSchema.index({ tags: 1 });
+TransactionSchema.index({ type: 1, transactionDate: -1 });
+TransactionSchema.index({ contactId: 1, transactionDate: -1 });
 
-const TransactionModel = mongoose.model<ITransaction>('Transaction', TransactionSchema);
+const TransactionModel = mongoose.model<ITransaction, ITransactionModel>('Transaction', TransactionSchema);
 
 export default TransactionModel; 

@@ -1,13 +1,26 @@
 // Definiciones de tipos para juegos y sus ítems
 
+export interface GameMetrics {
+  playerBase?: number;
+  popularity?: number;
+  profitMargin?: number;
+  lastUpdated?: Date;
+}
+
 export interface Game {
   _id: string;
   name: string;
-  shortName: string;
+  shortName?: string;
   description?: string;
+  iconUrl?: string;
+  officialUrl?: string;
+  releaseDate?: Date;
+  lastVersionUpdate?: Date;
+  platform?: string[];
+  metrics?: GameMetrics;
   status: 'active' | 'inactive' | 'archived';
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface GameItem {
@@ -33,16 +46,16 @@ export interface GameItem {
 // Interfaces para creación y actualización
 export interface CreateGameData {
   name: string;
-  shortName: string;
+  shortName?: string;
   description?: string;
+  iconUrl?: string;
+  officialUrl?: string;
+  platform?: string[];
   status?: 'active' | 'inactive' | 'archived';
 }
 
-export interface UpdateGameData {
-  name?: string;
-  shortName?: string;
-  description?: string;
-  status?: 'active' | 'inactive' | 'archived';
+export interface UpdateGameData extends Partial<CreateGameData> {
+  metrics?: Partial<GameMetrics>;
 }
 
 export interface CreateGameItemData {
@@ -77,4 +90,16 @@ export interface UpdateGameItemData {
     name: string;
     value: string;
   }>;
+}
+
+export interface GameResponse {
+  success: boolean;
+  data: Game;
+  message?: string;
+}
+
+export interface GamesListResponse {
+  success: boolean;
+  data: Game[];
+  message?: string;
 } 

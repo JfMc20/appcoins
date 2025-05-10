@@ -1,44 +1,91 @@
 import axios from 'axios';
-import { User, RegisterData } from '../types/auth.types';
+import { User } from '../types/auth.types';
+import {
+  CreateUserData,
+  UpdateUserData,
+  UserResponse,
+  UsersListResponse,
+  UserSearchFilters
+} from '../types/user.types';
 
-const API_URL = process.env.REACT_APP_API_BASE_URL + '/admin/users';
+const API_URL = `${process.env.REACT_APP_API_BASE_URL}/admin/users`;
 
-// Interfaz para las credenciales de creación de usuario por admin
-export interface AdminUserCreateData extends RegisterData {
-  role?: 'admin' | 'operator';
-}
-
-// Función para crear un nuevo usuario (solo para administradores)
-const createUser = (userData: AdminUserCreateData): Promise<User> => {
-  return axios.post<User>(API_URL, userData).then(res => res.data);
+// Obtener el perfil del usuario actual
+const getCurrentUser = (): Promise<User> => {
+  return axios.get(`${process.env.REACT_APP_API_BASE_URL}/users/profile`)
+    .then(res => res.data);
 };
 
-// Función para obtener todos los usuarios (solo para administradores)
-const getUsers = (): Promise<User[]> => {
-  return axios.get<User[]>(API_URL).then(res => res.data);
+// Obtener todos los usuarios (solo admin)
+const getAllUsers = (): Promise<User[]> => {
+  return axios.get<UsersListResponse>(API_URL)
+    .then(res => res.data.data || res.data);
 };
 
-// Función para obtener un usuario por ID (solo para administradores)
-const getUserById = (userId: string): Promise<User> => {
-  return axios.get<User>(`${API_URL}/${userId}`).then(res => res.data);
+// Obtener un usuario por ID (solo admin)
+const getUserById = (id: string): Promise<User> => {
+  return axios.get<UserResponse>(`${API_URL}/${id}`)
+    .then(res => res.data.data || res.data);
 };
 
-// Función para actualizar un usuario (solo para administradores)
-const updateUser = (userId: string, userData: Partial<AdminUserCreateData>): Promise<User> => {
-  return axios.put<User>(`${API_URL}/${userId}`, userData).then(res => res.data);
+// Crear un nuevo usuario (solo admin)
+const createUser = (userData: CreateUserData): Promise<User> => {
+  return axios.post<UserResponse>(API_URL, userData)
+    .then(res => res.data.data || res.data);
 };
 
-// Función para eliminar un usuario (solo para administradores)
-const deleteUser = (userId: string): Promise<void> => {
-  return axios.delete(`${API_URL}/${userId}`).then(res => res.data);
+// Actualizar un usuario (solo admin)
+const updateUser = (id: string, userData: UpdateUserData): Promise<User> => {
+  return axios.put<UserResponse>(`${API_URL}/${id}`, userData)
+    .then(res => res.data.data || res.data);
+};
+
+// Eliminar un usuario (solo admin)
+const deleteUser = (id: string): Promise<void> => {
+  return axios.delete(`${API_URL}/${id}`);
+};
+
+// Buscar usuarios con filtros (solo admin)
+const searchUsers = (filters: UserSearchFilters): Promise<User[]> => {
+  // Construir querystring de filtros
+  const queryParams = new URLSearchParams();
+  
+  if (filters.username) queryParams.append('username', filters.username);
+  if (filters.email) queryParams.append('email', filters.email);
+  if (filters.role && filters.role !== 'all') queryParams.append('role', filters.role);
+  if (filters.status && filters.status !== 'all') queryParams.append('status', filters.status);
+  
+  const queryString = queryParams.toString();
+  const url = queryString ? `${API_URL}/search?${queryString}` : `${API_URL}/search`;
+  
+  return axios.get<UsersListResponse>(url)
+    .then(res => res.data.data || res.data);
+};
+
+// Actualizar el perfil del usuario actual
+const updateProfile = (userData: Partial<User>): Promise<User> => {
+  return axios.put<UserResponse>(`${process.env.REACT_APP_API_BASE_URL}/users/profile`, userData)
+    .then(res => res.data.data || res.data);
+};
+
+// Cambiar contraseña del usuario actual
+const changePassword = (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
+  return axios.post(`${process.env.REACT_APP_API_BASE_URL}/users/change-password`, { 
+    currentPassword, 
+    newPassword 
+  }).then(res => res.data);
 };
 
 const userService = {
-  createUser,
-  getUsers,
+  getCurrentUser,
+  getAllUsers,
   getUserById,
+  createUser,
   updateUser,
   deleteUser,
+  searchUsers,
+  updateProfile,
+  changePassword
 };
 
 export default userService; 

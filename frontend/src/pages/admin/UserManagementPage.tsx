@@ -1,8 +1,9 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import userService, { AdminUserCreateData } from '../../services/user.service';
+import userService from '../../services/user.service';
 import { User } from '../../types/auth.types';
+import { CreateUserData } from '../../types/user.types';
 import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
@@ -41,7 +42,7 @@ const UserManagementPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await userService.getUsers();
+      const data = await userService.getAllUsers();
       setUsers(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al cargar usuarios');
@@ -58,7 +59,7 @@ const UserManagementPage: React.FC = () => {
     setSuccessMessage(null);
 
     try {
-      const userData: AdminUserCreateData = {
+      const userData: CreateUserData = {
         username,
         email,
         password,

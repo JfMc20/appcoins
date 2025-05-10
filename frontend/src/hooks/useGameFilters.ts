@@ -28,7 +28,7 @@ export const useGameFilters = (games: Game[]): UseGameFiltersReturn => {
       result = result.filter(
         (game) =>
           game.name.toLowerCase().includes(searchLower) ||
-          game.shortName.toLowerCase().includes(searchLower) ||
+          (game.shortName ? game.shortName.toLowerCase().includes(searchLower) : false) ||
           (game.description && game.description.toLowerCase().includes(searchLower)),
       )
     }

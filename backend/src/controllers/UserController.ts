@@ -1,6 +1,36 @@
 import { Request, Response, NextFunction } from 'express';
-import UserModel from '../models/UserModel';
+import mongoose, { Document } from 'mongoose';
+import UserModel, { IUser } from '../models/UserModel';
 import { logger } from '../utils/logger';
+
+// Asegurar el tipado correcto cuando usamos ObjectId
+const toObjectId = (id: any): mongoose.Types.ObjectId => {
+  if (!id) {
+    throw new Error('ID no válido para convertir a ObjectId');
+  }
+  if (id instanceof mongoose.Types.ObjectId) {
+    return id;
+  }
+  if (typeof id === 'string') {
+    return new mongoose.Types.ObjectId(id);
+  }
+  if (id._id) {
+    return toObjectId(id._id);
+  }
+  if (id.toString && typeof id.toString === 'function') {
+    return new mongoose.Types.ObjectId(id.toString());
+  }
+  throw new Error('No se pudo convertir a ObjectId: tipo incompatible');
+};
+
+// Convertir cualquier tipo de ID a string para comparaciones seguras
+const idToString = (id: any): string => {
+  if (!id) return '';
+  if (typeof id === 'string') return id;
+  if (id instanceof mongoose.Types.ObjectId) return id.toString();
+  if (id.toString && typeof id.toString === 'function') return id.toString();
+  return '';
+};
 
 /**
  * @desc    Crear un nuevo usuario (por un Administrador)
@@ -34,9 +64,8 @@ export const createUserByAdmin = async (req: Request, res: Response, next: NextF
     };
     
     // Si es un operador, asignarlo al administrador actual
-    if (newUserRole === 'operator') {
-      // Suponemos que el ID del admin actual está disponible en req.user._id (depende de cómo se implemente la autenticación)
-      userData.assignedTo = req.user?._id;
+    if (newUserRole === 'operator' && req.user && req.user._id) {
+      userData.assignedTo = toObjectId(req.user._id);
     }
 
     const user = await UserModel.create(userData);
@@ -71,10 +100,16 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction):
     // Si es un super admin, obtener todos los usuarios
     // Si es un admin regular, obtener solo sus operadores asignados y a sí mismo
     let query = {};
-    if (req.user && req.user.role === 'admin') {
+    if (req.user && req.user.role === 'admin' && req.user._id) {
+      const adminId = idToString(req.user._id);
       // Si no es un superadmin o tiene restricciones, filtrar solo sus operadores
       // Esta lógica puede personalizarse según los requisitos
-      query = { $or: [{ _id: req.user._id }, { assignedTo: req.user._id }] };
+      query = { 
+        $or: [
+          { _id: req.user._id }, 
+          { assignedTo: req.user._id }
+        ] 
+      };
     }
     
     const users = await UserModel.find(query)
@@ -119,18 +154,26 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     const { username, email, fullName, role, status, password, assignedTo } = req.body;
     
     // Verificar si el usuario existe
-    const user = await UserModel.findById(req.params.id);
+    const user = await UserModel.findById(req.params.id) as IUser;
     if (!user) {
       res.status(404).json({ message: 'Usuario no encontrado' });
       return;
     }
     
     // Verificar permisos del administrador actual sobre este usuario
-    if (req.user && req.user.role === 'admin' && user._id.toString() !== req.user._id.toString()) {
-      // Si el usuario a actualizar no es el admin actual, verificar si es uno de sus operadores asignados
-      if (user.assignedTo && user.assignedTo.toString() !== req.user._id.toString()) {
-        res.status(403).json({ message: 'No tienes permisos para modificar este usuario' });
-        return;
+    if (req.user && req.user.role === 'admin' && req.user._id) {
+      const currentUserId = idToString(req.user._id);
+      const targetUserId = idToString(user._id);
+      
+      if (currentUserId !== targetUserId) {
+        // Si el usuario a actualizar no es el admin actual, verificar si es uno de sus operadores asignados
+        if (user.assignedTo) {
+          const assignedToId = idToString(user.assignedTo);
+          if (assignedToId !== currentUserId) {
+            res.status(403).json({ message: 'No tienes permisos para modificar este usuario' });
+            return;
+          }
+        }
       }
     }
     
@@ -161,8 +204,10 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
         user.assignedTo = undefined;
       }
       // Si cambia de admin a operador, asignarlo al admin actual
-      else if (role === 'operator' && user.role === 'admin') {
-        user.assignedTo = req.user?._id;
+      else if (role === 'operator' && user.role === 'admin' && req.user?._id) {
+        // Aplicar un cast explícito para corregir el error de tipo
+        const adminId = toObjectId(req.user._id);
+        user.assignedTo = adminId;
       }
       user.role = role;
     }
@@ -177,7 +222,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
         res.status(400).json({ message: 'El administrador asignado no existe' });
         return;
       }
-      user.assignedTo = assignedTo;
+      user.assignedTo = toObjectId(assignedTo);
     }
     
     // Si se proporciona una nueva contraseña, actualizarla

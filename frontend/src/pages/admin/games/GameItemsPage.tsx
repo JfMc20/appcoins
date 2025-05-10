@@ -14,6 +14,7 @@ import {
   GameItemTable, 
   GameItemForm 
 } from '../../../components/games';
+import { DashboardLayout } from '../../../components/layout';
 import useNotification from '../../../hooks/useNotification';
 import useGameItemFilters from '../../../hooks/useGameItemFilters';
 
@@ -138,12 +139,16 @@ const GameItemsPage: React.FC = () => {
   };
 
   if (isLoading && !game) {
-    return <LoadingSpinner fullScreen message="Cargando información del juego..." />;
+    return (
+      <DashboardLayout>
+        <LoadingSpinner message="Cargando información del juego..." />
+      </DashboardLayout>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <DashboardLayout>
+      <div className="space-y-6">
         <div className="flex justify-between items-center mb-6">
           <div>
             <button 
@@ -257,7 +262,7 @@ const GameItemsPage: React.FC = () => {
           />
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

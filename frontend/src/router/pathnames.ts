@@ -21,11 +21,34 @@ const Auth = {
   register: '/register',
 }
 
+const Transactions = {
+  history: '/transactions',
+  new: '/transactions/new',
+}
+
+// Herramientas de diagnóstico ocultas con una ruta compleja para evitar descubrimiento por fuzzing
+const SecureTools = {
+  base: '/secure-system-diagnostics-5f7e3a9d8c1b6',
+  userRole: '/secure-system-diagnostics-5f7e3a9d8c1b6/user-inspector',
+  fixAdmin: '/secure-system-diagnostics-5f7e3a9d8c1b6/admin-tools',
+  loginDebug: '/secure-system-diagnostics-5f7e3a9d8c1b6/auth-analyzer',
+}
+
+// Mantener las rutas antiguas temporalmente para compatibilidad
+const Debug = {
+  userRole: '/debug/user-role',
+  fixAdmin: '/debug/fix-admin',
+  loginDebug: '/debug/login',
+}
+
 const Pathnames = {
   home: '/',
   admin: Admin,
   user: User,
   auth: Auth,
+  transactions: Transactions,
+  debug: Debug,
+  secureTools: SecureTools,
 }
 
 export default Pathnames

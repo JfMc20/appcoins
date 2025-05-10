@@ -16,6 +16,7 @@ interface AuthContextType extends AuthState {
   loginUser: (credentials: LoginCredentials) => Promise<void>
   registerUser: (userData: RegisterData) => Promise<void>
   logoutUser: () => void
+  forceUserRole: (role: 'admin' | 'operator') => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -29,31 +30,61 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     error: null,
   })
 
+  // Función para actualizar todas las cabeceras de autenticación
+  const updateAuthHeaders = (token: string | null) => {
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      console.log('Cabeceras de autenticación actualizadas con el token')
+    } else {
+      delete axios.defaults.headers.common['Authorization']
+      console.log('Cabeceras de autenticación eliminadas')
+    }
+  }
+
   useEffect(() => {
     const loadUserFromStorage = async () => {
-      const token = authService.getCurrentUserToken()
-      if (token) {
-        // Aquí idealmente validarías el token con el backend o decodificarías para obtener datos del usuario
-        // Por ahora, asumimos que si hay token, está "autenticado" y seteamos datos básicos.
-        // Deberíamos tener una forma de obtener el usuario completo a partir del token.
-        // Temporalmente, si hay token, intentaremos simular que tenemos un usuario (esto necesita mejora)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        // Simulación: si tienes un endpoint /me o /profile, úsalo aquí.
-        // Como no lo tenemos definido explícitamente, por ahora solo seteamos el token
-        // y dejamos `user` como null hasta que el login lo popule.
-        // O, si el token JWT contiene la información del usuario, decodifícala.
-        // Por simplicidad, vamos a requerir un login para obtener datos del usuario completos.
+      try {
+        const token = authService.getCurrentUserToken()
+        const user = authService.getCurrentUser()
+        
+        if (token) {
+          updateAuthHeaders(token)
+          
+          if (user) {
+            console.log('Usuario cargado desde localStorage:', user)
+            setAuthState({
+              user,
+              token,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            })
+          } else {
+            console.warn('Token encontrado pero sin datos de usuario válidos')
+            setAuthState({
+              user: null,
+              token,
+              isAuthenticated: true, // Mantenemos autenticado pero sin usuario
+              isLoading: false,
+              error: 'Datos de usuario incompletos',
+            })
+          }
+        } else {
+          console.log('No se encontró token de autenticación')
+          setAuthState((prev) => ({ ...prev, isLoading: false }))
+        }
+      } catch (error) {
+        console.error('Error cargando datos de autenticación:', error)
         setAuthState({
-          user: null, // Se obtendrá en el login
-          token: token,
-          isAuthenticated: true, // Si hay token, asumimos autenticado para proteger rutas
+          user: null,
+          token: null,
+          isAuthenticated: false,
           isLoading: false,
-          error: null,
+          error: 'Error cargando datos de sesión',
         })
-      } else {
-        setAuthState((prev) => ({ ...prev, isLoading: false }))
       }
     }
+    
     loadUserFromStorage()
   }, [])
 
@@ -61,8 +92,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAuthState((prev) => ({ ...prev, isLoading: true, error: null }))
     try {
       const data: LoginResponse = await authService.login(credentials)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`
-      // El servicio ya guarda el token en localStorage
+      if (!data.token) {
+        throw new Error('El servidor no devolvió un token de autenticación')
+      }
+      
+      updateAuthHeaders(data.token)
+      
+      // Verificar si tenemos los datos de usuario
+      if (!data.user) {
+        throw new Error('El servidor no devolvió datos de usuario')
+      }
+      
       setAuthState({
         user: data.user,
         token: data.token,
@@ -72,6 +112,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       })
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Error al iniciar sesión'
+      console.error('Error de login:', errorMessage)
+      
       setAuthState((prev) => ({
         ...prev,
         isLoading: false,
@@ -80,8 +122,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user: null,
         token: null,
       }))
-      localStorage.removeItem('userToken') // Limpiar token si el login falla
-      delete axios.defaults.headers.common['Authorization']
+      
+      // Limpiar cualquier dato de autenticación parcial
+      authService.logout()
+      updateAuthHeaders(null)
+      
       throw new Error(errorMessage)
     }
   }
@@ -89,21 +134,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const registerUser = async (userData: RegisterData) => {
     setAuthState((prev) => ({ ...prev, isLoading: true, error: null }))
     try {
-      // El servicio de registro actual no devuelve un token, solo datos del usuario.
-      // El usuario necesitará hacer login después de registrarse.
-      await authService.register(userData)
+      const result = await authService.register(userData)
+      console.log('Usuario registrado correctamente:', result)
       setAuthState((prev) => ({ ...prev, isLoading: false }))
-      // No cambiamos isAuthenticated aquí, el usuario debe hacer login
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Error al registrar usuario'
+      console.error('Error de registro:', errorMessage)
       setAuthState((prev) => ({ ...prev, isLoading: false, error: errorMessage }))
       throw new Error(errorMessage)
     }
   }
 
   const logoutUser = () => {
-    authService.logout() // Limpia el token de localStorage
-    delete axios.defaults.headers.common['Authorization']
+    authService.logout()
+    updateAuthHeaders(null)
     setAuthState({
       user: null,
       token: null,
@@ -113,8 +157,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     })
   }
 
+  // Función para forzar un cambio de rol (solo para desarrollo/depuración)
+  const forceUserRole = (role: 'admin' | 'operator') => {
+    if (!authState.user) {
+      console.error('No hay usuario para actualizar el rol')
+      return
+    }
+    
+    try {
+      const updatedUser = { ...authState.user, role }
+      localStorage.setItem('userObject', JSON.stringify(updatedUser))
+      
+      setAuthState(prev => ({
+        ...prev,
+        user: updatedUser
+      }))
+      
+      console.log(`Rol actualizado a "${role}" correctamente`)
+    } catch (error) {
+      console.error('Error al forzar cambio de rol:', error)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ ...authState, loginUser, registerUser, logoutUser }}>
+    <AuthContext.Provider 
+      value={{ 
+        ...authState, 
+        loginUser, 
+        registerUser, 
+        logoutUser,
+        forceUserRole
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

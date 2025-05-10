@@ -6,8 +6,14 @@ import HomePage from '../pages/HomePage' // Crearemos esta página simple pronto
 import UserManagementPage from '../pages/admin/UserManagementPage' // Importar la nueva página
 import GameManagementPage from '../pages/admin/games/GameManagementPage' // Importar página de gestión de juegos
 import GameItemsPage from '../pages/admin/games/GameItemsPage' // Importar página de gestión de ítems de juegos
+import TransactionHistoryPage from '../pages/transactions/TransactionHistoryPage' // Importar página de historial de transacciones
+import NewTransactionPage from '../pages/transactions/NewTransactionPage' // Importar página de nueva transacción
+import UserRoleDebug from '../pages/debug/UserRoleDebug'
+import FixUserAdmin from '../pages/debug/FixUserAdmin' // Nueva página para forzar usuario admin
+import LoginDebugger from '../pages/debug/LoginDebugger' // Depurador de login
 import { useAuth } from '../contexts/AuthContext'
 import { LoadingSpinner } from '../components/common'
+import { SecretTools } from '../components/common'
 import Pathnames from './pathnames'
 
 // Definimos las props para ProtectedRoute
@@ -46,6 +52,7 @@ const AppRouter: React.FC = () => {
 
   return (
     <Router>
+      <SecretTools />
       <Routes>
         <Route
           path={Pathnames.auth.login}
@@ -91,6 +98,81 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <GameItemsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rutas de transacciones */}
+        <Route
+          path={Pathnames.transactions.history}
+          element={
+            <ProtectedRoute>
+              <TransactionHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={Pathnames.transactions.new}
+          element={
+            <ProtectedRoute>
+              <NewTransactionPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rutas de depuración */}
+        <Route
+          path={Pathnames.debug.userRole}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <UserRoleDebug />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={Pathnames.debug.fixAdmin}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <FixUserAdmin />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={Pathnames.debug.loginDebug}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <LoginDebugger />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Nuevas rutas ocultas (seguras) para herramientas de diagnóstico */}
+        <Route
+          path={Pathnames.secureTools.userRole}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <UserRoleDebug />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={Pathnames.secureTools.fixAdmin}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <FixUserAdmin />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={Pathnames.secureTools.loginDebug}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <LoginDebugger />
             </ProtectedRoute>
           }
         />

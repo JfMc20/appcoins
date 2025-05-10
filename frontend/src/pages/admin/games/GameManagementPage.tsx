@@ -14,6 +14,7 @@ import {
   GameTable, 
   GameForm 
 } from '../../../components/games';
+import { DashboardLayout } from '../../../components/layout';
 import useNotification from '../../../hooks/useNotification';
 import useGameFilters from '../../../hooks/useGameFilters';
 
@@ -105,12 +106,16 @@ const GameManagementPage: React.FC = () => {
   };
 
   if (isLoading && games.length === 0) {
-    return <LoadingSpinner fullScreen message="Cargando juegos..." />;
+    return (
+      <DashboardLayout>
+        <LoadingSpinner message="Cargando juegos..." />
+      </DashboardLayout>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <DashboardLayout>
+      <div className="space-y-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Gestión de Juegos
@@ -181,7 +186,7 @@ const GameManagementPage: React.FC = () => {
           />
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

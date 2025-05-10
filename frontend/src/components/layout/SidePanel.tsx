@@ -12,12 +12,14 @@ import {
   FaChevronRight,
   FaCoins
 } from 'react-icons/fa';
+import { IconType } from 'react-icons';
+import { Icon } from '../common';
 
 // Definir la estructura de un ítem de navegación
 interface NavItem {
   title: string;
   path: string;
-  icon: any; // Usando any para evitar problemas de tipado con los iconos
+  iconName: keyof typeof iconComponents;
   roles?: ('admin' | 'operator')[];
 }
 
@@ -28,38 +30,42 @@ interface NavSection {
   roles?: ('admin' | 'operator')[];
 }
 
-// Crear funciones para los iconos para evitar problemas de tipado
-const HomeIcon = ({ className }: { className?: string }) => <FaHome className={className} />;
-const UsersIcon = ({ className }: { className?: string }) => <FaUsers className={className} />;
-const GamepadIcon = ({ className }: { className?: string }) => <FaGamepad className={className} />;
-const HistoryIcon = ({ className }: { className?: string }) => <FaHistory className={className} />;
-const PlusIcon = ({ className }: { className?: string }) => <FaPlus className={className} />;
-const CoinsIcon = ({ className }: { className?: string }) => <FaCoins className={className} />;
-const ChevronLeftIcon = ({ className }: { className?: string }) => <FaChevronLeft className={className} />;
-const ChevronRightIcon = ({ className }: { className?: string }) => <FaChevronRight className={className} />;
+// Objeto con componentes de iconos
+const iconComponents: Record<string, IconType> = {
+  home: FaHome,
+  users: FaUsers,
+  gamepad: FaGamepad,
+  history: FaHistory,
+  plus: FaPlus,
+  coins: FaCoins,
+  chevronLeft: FaChevronLeft,
+  chevronRight: FaChevronRight
+};
 
 const navSections: NavSection[] = [
   {
     title: 'General',
     items: [
-      { title: 'Dashboard', path: Pathnames.home, icon: <HomeIcon /> },
+      { title: 'Dashboard', path: Pathnames.home, iconName: 'home' },
     ]
   },
   {
     title: 'Administración',
     roles: ['admin'],
     items: [
-      { title: 'Usuarios', path: Pathnames.admin.users, icon: <UsersIcon /> },
-      { title: 'Juegos', path: Pathnames.admin.games.root, icon: <GamepadIcon /> },
+      { title: 'Usuarios', path: Pathnames.admin.users, iconName: 'users' },
+      { title: 'Juegos', path: Pathnames.admin.games.root, iconName: 'gamepad' },
     ]
   },
   {
     title: 'Transacciones',
     items: [
-      { title: 'Historial', path: '/transactions', icon: <HistoryIcon /> },
-      { title: 'Nueva Transacción', path: '/transactions/new', icon: <PlusIcon /> },
+      { title: 'Historial', path: Pathnames.transactions.history, iconName: 'history' },
+      { title: 'Nueva Transacción', path: Pathnames.transactions.new, iconName: 'plus' },
     ]
   },
+  // La sección de herramientas ha sido eliminada para mayor seguridad
+  // Ahora se accede mediante rutas directas
 ];
 
 const SidePanel: React.FC = () => {
@@ -81,16 +87,25 @@ const SidePanel: React.FC = () => {
       <div className="p-4 flex justify-between items-center">
         {!isCollapsed && (
           <div className="flex items-center">
-            <CoinsIcon className="text-yellow-500 text-2xl mr-2" />
+            <div className="text-yellow-500 text-2xl mr-2">
+              <Icon icon={iconComponents.coins} />
+            </div>
             <h1 className="font-bold text-xl">AppCoins</h1>
           </div>
         )}
-        {isCollapsed && <CoinsIcon className="text-yellow-500 text-xl mx-auto" />}
+        {isCollapsed && (
+          <div className="text-yellow-500 text-xl mx-auto">
+            <Icon icon={iconComponents.coins} />
+          </div>
+        )}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="text-gray-400 hover:text-white"
         >
-          {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+          {isCollapsed ? 
+            <Icon icon={iconComponents.chevronRight} /> : 
+            <Icon icon={iconComponents.chevronLeft} />
+          }
         </button>
       </div>
 
@@ -124,7 +139,7 @@ const SidePanel: React.FC = () => {
                         }`}
                       >
                         <span className={`text-lg ${isCollapsed ? 'mx-auto' : 'mr-3'}`}>
-                          {item.icon}
+                          <Icon icon={iconComponents[item.iconName]} />
                         </span>
                         {!isCollapsed && <span>{item.title}</span>}
                       </Link>

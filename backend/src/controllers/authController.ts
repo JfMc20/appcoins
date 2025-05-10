@@ -17,8 +17,29 @@ const generateToken = (id: string, role: string): string => {
     expiresIn: expiresInValue as any,
   };
   
-  // Usar la variable 'options'
   return jwt.sign({ id, role }, secret!, options);
+};
+
+// Función para formatear la respuesta del usuario para la API
+const formatUserResponse = (user: IUser, includeToken: boolean = false): any => {
+  const userResponse = {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    fullName: user.fullName || null,
+    status: user.status,
+  };
+
+  if (includeToken) {
+    const token = generateToken(user.id, user.role);
+    return { 
+      token, 
+      user: userResponse 
+    };
+  }
+
+  return userResponse;
 };
 
 /**
@@ -39,14 +60,17 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     // Si ya existe un administrador real, bloquear el registro
     if (adminCount > 0) {
       logger.warn(`Intento de registro público bloqueado. Ya existe un usuario administrador.`);
-      res.status(403).json({ message: 'El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador.' });
+      res.status(403).json({ 
+        success: false,
+        message: 'El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador.' 
+      });
       return;
     }
 
     // Verificar si el email o username ya existe
     const userExists = await UserModel.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
-      res.status(400).json({ message: 'El usuario o email ya existe.' });
+      res.status(400).json({ success: false, message: 'El usuario o email ya existe.' });
       return;
     }
 
@@ -63,19 +87,25 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
     if (user) {
       logger.info(`Usuario administrador registrado: ${user.username} (${user.email})`);
       
-      // Devolver los datos del usuario sin el token (requiere login explícito)
-      res.status(201).json({ _id: user._id, username: user.username, email: user.email, role: user.role });
+      // Devolver los datos del usuario formateados
+      res.status(201).json({ 
+        success: true, 
+        user: formatUserResponse(user)
+      });
     } else {
-      res.status(400).json({ message: 'Datos de usuario inválidos.' });
+      res.status(400).json({ success: false, message: 'Datos de usuario inválidos.' });
     }
   } catch (error: any) {
     logger.error('Error al registrar usuario:', error);
-     if (error.name === 'ValidationError') {
-       res.status(400).json({ message: 'Error de validación', details: error.errors });
-       return;
-     } else {
-       next(error);
-     }
+    if (error.name === 'ValidationError') {
+      res.status(400).json({ 
+        success: false, 
+        message: 'Error de validación', 
+        details: error.errors 
+      });
+    } else {
+      next(error);
+    }
   }
 };
 
@@ -86,32 +116,58 @@ export const registerUser = async (req: Request, res: Response, next: NextFuncti
  */
 export const loginUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { email, password } = req.body;
+  
+  logger.info(`Intento de login para: ${email}`);
 
   if (!email || !password) {
-     res.status(400).json({ message: 'Por favor, proporcione email y contraseña.' });
-     return;
+    res.status(400).json({ 
+      success: false, 
+      message: 'Por favor, proporcione email y contraseña.' 
+    });
+    return;
   }
 
   try {
     // Buscar usuario por email
     const user = await UserModel.findOne({ email });
+    
+    if (!user) {
+      logger.warn(`Login fallido - usuario no encontrado: ${email}`);
+      res.status(401).json({ 
+        success: false, 
+        message: 'Email o contraseña inválidos.' 
+      });
+      return;
+    }
 
-    if (user && (await user.comparePassword(password))) {
-      logger.info(`Login exitoso para: ${user.email}`);
+    // Verificar la contraseña
+    const passwordMatch = await user.comparePassword(password);
+    
+    if (passwordMatch) {
+      logger.info(`Login exitoso para: ${user.email} (${user.role})`);
       
-      const token = generateToken(user.id, user.role);
-      res.json({
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        fullName: user.fullName,
-        status: user.status,
-        token,
+      // Actualizar último login
+      user.lastLogin = new Date();
+      await user.save();
+      
+      // Devolver respuesta formateada con token
+      const formattedResponse = formatUserResponse(user, true);
+      
+      res.status(200).json({
+        success: true,
+        ...formattedResponse
       });
     } else {
-      logger.warn(`Intento de login fallido para: ${email}`);
-      res.status(401).json({ message: 'Email o contraseña inválidos.' });
+      logger.warn(`Login fallido - contraseña incorrecta para: ${email}`);
+      
+      // Aumentar contador de intentos fallidos
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      await user.save();
+      
+      res.status(401).json({ 
+        success: false, 
+        message: 'Email o contraseña inválidos.' 
+      });
     }
   } catch (error) {
     logger.error('Error durante el login:', error);
@@ -135,12 +191,14 @@ export const getRegistrationStatus = async (req: Request, res: Response, next: N
     if (adminCount === 0) {
       // No hay administradores reales, registro abierto
       res.status(200).json({ 
+        success: true,
         status: 'open', 
         message: 'El registro está abierto para crear un usuario administrador.'
       });
     } else {
       // Hay al menos un administrador, registro cerrado
       res.status(200).json({ 
+        success: true,
         status: 'closed', 
         message: 'El registro de nuevos usuarios está actualmente deshabilitado. Ya existe un usuario administrador.'
       });

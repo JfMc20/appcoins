@@ -8,6 +8,7 @@ import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common';
+import { DashboardLayout } from '../../components/layout';
 
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -106,7 +107,11 @@ const UserManagementPage: React.FC = () => {
   };
 
   if (isLoading && users.length === 0) {
-    return <LoadingSpinner fullScreen message="Cargando usuarios..." />;
+    return (
+      <DashboardLayout>
+        <LoadingSpinner message="Cargando usuarios..." />
+      </DashboardLayout>
+    );
   }
 
   // Función para obtener el nombre del administrador asignado
@@ -116,8 +121,8 @@ const UserManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <DashboardLayout>
+      <div className="space-y-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Gestión de Usuarios
@@ -295,28 +300,16 @@ const UserManagementPage: React.FC = () => {
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             ${user.status === 'active' 
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`
+                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`
                           }
                         >
                           {user.status === 'active' ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {user.role === 'operator' ? (
-                          user.assignedTo ? (
-                            <span className="text-indigo-600 dark:text-indigo-400">
-                              {getAssignedAdminName(user.assignedTo)}
-                            </span>
-                          ) : (
-                            <span className="text-yellow-600 dark:text-yellow-400">
-                              No asignado
-                            </span>
-                          )
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-600">
-                            N/A
-                          </span>
-                        )}
+                        {user.role === 'operator' && user.assignedTo ? 
+                          getAssignedAdminName(user.assignedTo) : 
+                          <span className="text-gray-400 dark:text-gray-600">N/A</span>}
                       </td>
                     </tr>
                   ))}
@@ -326,7 +319,7 @@ const UserManagementPage: React.FC = () => {
           )}
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

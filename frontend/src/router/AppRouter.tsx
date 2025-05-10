@@ -7,7 +7,7 @@ import UserManagementPage from '../pages/admin/UserManagementPage' // Importar l
 import GameManagementPage from '../pages/admin/games/GameManagementPage' // Importar página de gestión de juegos
 import GameItemsPage from '../pages/admin/games/GameItemsPage' // Importar página de gestión de ítems de juegos
 import { useAuth } from '../contexts/AuthContext'
-import { Layout, LoadingSpinner } from '../components/common'
+import { LoadingSpinner } from '../components/common'
 import Pathnames from './pathnames'
 
 // Definimos las props para ProtectedRoute
@@ -46,65 +46,61 @@ const AppRouter: React.FC = () => {
 
   return (
     <Router>
-      <Layout>
-        <Routes>
-          <Route
-            path={Pathnames.auth.login}
-            element={isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <LoginPage />}
-          />
-          <Route
-            path={Pathnames.auth.register}
-            element={isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <RegisterPage />}
-          />
+      <Routes>
+        <Route
+          path={Pathnames.auth.login}
+          element={isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <LoginPage />}
+        />
+        <Route
+          path={Pathnames.auth.register}
+          element={isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <RegisterPage />}
+        />
 
-          {/* Ruta principal protegida */}
-          <Route
-            path={Pathnames.home}
-            element={
-              <ProtectedRoute>
-                <HomePage />
-              </ProtectedRoute>
-            }
-          />
+        {/* Ruta principal protegida */}
+        <Route
+          path={Pathnames.home}
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Rutas de administración de usuarios */}
-          <Route
-            path={Pathnames.admin.users}
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <UserManagementPage />
-              </ProtectedRoute>
-            }
-          />
+        {/* Rutas de administración de usuarios */}
+        <Route
+          path={Pathnames.admin.users}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <UserManagementPage />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Rutas de administración de juegos */}
-          <Route
-            path={Pathnames.admin.games.root}
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <GameManagementPage />
-              </ProtectedRoute>
-            }
-          />
+        {/* Rutas de administración de juegos */}
+        <Route
+          path={Pathnames.admin.games.root}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <GameManagementPage />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path={Pathnames.admin.games.items}
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <GameItemsPage />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path={Pathnames.admin.games.items}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <GameItemsPage />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Aquí se añadirían más rutas protegidas, por ejemplo:
-          <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
-          <Route path="/contacts" element={<ProtectedRoute><ContactsPage /></ProtectedRoute>} />
-          */}
-
-          {/* Ruta de fallback o página 404 */}
-          <Route path="*" element={<Navigate to={Pathnames.home} replace />} />
-        </Routes>
-      </Layout>
+        {/* Ruta por defecto - redireccionar a home o login */}
+        <Route 
+          path="*" 
+          element={isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <Navigate to={Pathnames.auth.login} replace />} 
+        />
+      </Routes>
     </Router>
   )
 }

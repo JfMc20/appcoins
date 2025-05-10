@@ -17,7 +17,7 @@ import {
 interface NavItem {
   title: string;
   path: string;
-  icon: React.ReactNode;
+  icon: JSX.Element;
   roles?: ('admin' | 'operator')[];
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import userService from '../../services/user.service';
@@ -30,18 +30,7 @@ const UserManagementPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Cargar usuarios al montar el componente
-  useEffect(() => {
-    // Verificar si el usuario actual es administrador
-    if (!user || user.role !== 'admin') {
-      navigate('/'); // Redirigir a la página principal si no es administrador
-      return;
-    }
-
-    fetchUsers();
-  }, [user, navigate]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -62,7 +51,18 @@ const UserManagementPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
+
+  // Cargar usuarios al montar el componente
+  useEffect(() => {
+    // Verificar si el usuario actual es administrador
+    if (!user || user.role !== 'admin') {
+      navigate('/'); // Redirigir a la página principal si no es administrador
+      return;
+    }
+
+    fetchUsers();
+  }, [user, navigate, fetchUsers]);
 
   const handleCreateUser = async (e: FormEvent) => {
     e.preventDefault();

@@ -188,6 +188,22 @@ Los próximos pasos incluyen:
 - Desarrollar formularios para los diferentes tipos de transacciones
 - Crear dashboards con resúmenes y métricas
 
+## Herramientas de Diagnóstico para Administradores
+
+El frontend implementa un acceso seguro a herramientas de diagnóstico para usuarios con rol de administrador:
+
+*   **Acceso por Combinación de Teclas:**
+    *   Presionar `Ctrl + Alt + D` y luego `T` (en menos de 2 segundos) redirige al depurador de autenticación.
+*   **Rutas Seguras:**
+    *   Las herramientas son accesibles a través de URLs ofuscadas y seguras (ej. `/secure-system-diagnostics-5f7e3a9d8c1b6/...`) que se configuran en un archivo como `pathnames.ts`.
+    *   Estas rutas renderizan componentes específicos para:
+        *   Depurador de Autenticación
+        *   Inspector de Usuario
+        *   Otras Herramientas de Administración
+*   **Seguridad:**
+    *   No hay enlaces directos visibles en la interfaz de usuario general a estas herramientas.
+    *   El acceso a las funcionalidades subyacentes es validado por el backend (requiere rol de administrador).
+
 ## Tecnologías Utilizadas
 
 - **React**: Biblioteca principal para la construcción de interfaces

@@ -58,6 +58,9 @@
     *   Ver detalles y progreso en: [Fase 6: Interfaz de Usuario (Frontend) - General](./fase_6_frontend.md)
     *   Diseño y desarrollo de todas las vistas de la aplicación.
     *   Asegurar diseño responsivo y buena UX.
+    *   **Herramientas de Diagnóstico para Administradores:**
+        *   Implementación de acceso seguro a herramientas de diagnóstico (combinación de teclas y URLs directas).
+        *   Desarrollo de interfaces para: Depurador de Autenticación, Inspector de Usuario y Herramientas de Administración específicas (ej. forzar rol).
 
 *   **Fase 7: Pruebas y Despliegue.**
     *   (Detalles a desarrollar en un archivo dedicado, ej: `./fase_7_pruebas_despliegue.md`)

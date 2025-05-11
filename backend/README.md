@@ -318,6 +318,35 @@ Endpoints para registrar todas las operaciones financieras y de inventario. Toda
 
     *   _(Otros tipos de transacciones como COMPRA_ITEM_JUEGO, VENTA_ITEM_JUEGO, etc., se documentarán a medida que se implementen completamente su lógica de `itemDetails`, `paymentDetails` y `profitDetails`.)_
 
+## Herramientas de Diagnóstico para Administradores de AppCoins
+
+Este documento contiene información confidencial sobre las herramientas de diagnóstico disponibles para administradores del sistema y sus correspondientes endpoints de API.
+
+### Acceso Seguro y Endpoints
+
+Las herramientas de diagnóstico están diseñadas para ser accedidas principalmente a través del frontend mediante una combinación de teclas (`Ctrl + Alt + D` luego `T`). Sin embargo, los endpoints de API subyacentes son:
+
+*   **`/secure-system-diagnostics-5f7e3a9d8c1b6/auth-analyzer`** (GET)
+    *   **Descripción**: Endpoint para el Depurador de Autenticación. Utilizado para analizar respuestas de login en tiempo real, mostrar información del token actual y probar la conexión con el backend.
+    *   **Autenticación**: Requiere JWT y rol `admin`.
+
+*   **`/secure-system-diagnostics-5f7e3a9d8c1b6/user-inspector`** (GET)
+    *   **Descripción**: Endpoint para el Inspector de Usuario. Muestra información detallada del usuario actual, proporciona detalles del token almacenado y permite verificar el estado de autenticación.
+    *   **Autenticación**: Requiere JWT y rol `admin`.
+
+*   **`/secure-system-diagnostics-5f7e3a9d8c1b6/admin-tools`** (GET, y posiblemente POST/PUT para acciones específicas)
+    *   **Descripción**: Endpoint para Herramientas de Administración generales. Permite acciones como forzar el rol de administrador en situaciones de emergencia.
+    *   **Autenticación**: Requiere JWT y rol `admin`.
+
+### Consideraciones de Seguridad para estos Endpoints
+
+*   **Confidencialidad**: La existencia y naturaleza de estas herramientas y endpoints debe ser manejada con discreción.
+*   **Protección**: Están protegidos por:
+    1.  Rutas ofuscadas para dificultar su descubrimiento.
+    2.  Verificación obligatoria de rol de `admin` a nivel de API.
+    3.  El frontend no expone enlaces directos en la interfaz de usuario general.
+*   **Mantenimiento**: Se recomienda revisar y considerar el cambio periódico de las rutas de acceso (potencialmente gestionado en un archivo de configuración como `pathnames.ts` en el frontend y en la configuración de rutas del backend) para mayor seguridad.
+
 ## API de Juegos y Productos (`/api/games`)
 
 Endpoints para gestionar juegos y sus ítems. Todas las rutas requieren autenticación JWT.

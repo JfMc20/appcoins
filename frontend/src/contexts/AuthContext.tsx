@@ -2,7 +2,6 @@ import type React from 'react'
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import authService from '../services/auth.service'
 import type { User, LoginCredentials, RegisterData, LoginResponse } from '../types/auth.types'
-import axios from 'axios'
 
 interface AuthState {
   user: User | null
@@ -30,17 +29,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     error: null,
   })
 
-  // Función para actualizar todas las cabeceras de autenticación
-  const updateAuthHeaders = (token: string | null) => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      console.log('Cabeceras de autenticación actualizadas con el token')
-    } else {
-      delete axios.defaults.headers.common['Authorization']
-      console.log('Cabeceras de autenticación eliminadas')
-    }
-  }
-
   useEffect(() => {
     const loadUserFromStorage = async () => {
       try {
@@ -48,8 +36,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const user = authService.getCurrentUser()
         
         if (token) {
-          updateAuthHeaders(token)
-          
+          // Ya no necesitamos actualizar headers aquí, la API lo hace por sí misma
           if (user) {
             console.log('Usuario cargado desde localStorage:', user)
             setAuthState({
@@ -96,7 +83,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error('El servidor no devolvió un token de autenticación')
       }
       
-      updateAuthHeaders(data.token)
+      // Ya no actualizamos headers aquí, la API lo hace automáticamente
       
       // Verificar si tenemos los datos de usuario
       if (!data.user) {
@@ -125,8 +112,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       // Limpiar cualquier dato de autenticación parcial
       authService.logout()
-      updateAuthHeaders(null)
-      
       throw new Error(errorMessage)
     }
   }
@@ -147,7 +132,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logoutUser = () => {
     authService.logout()
-    updateAuthHeaders(null)
     setAuthState({
       user: null,
       token: null,

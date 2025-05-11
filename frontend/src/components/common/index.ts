@@ -7,4 +7,5 @@ export { default as Notification } from './Notification';
 export { default as FilterBar } from './FilterBar';
 export { default as EmptyState } from './EmptyState';
 export { default as Icon } from './Icon';
-export { default as SecretTools } from './SecretTools'; 
+export { default as SecretTools } from './SecretTools';
+export { default as ThemeSwitcher } from './ThemeSwitcher'; 

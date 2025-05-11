@@ -1,4 +1,4 @@
-import axios from 'axios'
+import api from './api';
 import type {
   LoginCredentials,
   RegisterData,
@@ -9,9 +9,7 @@ import type {
 } from '../types/auth.types'
 
 // Definir la URL base de la API desde las variables de entorno
-const API_URL = process.env.REACT_APP_API_BASE_URL 
-  ? `${process.env.REACT_APP_API_BASE_URL}/auth`
-  : 'http://localhost:3000/api/auth'; // URL de fallback para desarrollo local
+const AUTH_PATH = '/auth';
 
 // Función para depurar respuestas de la API
 const debugApiResponse = (action: string, data: any) => {
@@ -22,7 +20,7 @@ const debugApiResponse = (action: string, data: any) => {
 
 const register = (userData: RegisterData): Promise<RegisterResponse> => {
   console.log('Registrando usuario:', userData);
-  return axios.post<RegisterResponse>(`${API_URL}/register`, userData)
+  return api.post<RegisterResponse>(`${AUTH_PATH}/register`, userData)
     .then((res) => {
       debugApiResponse('register', res.data);
       return res.data;
@@ -36,7 +34,7 @@ const register = (userData: RegisterData): Promise<RegisterResponse> => {
 const login = (credentials: LoginCredentials): Promise<LoginResponse> => {
   console.log('Iniciando sesión con:', credentials.email);
   
-  return axios.post<LoginResponse>(`${API_URL}/login`, credentials)
+  return api.post<LoginResponse>(`${AUTH_PATH}/login`, credentials)
     .then((response) => {
       debugApiResponse('login', response.data);
       
@@ -107,7 +105,7 @@ const getCurrentUser = (): User | null => {
 }
 
 const getRegistrationStatus = (): Promise<RegistrationStatusResponse> => {
-  return axios.get<RegistrationStatusResponse>(`${API_URL}/registration-status`)
+  return api.get<RegistrationStatusResponse>(`${AUTH_PATH}/registration-status`)
     .then((res) => res.data)
     .catch(error => {
       console.error('Error al verificar estado de registro:', error.response?.data || error.message);

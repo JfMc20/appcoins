@@ -8,6 +8,7 @@ const Admin = {
   products: '/admin/products',
   orders: '/admin/orders',
   settings: '/admin/settings',
+  exchangeRates: '/admin/exchange-rates',
 }
 
 const User = {

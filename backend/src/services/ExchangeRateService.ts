@@ -40,7 +40,10 @@ export const getRatesFromCriptoYa = async (
   logger.debug(`Consultando CriptoYa: ${url}`); // Usar debug para la URL
 
   try {
-    const response = await axios.get<CriptoYaApiResponse>(url);
+    // Aumentar el timeout para evitar problemas de conexión
+    const response = await axios.get<CriptoYaApiResponse>(url, {
+      timeout: 10000 // 10 segundos de timeout
+    });
 
     if (response.data && typeof response.data === 'object' && Object.keys(response.data).length > 0) {
       logger.debug(`Respuesta de CriptoYa para ${coin.toUpperCase()}/${fiat.toUpperCase()} (vol ${volume}) obtenida.`); // Usar debug
@@ -72,9 +75,6 @@ export const updateFiatExchangeRates = async (): Promise<void> => {
 
   if (!appSettings) {
     logger.error('Configuración global (AppSettings) no encontrada. No se pueden actualizar las tasas.');
-    // Opcionalmente, crear configuraciones por defecto si no existen:
-    // appSettings = new AppSettingsModel({ defaultTransactionFees: { type: 'percentage', sellRate: 0, buyRate: 0 }, notifications: {lowStockAlertsEnabled: true} });
-    // console.log('Creando AppSettings por defecto...');
     return;
   }
 
@@ -94,18 +94,36 @@ export const updateFiatExchangeRates = async (): Promise<void> => {
     appSettings.currentExchangeRates = new Map<string, ICurrentRateDetail>();
   }
 
-  for (const fiatCurrency of activeFiatCurrencies) {
-    const pairKey = `${DEFAULT_CRYPTO_COIN}_${fiatCurrency.code}`;
-    logger.debug(`Procesando par: ${pairKey}`);
+  // Crear un array de promesas para obtener todas las tasas en paralelo
+  const ratePromises = activeFiatCurrencies.map(fiatCurrency =>
+    getRatesFromCriptoYa(DEFAULT_CRYPTO_COIN, fiatCurrency.code)
+      .then(criptoYaData => ({ // Envolver el resultado con la moneda para referencia posterior
+        fiatCurrency,
+        criptoYaData,
+        pairKey: `${DEFAULT_CRYPTO_COIN}_${fiatCurrency.code}` // Pre-calcular pairKey para logging si es necesario
+      }))
+      .catch(error => { // Capturar errores individuales para que Promise.all no falle por completo
+        logger.error(`Error al obtener tasa para ${fiatCurrency.code} durante la paralelización:`, error);
+        return { fiatCurrency, criptoYaData: null, pairKey: `${DEFAULT_CRYPTO_COIN}_${fiatCurrency.code}` }; // Devolver null para que el resto siga
+      })
+  );
 
-    const criptoYaData = await getRatesFromCriptoYa(DEFAULT_CRYPTO_COIN, fiatCurrency.code);
+  // Esperar a que todas las promesas se resuelvan
+  const settledRates = await Promise.all(ratePromises);
+
+  for (const result of settledRates) {
+    const { fiatCurrency, criptoYaData, pairKey } = result;
+    // pairKey ya fue calculado y usado en el logging de error individual si lo hubo.
+    // Lo recalculamos aquí por claridad o lo usamos directamente si se pasó.
+    // const pairKey = `${DEFAULT_CRYPTO_COIN}_${fiatCurrency.code}`; // Ya está en result.pairKey
+
+    logger.debug(`Procesando par: ${pairKey}`);
 
     if (criptoYaData && criptoYaData[PREFERRED_EXCHANGE]) {
       const preferredRateData = criptoYaData[PREFERRED_EXCHANGE];
       const newAsk = preferredRateData.ask;
       const newBid = preferredRateData.bid;
-      // Usaremos ASK como la 'currentRate' por defecto
-      const newCurrentRate = newAsk;
+      const newCurrentRate = newAsk; // Usaremos ASK como la 'currentRate' por defecto
 
       const existingRateDetail = appSettings.currentExchangeRates.get(pairKey);
       const previousRate = existingRateDetail?.currentRate;
@@ -116,7 +134,7 @@ export const updateFiatExchangeRates = async (): Promise<void> => {
       if (previousRate && newCurrentRate) {
         change = newCurrentRate - previousRate;
         if (previousRate !== 0) { // Evitar división por cero
-            changePercent = (change / previousRate) * 100;
+          changePercent = (change / previousRate) * 100;
         }
       }
       
@@ -135,7 +153,11 @@ export const updateFiatExchangeRates = async (): Promise<void> => {
       logger.info(`Tasa para ${pairKey} actualizada: current=${newCurrentRate.toFixed(4)}, ask=${newAsk.toFixed(4)}, bid=${newBid.toFixed(4)}`);
       ratesUpdatedCount++;
     } else {
-      logger.warn(`No se encontró la tasa de ${PREFERRED_EXCHANGE} para ${pairKey} en CriptoYa, o hubo un error al obtenerla.`);
+      // El error ya se logueó en el .catch de la promesa individual si criptoYaData es null debido a un error.
+      // Si criptoYaData no es null pero falta PREFERRED_EXCHANGE, logueamos aquí.
+      if (criptoYaData) { // Solo loguear si no fue un error capturado antes
+        logger.warn(`No se encontró la tasa de ${PREFERRED_EXCHANGE} para ${pairKey} en CriptoYa, o hubo un error al obtenerla (datos recibidos):`, criptoYaData);
+      }
     }
   }
 

@@ -10,7 +10,8 @@ import {
   FaPlus, 
   FaChevronLeft, 
   FaChevronRight,
-  FaCoins
+  FaCoins,
+  FaExchangeAlt
 } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { Icon } from '../common';
@@ -38,6 +39,7 @@ const iconComponents: Record<string, IconType> = {
   history: FaHistory,
   plus: FaPlus,
   coins: FaCoins,
+  exchange: FaExchangeAlt,
   chevronLeft: FaChevronLeft,
   chevronRight: FaChevronRight
 };
@@ -55,6 +57,7 @@ const navSections: NavSection[] = [
     items: [
       { title: 'Usuarios', path: Pathnames.admin.users, iconName: 'users' },
       { title: 'Juegos', path: Pathnames.admin.games.root, iconName: 'gamepad' },
+      { title: 'Tasas de Cambio', path: Pathnames.admin.exchangeRates, iconName: 'exchange' },
     ]
   },
   {

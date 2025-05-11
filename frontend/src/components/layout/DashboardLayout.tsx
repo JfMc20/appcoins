@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import SidePanel from './SidePanel';
+import ThemeSwitcher from '../common/ThemeSwitcher';
 import Pathnames from '../../router/pathnames';
 
 interface DashboardLayoutProps {
@@ -31,9 +32,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               Dashboard
             </h1>
             <div className="flex items-center space-x-4">
+              <ThemeSwitcher />
               <div className="text-sm text-gray-600 dark:text-gray-300">
                 <span className="font-medium">{user?.username}</span>
-                <span className="ml-1 text-xs text-gray-500">
+                <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
                   ({user?.role === 'admin' ? 'Administrador' : 'Operador'})
                 </span>
               </div>

@@ -3,21 +3,15 @@ import jwt, { JwtPayload } from 'jsonwebtoken'; // Importar JwtPayload
 import UserModel, { IUser } from '../models/UserModel'; // Importar UserModel e IUser
 import { logger } from '../utils/logger';
 
-const API_KEY = process.env.API_SECRET_KEY;
+// Usar la variable de entorno si está disponible, o una clave por defecto para desarrollo
+const API_KEY = process.env.API_SECRET_KEY || 'default-dev-key';
 
-if (!API_KEY) {
-  logger.error('API_SECRET_KEY no está configurada en las variables de entorno. La autenticación de API no funcionará.');
-  // Podrías optar por lanzar un error aquí para detener el inicio si es crítico
+if (!process.env.API_SECRET_KEY) {
+  logger.warn('API_SECRET_KEY no está configurada en las variables de entorno. Usando clave por defecto para desarrollo.');
 }
 
 export const simpleApiKeyAuth = (req: Request, res: Response, next: NextFunction) => {
   const providedApiKey = req.headers['x-api-key']; // Usaremos la cabecera 'X-API-Key'
-
-  if (!API_KEY) {
-    // Esto es por si la variable de entorno no se cargó, aunque ya logueamos arriba.
-    logger.warn('Intento de acceso a endpoint protegido sin API_SECRET_KEY configurada en servidor.');
-    return res.status(500).json({ message: 'Error de configuración del servidor.' });
-  }
 
   if (!providedApiKey) {
     logger.warn('Acceso denegado: No se proporcionó X-API-Key.');
@@ -25,7 +19,7 @@ export const simpleApiKeyAuth = (req: Request, res: Response, next: NextFunction
   }
 
   if (providedApiKey !== API_KEY) {
-    logger.warn('Acceso denegado: X-API-Key incorrecta.');
+    logger.warn(`Acceso denegado: X-API-Key incorrecta. Proporcionada: ${providedApiKey}, Esperada: ${API_KEY}`);
     return res.status(403).json({ message: 'Acceso prohibido: API Key incorrecta.' });
   }
 

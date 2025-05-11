@@ -10,23 +10,23 @@ logger.info('[Router] Configurando router de settings...'); // <<< LOG AÑADIDO 
 const router = express.Router();
 
 // GET /api/settings/exchange-rates
-// Protegido con API Key
+// En modo desarrollo, deshabilitamos temporalmente la autenticación
 router.get(
   '/exchange-rates',
-  simpleApiKeyAuth, // <<< APLICAR MIDDLEWARE
+  simpleApiKeyAuth, // Habilitamos la autenticación por API Key
   (req, res, next) => {
-    logger.info('[Router] Petición GET /api/settings/exchange-rates recibida (autenticada).');
+    logger.info('[Router] Petición GET /api/settings/exchange-rates recibida.');
     getExchangeRates(req, res, next);
   }
 );
 
 // POST /api/settings/exchange-rates/refresh
-// Dispara la actualización manual. Protegido con API Key.
+// En modo desarrollo, deshabilitamos temporalmente la autenticación
 router.post(
   '/exchange-rates/refresh',
-  simpleApiKeyAuth, // <<< APLICAR MIDDLEWARE
+  simpleApiKeyAuth, // Habilitamos la autenticación por API Key
   (req, res, next) => { // <<< Envoltura y LOG AÑADIDO
-    logger.info('[Router] Petición POST /api/settings/exchange-rates/refresh recibida (autenticada).');
+    logger.info('[Router] Petición POST /api/settings/exchange-rates/refresh recibida.');
     refreshExchangeRates(req, res, next);
   }
 );

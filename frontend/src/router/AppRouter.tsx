@@ -6,6 +6,7 @@ import HomePage from '../pages/HomePage' // Crearemos esta página simple pronto
 import UserManagementPage from '../pages/admin/UserManagementPage' // Importar la nueva página
 import GameManagementPage from '../pages/admin/games/GameManagementPage' // Importar página de gestión de juegos
 import GameItemsPage from '../pages/admin/games/GameItemsPage' // Importar página de gestión de ítems de juegos
+import ExchangeRatePage from '../pages/admin/ExchangeRatePage' // Importar página de tasas de cambio
 import TransactionHistoryPage from '../pages/transactions/TransactionHistoryPage' // Importar página de historial de transacciones
 import NewTransactionPage from '../pages/transactions/NewTransactionPage' // Importar página de nueva transacción
 import UserRoleDebug from '../pages/debug/UserRoleDebug'
@@ -98,6 +99,16 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <GameItemsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Ruta de tasas de cambio */}
+        <Route
+          path={Pathnames.admin.exchangeRates}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <ExchangeRatePage />
             </ProtectedRoute>
           }
         />

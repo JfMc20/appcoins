@@ -5,6 +5,11 @@ import { logger } from '../utils/logger';
 const router = express.Router();
 logger.info('[Router] Configurando router de auth...');
 
+// GET /api/auth/ping - Verificar disponibilidad del servicio de autenticación
+router.get('/ping', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Auth service is running' });
+});
+
 // POST /api/auth/register - Registrar un nuevo usuario
 router.post('/register', registerUser);
 

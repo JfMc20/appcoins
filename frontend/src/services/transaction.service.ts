@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from './api';
 import { 
   Transaction,
   CreateTransactionData, 
@@ -8,7 +8,7 @@ import {
   TransactionSearchFilters
 } from '../types/transaction.types';
 
-const API_URL = `${process.env.REACT_APP_API_BASE_URL}/transactions`;
+const TRANSACTIONS_PATH = '/transactions';
 
 // Obtener todas las transacciones (con paginación)
 const getAllTransactions = (page = 1, limit = 20): Promise<{
@@ -20,7 +20,7 @@ const getAllTransactions = (page = 1, limit = 20): Promise<{
     pages: number
   }
 }> => {
-  return axios.get<TransactionListResponse>(`${API_URL}?page=${page}&limit=${limit}`)
+  return api.get<TransactionListResponse>(`${TRANSACTIONS_PATH}?page=${page}&limit=${limit}`)
     .then(response => ({
       transactions: response.data.data,
       pagination: response.data.pagination || {
@@ -42,7 +42,7 @@ const searchTransactions = (filters: TransactionSearchFilters): Promise<{
     pages: number
   }
 }> => {
-  return axios.post<TransactionListResponse>(`${API_URL}/search`, filters)
+  return api.post<TransactionListResponse>(`${TRANSACTIONS_PATH}/search`, filters)
     .then(response => ({
       transactions: response.data.data,
       pagination: response.data.pagination
@@ -51,38 +51,38 @@ const searchTransactions = (filters: TransactionSearchFilters): Promise<{
 
 // Obtener una transacción por ID
 const getTransactionById = (id: string): Promise<Transaction> => {
-  return axios.get<TransactionResponse>(`${API_URL}/${id}`)
+  return api.get<TransactionResponse>(`${TRANSACTIONS_PATH}/${id}`)
     .then(response => response.data.data);
 };
 
 // Obtener transacciones por contacto
 const getTransactionsByContact = (contactId: string): Promise<Transaction[]> => {
-  return axios.get<TransactionListResponse>(`${API_URL}/by-contact/${contactId}`)
+  return api.get<TransactionListResponse>(`${TRANSACTIONS_PATH}/by-contact/${contactId}`)
     .then(response => response.data.data);
 };
 
 // Obtener transacciones por fuente de fondos
 const getTransactionsByFundingSource = (fundingSourceId: string): Promise<Transaction[]> => {
-  return axios.get<TransactionListResponse>(`${API_URL}/by-funding-source/${fundingSourceId}`)
+  return api.get<TransactionListResponse>(`${TRANSACTIONS_PATH}/by-funding-source/${fundingSourceId}`)
     .then(response => response.data.data);
 };
 
 // Obtener transacciones por ítem
 const getTransactionsByItem = (itemId: string, itemType: 'GameItem' | 'ExternalProduct'): Promise<Transaction[]> => {
-  return axios.get<TransactionListResponse>(
-    `${API_URL}/by-item/${itemId}?itemType=${itemType}`
+  return api.get<TransactionListResponse>(
+    `${TRANSACTIONS_PATH}/by-item/${itemId}?itemType=${itemType}`
   ).then(response => response.data.data);
 };
 
 // Crear una nueva transacción
 const createTransaction = (data: CreateTransactionData): Promise<Transaction> => {
-  return axios.post<TransactionResponse>(API_URL, data)
+  return api.post<TransactionResponse>(TRANSACTIONS_PATH, data)
     .then(response => response.data.data);
 };
 
 // Actualizar una transacción existente
 const updateTransaction = (id: string, data: UpdateTransactionData): Promise<Transaction> => {
-  return axios.put<TransactionResponse>(`${API_URL}/${id}`, data)
+  return api.put<TransactionResponse>(`${TRANSACTIONS_PATH}/${id}`, data)
     .then(response => response.data.data);
 };
 
@@ -91,13 +91,13 @@ const updateTransactionStatus = (
   id: string, 
   status: 'pending' | 'completed' | 'cancelled' | 'failed' | 'requires_attention'
 ): Promise<Transaction> => {
-  return axios.patch<TransactionResponse>(`${API_URL}/${id}/status`, { status })
+  return api.patch<TransactionResponse>(`${TRANSACTIONS_PATH}/${id}/status`, { status })
     .then(response => response.data.data);
 };
 
 // Eliminar una transacción
 const deleteTransaction = (id: string): Promise<void> => {
-  return axios.delete(`${API_URL}/${id}`);
+  return api.delete(`${TRANSACTIONS_PATH}/${id}`);
 };
 
 const transactionService = {

@@ -20,7 +20,11 @@ import gameItemRoutes from './routes/gameItemRoutes'; // Importar rutas de ítem
 const app: Application = express();
 
 // Middlewares
-app.use(cors()); // Habilitar CORS para todas las rutas
+app.use(cors({
+  origin: '*', // Permitir cualquier origen
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
+}));
 
 // Configuración personalizada de Morgan para logs detallados
 morgan.token('body', (req: Request) => JSON.stringify(req.body));

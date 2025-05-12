@@ -69,14 +69,15 @@ La aplicación implementa una relación jerárquica entre usuarios:
 - **UserManagementPage**: Panel principal para gestionar usuarios
   - Listado de usuarios con información detallada (nombre, email, rol, estado)
   - Formulario para creación de nuevos usuarios (operadores y administradores)
+  - Funcionalidad para **editar** usuarios existentes (modificar email, nombre, rol, estado, asignación).
+  - Funcionalidad para **eliminar** usuarios (con confirmación).
   - Asignación de operadores a administradores
   - Indicadores visuales de estado y rol
-  - *(Pendiente: Funcionalidad para editar y eliminar/desactivar usuarios)*
 
-### 2. Gestión de Juegos (En desarrollo)
-- **GamesList**: Tabla con filtros, buscador y acciones rápidas
-- **GameDetail**: Información completa, métricas y transacciones relacionadas
-- **GameForm**: Creación/edición de juegos con validaciones
+### 2. Gestión de Juegos
+- **GamesManagementPage**: Panel principal para gestionar juegos.
+  - Listado de juegos con icono, nombre y estado.
+  - Funcionalidad para **crear**, **editar** y **eliminar** juegos (con modales y confirmación).
 
 ### 3. Gestión de Fuentes de Fondos (En desarrollo)
 - **FundingDashboard**: Resumen de saldos y distribución de capital
@@ -172,8 +173,9 @@ El frontend actualmente tiene implementado:
 2. **Panel de administración de usuarios**:
    - Listado de usuarios con filtros
    - Creación de operadores con asignación a administradores
+   - Edición y eliminación de usuarios.
    - Visualización de relaciones jerárquicas
-   - *(Funcionalidad de edición y eliminación/desactivación pendiente)*
+   - Funcionalidad de edición y eliminación/desactivación implementada.
 
 3. **Componentes comunes**:
    - Biblioteca de componentes UI reutilizables

@@ -104,10 +104,11 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Manejo de rutas protegidas
 - Tema claro/oscuro
 - Componentes base reutilizables
+- **Frontend**: Panel de administración de juegos (`/admin/games`) con funcionalidad **completa** para listar, crear, editar y eliminar juegos (CRUD).
 
 #### ❌ Pendiente:
 - Dashboard principal con visión general del negocio
-- Interfaz para gestión de juegos y productos
+- Interfaz para gestión de productos (*si aplica, revisar si "juegos" cubre esto*)
 - Interfaz para gestión de transacciones
 - Interfaz para gestión de contactos
 - Interfaz para visualización de informes
@@ -121,11 +122,12 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Autenticación con JWT
 - Roles de administrador y operador
 - **Backend**: Endpoints CRUD completos para la gestión de usuarios por administradores (`/api/admin/users`).
-- **Frontend**: Panel de administración de usuarios con funcionalidad para listar y crear usuarios/operadores (incluye asignación a admin).
+- **Frontend**: Panel de administración de usuarios con funcionalidad **completa** para listar, crear, editar y eliminar usuarios/operadores (incluye asignación a admin y modales de confirmación).
 
 #### ❌ Pendiente:
-- **Frontend**: Funcionalidad para editar y eliminar/desactivar usuarios en el panel de administración.
 - Asignación de permisos específicos (más allá de admin/operador).
+- Seguimiento de actividad de operadores.
+- Estadísticas de rendimiento por operador.
 
 ## Interfaces Propuestas
 
@@ -157,11 +159,11 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 
 Basado en el estado actual, se recomienda el siguiente orden de prioridad para el desarrollo:
 
-1.  **Completar Gestión de Usuarios (Fase 7 y 6 parcial)**: Implementar la funcionalidad de editar y eliminar/desactivar usuarios en el panel de administración del frontend.
-2.  **Interfaz de Juegos (Fase 6 parcial)**: Desarrollar las interfaces para gestión de juegos (CRUD completo en frontend). (Verificar endpoints backend).
+1.  **¡COMPLETADO!** (Gestión Usuarios Frontend)
+2.  **¡COMPLETADO!** (Interfaz de Juegos Frontend)
 3.  **Interfaz de Fuentes de Fondos (Fase 6 parcial)**: Implementar las pantallas para administrar fuentes de fondos (CRUD completo en frontend).
 4.  **Transacciones Básicas (Fase 3 parcial)**: Completar la lógica e interfaces para registro de transacciones.
-5. **Gestión de Contactos (Fase 4)**: Implementar el CRUD e interfaces para contactos.
+5.  **Gestión de Contactos (Fase 4)**: Implementar el CRUD e interfaces para contactos.
 6. **Precios y Estrategias (Fase 2)**: Completar la gestión de precios y tasas.
 7. **Transacciones Avanzadas (Fase 3 completo)**: Finalizar todas las funcionalidades de transacciones.
 8. **Informes Básicos (Fase 5 parcial)**: Implementar informes fundamentales para el negocio.
@@ -170,8 +172,7 @@ Basado en el estado actual, se recomienda el siguiente orden de prioridad para e
 
 ## Próximos Pasos Inmediatos
 
-1.  **Implementar edición y eliminación/desactivación de usuarios** en el panel de administración del frontend.
-2.  Verificar endpoints backend y desarrollar la interfaz frontend para gestión de juegos (GamesList, GameDetail, GameForm).
-3.  Implementar la interfaz frontend para fuentes de fondos.
-4.  Crear la interfaz para registro de transacciones simples
-5. Desarrollar sistema de gestión de contactos completo 
+1.  **¡HECHO!** (Documentación)
+2.  **¡HECHO!** (Implementar interfaz de juegos)
+3.  Implementar la interfaz frontend para fuentes de fondos (CRUD).
+4.  Desarrollar sistema de gestión de contactos completo (Backend y Frontend). 

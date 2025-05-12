@@ -29,7 +29,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   return (
     <div className="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
+      <div className="flex flex-col md:flex-row gap-4 items-end">
         <div className="flex-1">
           <label htmlFor="search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Buscar
@@ -38,10 +38,10 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <input
               type="text"
               id="search"
-              className="focus:ring-gray-500 focus:border-gray-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="focus:ring-gray-500 focus:border-gray-500 block w-full sm:text-base border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white py-2 px-3"
               placeholder={searchPlaceholder}
               value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
             />
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
               <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -59,8 +59,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <select
               id={filter.id}
               value={filter.value}
-              onChange={(e) => filter.onChange(e.target.value)}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => filter.onChange(e.target.value)}
+              className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               {filter.options.map((option) => (
                 <option key={option.value} value={option.value}>

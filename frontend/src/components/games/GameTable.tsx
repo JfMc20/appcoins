@@ -6,7 +6,9 @@ import EmptyState from '../common/EmptyState';
 interface GameTableProps {
   games: Game[];
   onViewItems: (gameId: string) => void;
+  onEdit: (game: Game) => void;
   onStatusChange: (gameId: string, newStatus: 'active' | 'inactive' | 'archived') => void;
+  onDeleteRequest: (gameId: string) => void;
   allGamesCount: number;
   onClearFilters?: () => void;
 }
@@ -17,7 +19,9 @@ interface GameTableProps {
 const GameTable: React.FC<GameTableProps> = ({ 
   games, 
   onViewItems, 
+  onEdit,
   onStatusChange,
+  onDeleteRequest,
   allGamesCount,
   onClearFilters
 }) => {
@@ -84,7 +88,7 @@ const GameTable: React.FC<GameTableProps> = ({
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex space-x-2">
+                <div className="flex items-center space-x-2">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -92,18 +96,32 @@ const GameTable: React.FC<GameTableProps> = ({
                   >
                     Ver Ítems
                   </Button>
-                  <div className="relative inline-block text-left">
-                    <select
-                      value={game.status}
-                      onChange={(e) => onStatusChange(game._id, e.target.value as 'active' | 'inactive' | 'archived')}
-                      className="block w-full pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    >
-                      <option disabled>Cambiar estado</option>
-                      <option value="active">Activo</option>
-                      <option value="inactive">Inactivo</option>
-                      <option value="archived">Archivado</option>
-                    </select>
-                  </div>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit(game)}
+                  >
+                    Editar
+                  </Button>
+                  <select
+                    value={game.status}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onStatusChange(game._id, e.target.value as 'active' | 'inactive' | 'archived')}
+                    className="block w-auto pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    title="Cambiar estado"
+                  >
+                    <option value="active">Activo</option>
+                    <option value="inactive">Inactivo</option>
+                    <option value="archived">Archivado</option>
+                  </select>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => onDeleteRequest(game._id)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </Button>
                 </div>
               </td>
             </tr>

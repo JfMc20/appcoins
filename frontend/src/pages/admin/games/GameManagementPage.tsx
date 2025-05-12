@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import gameService from '../../../services/config/game.service';
+import gameService from '../../../services/game.service';
 import { Game, CreateGameData } from '../../../types/game.types';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
@@ -16,63 +16,84 @@ import {
 } from '../../../components/games';
 import { DashboardLayout } from '../../../components/layout';
 import useNotification from '../../../hooks/useNotification';
-import useGameFilters from '../../../hooks/useGameFilters';
+import Modal from '../../../components/common/Modal';
+import { toast } from 'react-toastify';
 
 const GameManagementPage: React.FC = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [currentGame, setCurrentGame] = useState<Game | null>(null);
+  const [gameToDelete, setGameToDelete] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { error, successMessage, setError, setSuccessMessage, clearMessages } = useNotification();
-  const { filteredGames, searchTerm, statusFilter, setSearchTerm, setStatusFilter, resetFilters } = useGameFilters(games);
+  const { error, setError, clearMessages } = useNotification();
 
-  // Función para cargar juegos
   const fetchGames = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await gameService.getGames();
+      const data = await gameService.getAllGames();
       setGames(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al cargar juegos');
+      const message = err.response?.data?.message || err.message || 'Error al cargar juegos';
+      setError(message);
+      toast.error(message); 
       console.error('Error al cargar juegos:', err);
     } finally {
       setIsLoading(false);
     }
   }, [setError]);
 
-  // Cargar juegos al montar el componente
   useEffect(() => {
-    // Verificar si el usuario actual es administrador
     if (!user || user.role !== 'admin') {
-      navigate('/'); // Redirigir a la página principal si no es administrador
+      navigate('/');
       return;
     }
 
     fetchGames();
   }, [user, navigate, fetchGames]);
 
-  const handleCreateGame = async (gameData: CreateGameData) => {
+  const handleCreateGame = () => {
+    setCurrentGame(null);
+    setShowCreateForm(true);
+    clearMessages();
+  };
+
+  const handleEditGame = (game: Game) => {
+    setCurrentGame(game);
+    setShowCreateForm(true);
+    clearMessages();
+  };
+
+  const handleFormSubmit = async (data: CreateGameData | Game) => {
     setIsSubmitting(true);
     setError(null);
-    setSuccessMessage(null);
 
     try {
-      const newGame = await gameService.createGame(gameData);
-      setGames(prevGames => [...prevGames, newGame]);
-      setSuccessMessage(`¡Juego ${newGame.name} creado con éxito!`);
-      
-      // Cerrar el formulario
+      let savedGame: Game;
+      if ('_id' in data && data._id) {
+        const { _id, ...updateData } = data;
+        savedGame = await gameService.updateGame(_id, updateData as Partial<Game>);
+        toast.success('Juego actualizado con éxito');
+        setGames(prevGames => prevGames.map(g => g._id === savedGame._id ? savedGame : g));
+      } else {
+        savedGame = await gameService.createGame(data as CreateGameData);
+        toast.success('Juego creado con éxito');
+        setGames(prevGames => [...prevGames, savedGame]);
+      }
       setShowCreateForm(false);
-      
-      // Recargar la lista de juegos
-      fetchGames();
+      setCurrentGame(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al crear juego');
-      console.error('Error al crear juego:', err);
+      const message = err.response?.data?.message || err.message || 'Error al guardar el juego';
+      setError(message);
+      toast.error(message);
+      console.error('Error al guardar juego:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -83,35 +104,67 @@ const GameManagementPage: React.FC = () => {
   };
   
   const handleStatusChange = async (gameId: string, newStatus: 'active' | 'inactive' | 'archived') => {
-    setIsLoading(true);
     setError(null);
     try {
-      await gameService.updateGame(gameId, { status: newStatus });
+      const updatedGame = await gameService.updateGame(gameId, { status: newStatus });
       setGames(prevGames => 
         prevGames.map(game => 
-          game._id === gameId ? { ...game, status: newStatus } : game
+          game._id === gameId ? { ...game, status: updatedGame.status } : game
         )
       );
-      setSuccessMessage(`Estado del juego actualizado a: ${newStatus}`);
+      toast.success(`Estado del juego actualizado a: ${newStatus}`);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al actualizar el estado del juego');
-    } finally {
-      setIsLoading(false);
+      const message = err.response?.data?.message || err.message || 'Error al actualizar estado';
+      setError(message);
+      toast.error(message);
+      console.error('Error actualizando estado:', err);
+    }
+  };
+
+  const handleDeleteRequest = (gameId: string) => {
+    setGameToDelete(gameId);
+    setShowDeleteConfirmModal(true);
+    clearMessages();
+  };
+
+  const handleDeleteGame = async () => {
+    if (gameToDelete) {
+      setError(null);
+      try {
+        await gameService.deleteGame(gameToDelete);
+        setGames(prevGames => prevGames.filter(game => game._id !== gameToDelete));
+        toast.success('Juego eliminado con éxito!');
+      } catch (err: any) {
+        const message = err.response?.data?.message || err.message || 'Error al eliminar juego';
+        setError(message);
+        toast.error(message);
+        console.error('Error al eliminar juego:', err);
+      } finally {
+        setGameToDelete(null);
+        setShowDeleteConfirmModal(false);
+      }
     }
   };
 
   const toggleCreateForm = () => {
     setShowCreateForm(!showCreateForm);
+    setCurrentGame(null);
     clearMessages();
   };
 
-  if (isLoading && games.length === 0) {
-    return (
-      <DashboardLayout>
-        <LoadingSpinner message="Cargando juegos..." />
-      </DashboardLayout>
-    );
-  }
+  const filteredGames = useMemo(() => {
+    return games.filter(game => {
+      const nameMatch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const shortNameMatch = (game.shortName ?? '').toLowerCase().includes(searchTerm.toLowerCase());
+      const statusMatch = statusFilter === 'all' || game.status === statusFilter;
+      return (nameMatch || shortNameMatch) && statusMatch;
+    });
+  }, [games, searchTerm, statusFilter]);
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+  };
 
   return (
     <DashboardLayout>
@@ -122,9 +175,9 @@ const GameManagementPage: React.FC = () => {
           </h1>
           <Button
             variant="primary"
-            onClick={toggleCreateForm}
+            onClick={handleCreateGame}
           >
-            {showCreateForm ? 'Cancelar' : 'Crear nuevo juego'}
+            Crear nuevo juego
           </Button>
         </div>
 
@@ -136,26 +189,25 @@ const GameManagementPage: React.FC = () => {
           />
         )}
 
-        {successMessage && (
-          <Notification
-            type="success"
-            message={successMessage}
-            onClose={clearMessages}
-          />
-        )}
-
         {showCreateForm && (
-          <GameForm
-            onSubmit={handleCreateGame}
-            isLoading={isSubmitting}
-            onCancel={toggleCreateForm}
-          />
+          <Modal
+            isOpen={showCreateForm}
+            onClose={toggleCreateForm}
+            title={currentGame ? 'Editar Juego' : 'Crear Nuevo Juego'}
+          >
+            <GameForm
+              onSubmit={handleFormSubmit}
+              initialData={currentGame || undefined}
+              isLoading={isSubmitting}
+              onCancel={toggleCreateForm}
+            />
+          </Modal>
         )}
 
         <FilterBar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
-          searchPlaceholder="Buscar por nombre o descripción..."
+          searchPlaceholder="Buscar por nombre o código..."
           filters={[
             {
               id: 'statusFilter',
@@ -177,14 +229,44 @@ const GameManagementPage: React.FC = () => {
             Juegos Configurados {filteredGames.length > 0 && <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({filteredGames.length} {filteredGames.length === 1 ? 'juego' : 'juegos'})</span>}
           </h2>
           
-          <GameTable
-            games={filteredGames}
-            onViewItems={handleViewGameItems}
-            onStatusChange={handleStatusChange}
-            allGamesCount={games.length}
-            onClearFilters={resetFilters}
-          />
+          {isLoading ? (
+            <LoadingSpinner message="Cargando juegos..." />
+          ) : (
+            <GameTable
+              games={filteredGames}
+              onViewItems={handleViewGameItems}
+              onEdit={handleEditGame}
+              onStatusChange={handleStatusChange}
+              onDeleteRequest={handleDeleteRequest}
+              allGamesCount={games.length}
+              onClearFilters={handleClearFilters}
+            />
+          )}
         </Card>
+
+        <Modal
+          isOpen={showDeleteConfirmModal}
+          onClose={() => {
+            setShowDeleteConfirmModal(false);
+            setGameToDelete(null);
+          }}
+          title="Confirmar Eliminación"
+        >
+          <p className="text-gray-700 dark:text-gray-300 mb-6">
+            ¿Estás seguro de que deseas eliminar este juego? Esta acción no se puede deshacer.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => {
+              setShowDeleteConfirmModal(false);
+              setGameToDelete(null);
+            }}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={handleDeleteGame}> 
+              Eliminar
+            </Button>
+          </div>
+        </Modal>
       </div>
     </DashboardLayout>
   );

@@ -8,4 +8,5 @@ export { default as FilterBar } from './FilterBar';
 export { default as EmptyState } from './EmptyState';
 export { default as Icon } from './Icon';
 export { default as SecretTools } from './SecretTools';
-export { default as ThemeSwitcher } from './ThemeSwitcher'; 
+export { default as ThemeSwitcher } from './ThemeSwitcher';
+export { default as Modal } from './Modal'; 

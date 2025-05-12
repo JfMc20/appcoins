@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Definición de animación para el modal */
+@keyframes modal-appear {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-modal-appear {
+  animation: modal-appear 0.3s ease-out forwards;
+}
+
 @layer base {
   body {
     @apply bg-background text-text transition-colors duration-200;

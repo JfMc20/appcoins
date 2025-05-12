@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import gameService from '../../../services/config/game.service';
+import gameService from '../../../services/game.service';
 import { Game, GameItem, CreateGameItemData } from '../../../types/game.types';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';

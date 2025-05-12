@@ -32,8 +32,18 @@ api.interceptors.request.use(
       setTimeout(() => controller.abort('OFFLINE_MODE'), 100);
     }
     
-    // Agregar X-API-Key a todas las solicitudes
-    config.headers['X-API-Key'] = 'EVEAsJV7tMOvv7ABS+GO33MKeopmr3y6876pKxH9puY=';
+    // Intentar obtener la X-API-Key desde las variables de entorno
+    const apiKey = process.env.REACT_APP_X_API_KEY;
+
+    if (apiKey) {
+      config.headers['X-API-Key'] = apiKey;
+      console.log('[API] Usando X-API-Key desde variable de entorno.');
+    } else {
+      console.warn('[API] ADVERTENCIA: X-API-Key no configurada en las variables de entorno.');
+      // Opcionalmente, podrías lanzar un error aquí o manejar la ausencia de la clave
+      // dependiendo de los requisitos de tu aplicación.
+      // Por ejemplo: delete config.headers['X-API-Key']; si no quieres enviar la cabecera vacía.
+    }
     
     // Obtener el token de autenticación JWT del localStorage si existe
     const tokenString = localStorage.getItem('userToken');

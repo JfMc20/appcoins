@@ -119,6 +119,92 @@ export const getAllFundingSources = async (req: Request, res: Response, next: Ne
 };
 
 /**
+ * Obtiene solo las fuentes de fondos activas del usuario autenticado.
+ */
+export const getActiveFundingSources = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (!req.user) {
+    res.status(401).json({ message: 'No autorizado, usuario no encontrado en la request.' });
+    return;
+  }
+
+  const authenticatedUserId = req.user.id;
+
+  const query: any = {
+    userId: authenticatedUserId,
+    status: 'active' // Filtrar siempre por activas
+  };
+
+  try {
+    logger.debug(`Usuario [${authenticatedUserId}] obteniendo fuentes de fondos activas con query:`, query);
+    const fundingSources = await FundingSourceModel.find(query);
+    res.status(200).json(fundingSources);
+  } catch (error) {
+    logger.error(`Error al obtener fuentes de fondos activas para usuario ${authenticatedUserId}:`, error);
+    next(error);
+  }
+};
+
+/**
+ * Obtiene las fuentes de fondos del usuario autenticado filtradas por tipo.
+ */
+export const getFundingSourcesByType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (!req.user) {
+    res.status(401).json({ message: 'No autorizado, usuario no encontrado en la request.' });
+    return;
+  }
+
+  const { type } = req.params; // Obtener tipo desde URL params
+  const authenticatedUserId = req.user.id;
+
+  const query: any = {
+    userId: authenticatedUserId,
+    type: type // Filtrar por tipo
+  };
+
+  // Opcionalmente, podríamos añadir más filtros desde req.query si fuera necesario
+  // if (req.query.status) query.status = req.query.status;
+
+  try {
+    logger.debug(`Usuario [${authenticatedUserId}] obteniendo fuentes de fondos tipo [${type}] con query:`, query);
+    const fundingSources = await FundingSourceModel.find(query);
+    res.status(200).json(fundingSources);
+  } catch (error) {
+    logger.error(`Error al obtener fuentes de fondos tipo [${type}] para usuario ${authenticatedUserId}:`, error);
+    next(error);
+  }
+};
+
+/**
+ * Obtiene las fuentes de fondos del usuario autenticado filtradas por moneda.
+ */
+export const getFundingSourcesByCurrency = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (!req.user) {
+    res.status(401).json({ message: 'No autorizado, usuario no encontrado en la request.' });
+    return;
+  }
+
+  const { currency } = req.params; // Obtener moneda desde URL params
+  const authenticatedUserId = req.user.id;
+
+  const query: any = {
+    userId: authenticatedUserId,
+    currency: String(currency).toUpperCase() // Filtrar por moneda (asegurar mayúsculas)
+  };
+
+  // Opcionalmente, añadir más filtros desde req.query
+  // if (req.query.status) query.status = req.query.status;
+
+  try {
+    logger.debug(`Usuario [${authenticatedUserId}] obteniendo fuentes de fondos moneda [${currency.toUpperCase()}] con query:`, query);
+    const fundingSources = await FundingSourceModel.find(query);
+    res.status(200).json(fundingSources);
+  } catch (error) {
+    logger.error(`Error al obtener fuentes de fondos moneda [${currency.toUpperCase()}] para usuario ${authenticatedUserId}:`, error);
+    next(error);
+  }
+};
+
+/**
  * Obtiene una fuente de fondos específica por ID.
  * Verifica que la fuente pertenezca al usuario autenticado (o si el usuario es admin).
  */
@@ -230,6 +316,62 @@ export const updateFundingSource = async (req: Request, res: Response, next: Nex
   }
 };
 
+/**
+ * Marca una fuente de fondos como 'archived'.
+ * Verifica propiedad o rol de admin.
+ */
 export const archiveFundingSource = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  res.status(501).json({ message: 'archiveFundingSource no implementado aún' });
+  if (!req.user) {
+    res.status(401).json({ message: 'No autorizado, usuario no encontrado en la request.' });
+    return;
+  }
+
+  const { id } = req.params;
+  const authenticatedUserId = req.user.id;
+  const userRole = req.user.role;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    res.status(400).json({ message: 'ID de fuente de fondos inválido.' });
+    return;
+  }
+
+  try {
+    const fundingSource = await FundingSourceModel.findById(id);
+
+    if (!fundingSource) {
+      res.status(404).json({ message: 'Fuente de fondos no encontrada.' });
+      return;
+    }
+
+    // Verificar propiedad (o si es admin)
+    if (fundingSource.userId.toString() !== authenticatedUserId && userRole !== 'admin') {
+      logger.warn(`Usuario [${authenticatedUserId}] intentó archivar fuente [${id}] que no le pertenece.`);
+      res.status(403).json({ message: 'Acceso prohibido. No tienes permiso para archivar esta fuente de fondos.' });
+      return;
+    }
+    
+    // Verificar si ya está archivada para evitar trabajo innecesario
+    if (fundingSource.status === 'archived') {
+      res.status(200).json(fundingSource); // Ya está archivada, devolver estado actual
+      return;
+    }
+
+    // Marcar como archivada
+    fundingSource.status = 'archived';
+    fundingSource.isOperating = false; // También marcar como no operativa
+    
+    const updatedFundingSource = await fundingSource.save();
+
+    logger.info(`Usuario [${authenticatedUserId}] archivó fuente de fondos [${id}]`);
+    // Devolver el objeto actualizado podría ser útil para el frontend
+    res.status(200).json(updatedFundingSource); 
+
+  } catch (error: any) {
+    logger.error(`Error al archivar fuente de fondos [${id}] por usuario [${authenticatedUserId}]:`, error);
+    if (error.name === 'ValidationError') {
+      res.status(400).json({ message: 'Error de validación al archivar', details: error.errors });
+      return;
+    }
+    next(error);
+  }
 }; 

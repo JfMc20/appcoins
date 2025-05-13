@@ -27,6 +27,11 @@ const Transactions = {
   new: '/transactions/new',
 }
 
+const Funding = {
+  list: '/funding-sources',
+  new: '/funding-sources/new',
+}
+
 // Herramientas de diagnóstico ocultas con una ruta compleja para evitar descubrimiento por fuzzing
 const SecureTools = {
   base: '/secure-system-diagnostics-5f7e3a9d8c1b6',
@@ -48,6 +53,7 @@ const Pathnames = {
   user: User,
   auth: Auth,
   transactions: Transactions,
+  funding: Funding,
   debug: Debug,
   secureTools: SecureTools,
 }

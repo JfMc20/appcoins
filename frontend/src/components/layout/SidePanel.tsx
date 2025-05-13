@@ -11,7 +11,8 @@ import {
   FaChevronLeft, 
   FaChevronRight,
   FaCoins,
-  FaExchangeAlt
+  FaExchangeAlt,
+  FaWallet
 } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { Icon } from '../common';
@@ -41,7 +42,8 @@ const iconComponents: Record<string, IconType> = {
   coins: FaCoins,
   exchange: FaExchangeAlt,
   chevronLeft: FaChevronLeft,
-  chevronRight: FaChevronRight
+  chevronRight: FaChevronRight,
+  wallet: FaWallet
 };
 
 const navSections: NavSection[] = [
@@ -65,6 +67,12 @@ const navSections: NavSection[] = [
     items: [
       { title: 'Historial', path: Pathnames.transactions.history, iconName: 'history' },
       { title: 'Nueva Transacción', path: Pathnames.transactions.new, iconName: 'plus' },
+    ]
+  },
+  {
+    title: 'Finanzas',
+    items: [
+      { title: 'Fuentes de Fondos', path: Pathnames.funding.list, iconName: 'wallet' },
     ]
   },
   // La sección de herramientas ha sido eliminada para mayor seguridad

@@ -4,7 +4,10 @@ import {
   getAllFundingSources,
   getFundingSourceById,
   updateFundingSource,
-  archiveFundingSource
+  archiveFundingSource,
+  getActiveFundingSources,
+  getFundingSourcesByType,
+  getFundingSourcesByCurrency
 } from '../controllers/fundingSourceController';
 import { protectWithJwt } from '../middleware/authMiddleware';
 import { logger } from '../utils/logger';
@@ -21,7 +24,11 @@ router.post('/', createFundingSource);
 // GET /api/funding-sources - Listar las fuentes de fondos del usuario logueado
 router.get('/', getAllFundingSources);
 
-// --- Rutas para implementar después (también requerirán JWT) ---
+// Nuevas rutas GET
+router.get('/active', getActiveFundingSources);
+router.get('/by-type/:type', getFundingSourcesByType);
+router.get('/by-currency/:currency', getFundingSourcesByCurrency);
+
 // GET /api/funding-sources/:id
 router.get('/:id', getFundingSourceById);
 

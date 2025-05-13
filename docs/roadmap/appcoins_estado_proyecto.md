@@ -128,6 +128,7 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Asignación de permisos específicos (más allá de admin/operador).
 - Seguimiento de actividad de operadores.
 - Estadísticas de rendimiento por operador.
+- Investigar cómo calcular las ganancias del operador. Esto debe ser mostrado en el dashboard del admin.
 
 ## Interfaces Propuestas
 

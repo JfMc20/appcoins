@@ -11,26 +11,26 @@ const FUNDING_SOURCES_PATH = '/funding-sources';
 
 // Obtener todas las fuentes de fondos
 const getAllFundingSources = (): Promise<FundingSource[]> => {
-  return api.get<FundingSourceListResponse>(FUNDING_SOURCES_PATH)
-    .then(response => response.data.data);
+  return api.get<FundingSource[]>(FUNDING_SOURCES_PATH)
+    .then(response => response.data);
 };
 
 // Obtener fuentes de fondos activas
 const getActiveFundingSources = (): Promise<FundingSource[]> => {
-  return api.get<FundingSourceListResponse>(`${FUNDING_SOURCES_PATH}/active`)
-    .then(response => response.data.data);
+  return api.get<FundingSource[]>(`${FUNDING_SOURCES_PATH}/active`)
+    .then(response => response.data);
 };
 
 // Obtener fuentes de fondos por tipo
 const getFundingSourcesByType = (type: string): Promise<FundingSource[]> => {
-  return api.get<FundingSourceListResponse>(`${FUNDING_SOURCES_PATH}/by-type/${type}`)
-    .then(response => response.data.data);
+  return api.get<FundingSource[]>(`${FUNDING_SOURCES_PATH}/by-type/${type}`)
+    .then(response => response.data);
 };
 
 // Obtener fuentes de fondos por moneda
 const getFundingSourcesByCurrency = (currency: string): Promise<FundingSource[]> => {
-  return api.get<FundingSourceListResponse>(`${FUNDING_SOURCES_PATH}/by-currency/${currency}`)
-    .then(response => response.data.data);
+  return api.get<FundingSource[]>(`${FUNDING_SOURCES_PATH}/by-currency/${currency}`)
+    .then(response => response.data);
 };
 
 // Obtener una fuente de fondos por ID
@@ -51,12 +51,6 @@ const updateFundingSource = (id: string, data: UpdateFundingSourceData): Promise
     .then(response => response.data.data);
 };
 
-// Actualizar solo el saldo de una fuente de fondos
-const updateFundingSourceBalance = (id: string, balance: number): Promise<FundingSource> => {
-  return api.patch<FundingSourceResponse>(`${FUNDING_SOURCES_PATH}/${id}/balance`, { currentBalance: balance })
-    .then(response => response.data.data);
-};
-
 // Eliminar una fuente de fondos
 const deleteFundingSource = (id: string): Promise<void> => {
   return api.delete(`${FUNDING_SOURCES_PATH}/${id}`);
@@ -70,7 +64,6 @@ const fundingSourceService = {
   getFundingSourceById,
   createFundingSource,
   updateFundingSource,
-  updateFundingSourceBalance,
   deleteFundingSource
 };
 

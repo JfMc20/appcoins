@@ -9,6 +9,8 @@ import GameItemsPage from '../pages/admin/games/GameItemsPage' // Importar pági
 import ExchangeRatePage from '../pages/admin/ExchangeRatePage' // Importar página de tasas de cambio
 import TransactionHistoryPage from '../pages/transactions/TransactionHistoryPage' // Importar página de historial de transacciones
 import NewTransactionPage from '../pages/transactions/NewTransactionPage' // Importar página de nueva transacción
+import FundingSourcesListPage from '../pages/funding/FundingSourcesListPage' // Nueva página
+import CreateFundingSourcePage from '../pages/funding/CreateFundingSourcePage' // <-- Importar nueva página
 import UserRoleDebug from '../pages/debug/UserRoleDebug'
 import FixUserAdmin from '../pages/debug/FixUserAdmin' // Nueva página para forzar usuario admin
 import LoginDebugger from '../pages/debug/LoginDebugger' // Depurador de login
@@ -128,6 +130,25 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute>
               <NewTransactionPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rutas de Fuentes de Fondos */}
+        <Route
+          path={Pathnames.funding.list}
+          element={
+            <ProtectedRoute>
+              <FundingSourcesListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={Pathnames.funding.new} // <-- Nueva ruta
+          element={
+            <ProtectedRoute>
+              <CreateFundingSourcePage />
             </ProtectedRoute>
           }
         />

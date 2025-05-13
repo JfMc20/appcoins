@@ -57,6 +57,11 @@ const Pathnames = {
   funding: Funding,
   debug: Debug,
   secureTools: SecureTools,
+  contacts: {
+    list: '/contacts',
+    new: '/contacts/new',
+    edit: '/contacts/edit/:id',
+  },
 }
 
 export default Pathnames

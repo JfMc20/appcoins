@@ -12,7 +12,8 @@ import {
   FaChevronRight,
   FaCoins,
   FaExchangeAlt,
-  FaWallet
+  FaWallet,
+  FaAddressBook
 } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { Icon } from '../common';
@@ -43,7 +44,8 @@ const iconComponents: Record<string, IconType> = {
   exchange: FaExchangeAlt,
   chevronLeft: FaChevronLeft,
   chevronRight: FaChevronRight,
-  wallet: FaWallet
+  wallet: FaWallet,
+  addressBook: FaAddressBook
 };
 
 const navSections: NavSection[] = [
@@ -73,6 +75,7 @@ const navSections: NavSection[] = [
     title: 'Finanzas',
     items: [
       { title: 'Fuentes de Fondos', path: Pathnames.funding.list, iconName: 'wallet' },
+      { title: 'Contactos', path: Pathnames.contacts.list, iconName: 'addressBook' }
     ]
   },
   // La sección de herramientas ha sido eliminada para mayor seguridad

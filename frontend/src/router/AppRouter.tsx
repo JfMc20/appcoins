@@ -9,9 +9,9 @@ import GameItemsPage from '../pages/admin/games/GameItemsPage' // Importar pági
 import ExchangeRatePage from '../pages/admin/ExchangeRatePage' // Importar página de tasas de cambio
 import TransactionHistoryPage from '../pages/transactions/TransactionHistoryPage' // Importar página de historial de transacciones
 import NewTransactionPage from '../pages/transactions/NewTransactionPage' // Importar página de nueva transacción
-import FundingSourcesListPage from '../pages/funding/FundingSourcesListPage' // Nueva página
-import CreateFundingSourcePage from '../pages/funding/CreateFundingSourcePage' // <-- Importar nueva página
-import EditFundingSourcePage from '../pages/funding/EditFundingSourcePage' // <-- Importar página de edición
+import FundingSourcesListPage from '../pages/funding/FundingSourcesListPage'
+import CreateFundingSourcePage from '../pages/funding/CreateFundingSourcePage'
+import EditFundingSourcePage from '../pages/funding/EditFundingSourcePage'
 import UserRoleDebug from '../pages/debug/UserRoleDebug'
 import FixUserAdmin from '../pages/debug/FixUserAdmin' // Nueva página para forzar usuario admin
 import LoginDebugger from '../pages/debug/LoginDebugger' // Depurador de login
@@ -19,6 +19,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { LoadingSpinner } from '../components/common'
 import { SecretTools } from '../components/common'
 import Pathnames from './pathnames'
+import ContactsListPage from '../pages/contacts/ContactsListPage'
+import CreateContactPage from '../pages/contacts/CreateContactPage'
 
 // Definimos las props para ProtectedRoute
 interface ProtectedRouteProps {
@@ -146,7 +148,7 @@ const AppRouter: React.FC = () => {
         />
 
         <Route
-          path={Pathnames.funding.new} // <-- Nueva ruta
+          path={Pathnames.funding.new}
           element={
             <ProtectedRoute>
               <CreateFundingSourcePage />
@@ -155,7 +157,7 @@ const AppRouter: React.FC = () => {
         />
 
         <Route
-          path={Pathnames.funding.edit} // <-- Nueva ruta de edición
+          path={Pathnames.funding.edit}
           element={
             <ProtectedRoute>
               <EditFundingSourcePage />
@@ -215,6 +217,25 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <LoginDebugger />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rutas de Contactos */}
+        <Route
+          path={Pathnames.contacts.list}
+          element={
+            <ProtectedRoute>
+              <ContactsListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path={Pathnames.contacts.new}
+          element={
+            <ProtectedRoute>
+              <CreateContactPage />
             </ProtectedRoute>
           }
         />

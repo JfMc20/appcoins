@@ -8,7 +8,8 @@ import {
   getActiveFundingSources,
   getFundingSourcesByType,
   getFundingSourcesByCurrency,
-  getArchivedFundingSources
+  getArchivedFundingSources,
+  permanentlyDeleteFundingSource
 } from '../controllers/fundingSourceController';
 import { protectWithJwt } from '../middleware/authMiddleware';
 import { logger } from '../utils/logger';
@@ -40,5 +41,8 @@ router.put('/:id', updateFundingSource);
 // DELETE /api/funding-sources/:id
 // Podríamos añadir restrictTo('admin') aquí si solo los admins pueden archivar
 router.delete('/:id', archiveFundingSource);
+
+// DELETE /api/funding-sources/:id/permanent - Eliminar permanentemente una fuente de fondos
+router.delete('/:id/permanent', permanentlyDeleteFundingSource);
 
 export default router; 

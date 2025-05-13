@@ -404,4 +404,52 @@ export const getArchivedFundingSources = async (req: Request, res: Response, nex
     logger.error(`Error al obtener fuentes de fondos archivadas para usuario ${authenticatedUserId}:`, error);
     next(error);
   }
+};
+
+/**
+ * Elimina permanentemente una fuente de fondos del usuario autenticado.
+ * Esta acción es irreversible.
+ */
+export const permanentlyDeleteFundingSource = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (!req.user) {
+    res.status(401).json({ message: 'No autorizado, usuario no encontrado en la request.' });
+    return;
+  }
+
+  const { id } = req.params;
+  const authenticatedUserId = req.user.id;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    logger.warn(`[permanentlyDeleteFundingSource] ID inválido proporcionado por usuario ${authenticatedUserId}: ${id}`);
+    res.status(400).json({ message: 'ID de fuente de fondos inválido.' });
+    return;
+  }
+
+  try {
+    logger.info(`Usuario [${authenticatedUserId}] intentando eliminar permanentemente la fuente de fondos ID: ${id}`);
+
+    const fundingSource = await FundingSourceModel.findOneAndDelete({
+      _id: id,
+      userId: authenticatedUserId,
+      // Opcionalmente, podríamos añadir status: 'archived' aquí si solo se permite eliminar permanentemente las ya archivadas desde el backend.
+      // status: 'archived' 
+    });
+
+    if (!fundingSource) {
+      logger.warn(`[permanentlyDeleteFundingSource] Fuente de fondos ID: ${id} no encontrada o no pertenece al usuario ${authenticatedUserId}.`);
+      res.status(404).json({ message: 'Fuente de fondos no encontrada o no tiene permiso para eliminarla.' });
+      return;
+    }
+
+    // Opcional: Si hay transacciones u otros datos relacionados que deban limpiarse, se haría aquí.
+    // Por ejemplo: await TransactionModel.deleteMany({ fundingSourceId: id });
+    // Esto depende de la lógica de tu aplicación y si quieres eliminaciones en cascada.
+
+    logger.info(`Fuente de fondos ID: ${id} eliminada permanentemente por usuario ${authenticatedUserId}.`);
+    res.status(204).send(); // 204 No Content es apropiado para eliminaciones exitosas
+
+  } catch (error: any) {
+    logger.error(`Error al eliminar permanentemente la fuente de fondos ID: ${id} por usuario ${authenticatedUserId}:`, error.message);
+    next(error);
+  }
 }; 

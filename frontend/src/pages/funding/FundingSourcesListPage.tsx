@@ -61,6 +61,21 @@ const FundingSourcesListPage: React.FC = () => {
     }
   };
 
+  const handlePermanentDelete = async (id: string) => {
+    if (window.confirm('¿Está seguro de que desea ELIMINAR PERMANENTEMENTE esta fuente de fondos? Esta acción no se puede deshacer.')) {
+      try {
+        await fundingSourceService.permanentlyDeleteFundingSourceById(id);
+        toast.success('Fuente eliminada permanentemente.');
+        fetchFundingSources(); // Actualizar la lista
+      } catch (err: any) {
+        console.error('Error eliminando permanentemente la fuente de fondos:', err);
+        const apiError = err.response?.data?.message || err.message || 'Error al eliminar permanentemente la fuente de fondos.';
+        setError(apiError);
+        toast.error(apiError);
+      }
+    }
+  };
+
   const toggleShowArchived = () => {
     setShowArchived(!showArchived);
   };
@@ -87,6 +102,11 @@ const FundingSourcesListPage: React.FC = () => {
           {showArchived && row.original.status === 'archived' && (
             <Button variant="outline" onClick={() => console.log('Desarchivar ID:', String(id))} className="p-2">
               Restaurar
+            </Button>
+          )}
+          {showArchived && row.original.status === 'archived' && (
+            <Button variant="danger" onClick={() => handlePermanentDelete(String(id))} className="p-2 ml-2">
+              Eliminar Definitivamente
             </Button>
           )}
         </div>

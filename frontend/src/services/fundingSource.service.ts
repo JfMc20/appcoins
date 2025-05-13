@@ -56,6 +56,11 @@ const deleteFundingSource = (id: string): Promise<void> => {
   return api.delete(`${FUNDING_SOURCES_PATH}/${id}`);
 };
 
+// Nueva función para eliminar permanentemente una fuente de fondos
+const permanentlyDeleteFundingSourceById = (id: string): Promise<void> => {
+  return api.delete(`${FUNDING_SOURCES_PATH}/${id}/permanent`);
+};
+
 const getArchivedFundingSources = async (): Promise<FundingSource[]> => {
   const response = await api.get<FundingSource[]>('/funding-sources/archived');
   return response.data;
@@ -92,6 +97,7 @@ const fundingSourceService = {
   createFundingSource,
   updateFundingSource,
   deleteFundingSource,
+  permanentlyDeleteFundingSourceById,
   getArchivedFundingSources,
   getFundingSourceTypeDisplay,
   getFundingSourceStatusDisplay

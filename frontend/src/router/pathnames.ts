@@ -30,6 +30,7 @@ const Transactions = {
 const Funding = {
   list: '/funding-sources',
   new: '/funding-sources/new',
+  edit: '/funding-sources/edit/:id',
 }
 
 // Herramientas de diagnóstico ocultas con una ruta compleja para evitar descubrimiento por fuzzing

@@ -105,6 +105,7 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Tema claro/oscuro
 - Componentes base reutilizables
 - **Frontend**: Panel de administración de juegos (`/admin/games`) con funcionalidad **completa** para listar, crear, editar y eliminar juegos (CRUD).
+- **Frontend**: Interfaz para Fuentes de Fondos (`/funding-sources`) con funcionalidad **completa** para listar, crear, editar y eliminar/archivar fuentes (CRUD).
 
 #### ❌ Pendiente:
 - Dashboard principal con visión general del negocio
@@ -162,18 +163,18 @@ Basado en el estado actual, se recomienda el siguiente orden de prioridad para e
 
 1.  **¡COMPLETADO!** (Gestión Usuarios Frontend)
 2.  **¡COMPLETADO!** (Interfaz de Juegos Frontend)
-3.  **Interfaz de Fuentes de Fondos (Fase 6 parcial)**: Implementar las pantallas para administrar fuentes de fondos (CRUD completo en frontend).
+3.  **¡COMPLETADO!** (Interfaz de Fuentes de Fondos Frontend - CRUD)
 4.  **Transacciones Básicas (Fase 3 parcial)**: Completar la lógica e interfaces para registro de transacciones.
 5.  **Gestión de Contactos (Fase 4)**: Implementar el CRUD e interfaces para contactos.
-6. **Precios y Estrategias (Fase 2)**: Completar la gestión de precios y tasas.
-7. **Transacciones Avanzadas (Fase 3 completo)**: Finalizar todas las funcionalidades de transacciones.
-8. **Informes Básicos (Fase 5 parcial)**: Implementar informes fundamentales para el negocio.
-9. **Interfaz Completa (Fase 6 completo)**: Finalizar todas las pantallas y mejoras de UX.
+6.  **Precios y Estrategias (Fase 2)**: Completar la gestión de precios y tasas.
+7.  **Transacciones Avanzadas (Fase 3 completo)**: Finalizar todas las funcionalidades de transacciones.
+8.  **Informes Básicos (Fase 5 parcial)**: Implementar informes fundamentales para el negocio.
+9.  **Interfaz Completa (Fase 6 completo)**: Finalizar todas las pantallas y mejoras de UX.
 10. **Informes Avanzados (Fase 5 completo)**: Implementar informes personalizados y avanzados.
 
 ## Próximos Pasos Inmediatos
 
 1.  **¡HECHO!** (Documentación)
 2.  **¡HECHO!** (Implementar interfaz de juegos)
-3.  Implementar la interfaz frontend para fuentes de fondos (CRUD).
+3.  **¡HECHO!** (Implementar la interfaz frontend para fuentes de fondos - CRUD).
 4.  Desarrollar sistema de gestión de contactos completo (Backend y Frontend). 

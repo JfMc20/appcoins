@@ -15,7 +15,10 @@ export const createFundingSource = async (req: Request, res: Response, next: Nex
     return;
   }
   
-  const { name, currency, type, typeSpecificDetails, initialBalance, notes, status } = req.body;
+  const { name, currency, type, typeSpecificDetails, currentBalance, notes, status } = req.body;
+  // Log para verificar el valor y tipo de currentBalance recibido (ahora sí debería funcionar)
+  logger.info(`[createFundingSource] Recibido - currentBalance: ${currentBalance}, typeof: ${typeof currentBalance}`);
+  
   const userId = req.user.id; // <<< Obtener userId del usuario autenticado
   const operatorUserId = req.user.id; // El operador que crea la fuente es el mismo usuario
 
@@ -27,7 +30,7 @@ export const createFundingSource = async (req: Request, res: Response, next: Nex
       name,
       currency: currency?.toUpperCase(),
       type,
-      currentBalance: initialBalance || 0,
+      currentBalance: Number(currentBalance) || 0,
       typeSpecificDetails: typeSpecificDetails || {},
       notes,
       status: status || 'active',
@@ -37,8 +40,9 @@ export const createFundingSource = async (req: Request, res: Response, next: Nex
     logger.info(`Fuente de fondos creada con ID: ${savedFundingSource._id} por usuario ${userId}`);
 
     // Si hay un saldo inicial, crear la transacción correspondiente
-    if (initialBalance && initialBalance > 0) {
-      logger.info(`Registrando saldo inicial de ${initialBalance} ${currency} para la fuente ${savedFundingSource._id}`);
+    if (currentBalance && Number(currentBalance) > 0) {
+      const balanceValue = Number(currentBalance);
+      logger.info(`Registrando saldo inicial de ${balanceValue} ${currency} para la fuente ${savedFundingSource._id}`);
       const initialBalanceTransaction = new TransactionModel({
         transactionDate: new Date(),
         type: 'DECLARACION_SALDO_INICIAL_CAPITAL',
@@ -46,16 +50,16 @@ export const createFundingSource = async (req: Request, res: Response, next: Nex
         capitalDeclaration: [
           {
             fundingSourceId: savedFundingSource._id,
-            declaredBalance: initialBalance,
+            declaredBalance: balanceValue,
             currency: savedFundingSource.currency,
           },
         ],
         paymentDetails: {
             fundingSourceId: savedFundingSource._id,
-            amount: initialBalance,
+            amount: balanceValue,
             currency: savedFundingSource.currency,
             valueInReferenceCurrency: {
-                amount: initialBalance,
+                amount: balanceValue,
                 currency: savedFundingSource.currency,
             }
         },

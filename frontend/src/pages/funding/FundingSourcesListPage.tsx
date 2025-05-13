@@ -5,6 +5,7 @@ import { FundingSource } from '../../types/fundingSource.types';
 import fundingSourceService from '../../services/fundingSource.service';
 import { LoadingSpinner, Notification, Button } from '../../components/common';
 import Pathnames from '../../router/pathnames';
+import { toast } from 'react-toastify';
 
 const FundingSourcesListPage: React.FC = () => {
   const [fundingSources, setFundingSources] = useState<FundingSource[]>([]);
@@ -30,6 +31,28 @@ const FundingSourcesListPage: React.FC = () => {
 
     fetchFundingSources();
   }, []);
+
+  // Renombrar handler y cambiar mensajes de 'archivar' a 'eliminar'
+  const handleDelete = async (id: string, name: string) => {
+    // Confirmación simple (se puede mejorar con un modal)
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar la fuente "${name}"?`)) {
+      return;
+    }
+
+    setError(null);
+    try {
+      // La función del servicio sigue siendo deleteFundingSource, pero la acción lógica es "eliminar" para el usuario
+      await fundingSourceService.deleteFundingSource(id); 
+      toast.success(`Fuente "${name}" eliminada correctamente.`);
+      // Actualizar el estado local filtrando la fuente eliminada
+      setFundingSources(prevSources => prevSources.filter(source => source._id !== id));
+    } catch (err: any) {
+      console.error('Error deleting funding source:', err);
+      const apiError = err.response?.data?.message || err.message || 'Error al eliminar la fuente de fondos.';
+      setError(apiError);
+      toast.error(apiError);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -68,27 +91,48 @@ const FundingSourcesListPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {fundingSources.map((source) => (
-                    <tr key={source._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{source.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{source.type}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{source.currency}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500 dark:text-gray-300">{source.currentBalance.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-300">
-                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                           source.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' :
-                           source.status === 'inactive' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100' :
-                           'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100' // archived
-                         }`}>
-                           {source.status}
-                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {/* Botones de Editar/Archivar irán aquí */}
-                        <button className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200">Editar</button>
-                      </td>
-                    </tr>
-                  ))}
+                  {fundingSources.map((source) => {
+                    // Log para depurar el valor y tipo de currentBalance
+                    console.log('[FundingSourcesListPage] Source for table - Name:', source.name, 'Balance:', source.currentBalance, 'Type:', typeof source.currentBalance);
+                    return (
+                      <tr key={source._id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{source.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{source.type}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{source.currency}</td>
+                        {/* Añadir verificación de tipo antes de llamar a toFixed */}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500 dark:text-gray-300">
+                          {typeof source.currentBalance === 'number' ? source.currentBalance.toFixed(2) : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-300">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            source.status === 'active' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' :
+                            source.status === 'inactive' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100' :
+                            'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100' // archived
+                          }`}>
+                            {source.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          {/* Botón Editar */}
+                          <button 
+                            onClick={() => navigate(Pathnames.funding.edit.replace(':id', String(source._id)))}
+                            className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 mr-3"
+                          >
+                            Editar
+                          </button>
+                          {/* Botón Eliminar (antes Archivar) */}
+                          <button 
+                            // Llamar al nuevo handler handleDelete
+                            onClick={() => source._id && handleDelete(source._id, source.name)} 
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-200"
+                            disabled={!source._id} // Deshabilitar si no hay ID (poco probable)
+                          >
+                            Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             ) : (

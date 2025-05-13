@@ -378,4 +378,30 @@ export const archiveFundingSource = async (req: Request, res: Response, next: Ne
     }
     next(error);
   }
+};
+
+// @desc    Get all archived funding sources for the logged-in user
+// @route   GET /api/funding-sources/archived
+// @access  Private
+export const getArchivedFundingSources = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  if (!req.user) {
+    res.status(401).json({ message: 'No autorizado, usuario no encontrado en la request.' });
+    return;
+  }
+
+  const authenticatedUserId = req.user.id;
+
+  const query: any = {
+    userId: authenticatedUserId,
+    status: 'archived'
+  };
+
+  try {
+    logger.debug(`Usuario [${authenticatedUserId}] obteniendo fuentes de fondos archivadas con query:`, query);
+    const fundingSources = await FundingSourceModel.find(query);
+    res.status(200).json(fundingSources);
+  } catch (error) {
+    logger.error(`Error al obtener fuentes de fondos archivadas para usuario ${authenticatedUserId}:`, error);
+    next(error);
+  }
 }; 

@@ -56,6 +56,33 @@ const deleteFundingSource = (id: string): Promise<void> => {
   return api.delete(`${FUNDING_SOURCES_PATH}/${id}`);
 };
 
+const getArchivedFundingSources = async (): Promise<FundingSource[]> => {
+  const response = await api.get<FundingSource[]>('/funding-sources/archived');
+  return response.data;
+};
+
+// Funciones auxiliares para mostrar etiquetas legibles
+const getFundingSourceTypeDisplay = (type: string): string => {
+  switch (type) {
+    case 'bank_account': return 'Cuenta Bancaria';
+    case 'crypto_wallet': return 'Billetera Crypto';
+    case 'cash': return 'Efectivo';
+    case 'paypal': return 'PayPal';
+    case 'zelle': return 'Zelle';
+    case 'other': return 'Otro';
+    default: return type;
+  }
+};
+
+const getFundingSourceStatusDisplay = (status: string): string => {
+  switch (status) {
+    case 'active': return 'Activa';
+    case 'inactive': return 'Inactiva';
+    case 'archived': return 'Archivada';
+    default: return status;
+  }
+};
+
 const fundingSourceService = {
   getAllFundingSources,
   getActiveFundingSources,
@@ -64,7 +91,10 @@ const fundingSourceService = {
   getFundingSourceById,
   createFundingSource,
   updateFundingSource,
-  deleteFundingSource
+  deleteFundingSource,
+  getArchivedFundingSources,
+  getFundingSourceTypeDisplay,
+  getFundingSourceStatusDisplay
 };
 
 export default fundingSourceService; 

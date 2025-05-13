@@ -7,7 +7,8 @@ import {
   archiveFundingSource,
   getActiveFundingSources,
   getFundingSourcesByType,
-  getFundingSourcesByCurrency
+  getFundingSourcesByCurrency,
+  getArchivedFundingSources
 } from '../controllers/fundingSourceController';
 import { protectWithJwt } from '../middleware/authMiddleware';
 import { logger } from '../utils/logger';
@@ -26,6 +27,7 @@ router.get('/', getAllFundingSources);
 
 // Nuevas rutas GET
 router.get('/active', getActiveFundingSources);
+router.get('/archived', getArchivedFundingSources);
 router.get('/by-type/:type', getFundingSourcesByType);
 router.get('/by-currency/:currency', getFundingSourcesByCurrency);
 

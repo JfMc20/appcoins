@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FundingSource, CreateFundingSourceData, UpdateFundingSourceData, FundingSourceDetails, BankAccountDetails, CryptoWalletDetails, CashDetails, DigitalPaymentDetails } from '../../types/fundingSource.types';
 import { Button, Input, Notification } from '../common'; // Asumiendo que estos componentes comunes existen
+import fundingSourceService from '../../services/fundingSource.service'; // Importar el servicio
 
 interface FundingSourceFormProps {
   initialData?: FundingSource | null;
@@ -34,6 +35,8 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [typeSpecificDetails, setTypeSpecificDetails] = useState<FundingSourceDetails | undefined>(initialData?.typeSpecificDetails || undefined);
   const [internalErrorMessage, setInternalErrorMessage] = useState<string | null>(errorMessage || null); // Estado interno para controlar el mensaje de error
+  const [showTypeSpecificFields, setShowTypeSpecificFields] = useState(false);
+  const [duplicateNameError, setDuplicateNameError] = useState<string | null>(null); // Estado para el error de duplicado
 
   const isEditing = !!initialData;
 
@@ -57,9 +60,53 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
     setTypeSpecificDetails(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name: inputNameAttribute, value } = e.target;
+
+    if (inputNameAttribute === "name") {
+      setName(value);
+      setDuplicateNameError(null);
+    } else if (inputNameAttribute === "type") {
+      setType(value as FundingSource['type']);
+      // La lógica de typeSpecificDetails y showTypeSpecificFields se maneja por el useEffect [type]
+    } else if (inputNameAttribute === "currency") {
+      setCurrency(value.toUpperCase());
+    } else if (inputNameAttribute === "initialBalance") {
+      setInitialBalance(parseFloat(value) || 0);
+    } else if (inputNameAttribute === "status") {
+      setStatus(value as FundingSource['status']);
+    } else if (inputNameAttribute === "notes") {
+      setNotes(value);
+    } else if (["bankName", "accountNumber", "walletAddress", "network", "email", "location", "custodian"].includes(inputNameAttribute)) {
+      handleDetailsChange(inputNameAttribute, value);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setInternalErrorMessage(null); // Limpiar error interno al intentar enviar
+    setDuplicateNameError(null); // Limpiar error antes de validar
+
+    // Validación de nombre duplicado solo en modo creación
+    if (!isEditing) {
+      try {
+        const existingSources = await fundingSourceService.getAllFundingSources();
+        const isDuplicate = existingSources.some(
+          source => source.name.trim().toLowerCase() === name.trim().toLowerCase() && source.status !== 'archived'
+        );
+
+        if (isDuplicate) {
+          setDuplicateNameError("Ya existe una fuente de fondos con este nombre.");
+          return; // Detener el envío si hay duplicado
+        }
+      } catch (error) {
+        console.error("Error al verificar fuentes de fondos existentes:", error);
+        // Opcionalmente, mostrar un error genérico al usuario aquí
+        setDuplicateNameError("Error al validar el nombre. Intente de nuevo.");
+        return;
+      }
+    }
+
     const commonData = {
       name,
       currency: currency.toUpperCase(),
@@ -134,11 +181,13 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {internalErrorMessage && <Notification type="error" message={internalErrorMessage} onClose={() => setInternalErrorMessage(null)} />}
+      {duplicateNameError && <Notification type="error" message={duplicateNameError} onClose={() => setDuplicateNameError(null)} />}
       
       <Input 
         label="Nombre Descriptivo" 
+        name="name"
         value={name} 
-        onChange={(e) => setName(e.target.value)} 
+        onChange={handleChange} 
         required 
         placeholder="Ej. Binance USDT, Banco Mercantil VES"
       />
@@ -148,8 +197,9 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
            <label htmlFor="funding-source-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Fuente</label>
            <select 
              id="funding-source-type"
+             name="type"
              value={type} 
-             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setType(e.target.value as FundingSource['type'])} 
+             onChange={handleChange} 
              required 
              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-white"
            >
@@ -160,8 +210,9 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
         </div>
         <Input 
           label="Moneda (Código)" 
+          name="currency"
           value={currency} 
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCurrency(e.target.value)} 
+          onChange={handleChange} 
           required 
           placeholder="Ej. USD, USDT, VES, COP"
           maxLength={10} // Limitar longitud
@@ -171,9 +222,10 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
       {!isEditing && (
         <Input 
           label="Saldo Inicial (Opcional)" 
+          name="initialBalance"
           type="number" 
           value={initialBalance}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInitialBalance(parseFloat(e.target.value) || 0)} 
+          onChange={handleChange} 
           min={0}
           step="0.01"
         />
@@ -181,10 +233,16 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
       
       {/* Renderizar campos específicos del tipo */}
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Detalles Específicos ({fundingSourceTypes.find(t => t.value === type)?.label})</h3>
-          <div className="space-y-4">
-             {renderTypeSpecificFields()}
-          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Detalles Específicos ({fundingSourceTypes.find(t => t.value === type)?.label || 'Tipo no seleccionado'})</h3>
+          {showTypeSpecificFields && (
+            <div className="space-y-4">
+                {renderTypeSpecificFields()}
+            </div>
+          )}
+          {!showTypeSpecificFields && type !== 'other' && (
+             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Este tipo de fuente no requiere detalles específicos adicionales.</p>
+          )}
+          {type === 'other' && renderTypeSpecificFields()}
       </div>
 
       {isEditing && (
@@ -192,8 +250,9 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
             <label htmlFor="funding-source-status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Estado</label>
             <select 
               id="funding-source-status"
+              name="status"
               value={status} 
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value as FundingSource['status'])} 
+              onChange={handleChange} 
               required 
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-white"
             >
@@ -208,8 +267,9 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
         <label htmlFor="funding-source-notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas (Opcional)</label>
         <textarea 
           id="funding-source-notes"
+          name="notes"
           value={notes} 
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)} 
+          onChange={handleChange} 
           rows={3} 
           className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-gray-900 dark:text-white"
         />

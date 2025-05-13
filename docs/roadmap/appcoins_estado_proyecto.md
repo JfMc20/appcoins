@@ -177,4 +177,30 @@ Basado en el estado actual, se recomienda el siguiente orden de prioridad para e
 1.  **¡HECHO!** (Documentación)
 2.  **¡HECHO!** (Implementar interfaz de juegos)
 3.  **¡HECHO!** (Implementar la interfaz frontend para fuentes de fondos - CRUD).
-4.  Desarrollar sistema de gestión de contactos completo (Backend y Frontend). 
+4.  Desarrollar sistema de gestión de contactos completo (Backend y Frontend).
+
+*   **[Fase 4: Gestión de Contactos](frontend/src/pages/contacts/ContactsListPage.tsx)**
+    *   **Backend:**
+        *   [x] Modelo (`ContactModel.ts`)
+        *   [x] Rutas (`contactRoutes.ts` - CRUD básico con protección)
+        *   [x] Controlador (`contactController.ts` - Lógica CRUD con validaciones, filtros, paginación, búsqueda y manejo de errores)
+    *   **Frontend:**
+        *   [x] Tipos (`contact.types.ts` - Interfaces para Contact, CRUD data, etc.)
+        *   [x] Servicio (`contact.service.ts` - Funciones getAll, getById, create, update, delete)
+        *   [x] Página de Listado (`ContactsListPage.tsx` - Tabla, filtros, paginación, búsqueda, botón eliminar funcional)
+        *   [x] Componente Formulario (`ContactForm.tsx` - Reutilizable para crear/editar)
+        *   [x] Página de Creación (`CreateContactPage.tsx` - Usa ContactForm, llama al servicio)
+        *   [x] Rutas y Navegación (Router, `Pathnames`, SidePanel) - Añadidas rutas y enlace
+        *   [ ] Página de Edición (`EditContactPage.tsx`) - Pendiente
+        *   [ ] Manejo de Direcciones y Detalles Adicionales (UI y Lógica) - Pendiente
+        *   [ ] Vista de Detalle (Opcional) - Pendiente
+*   **Fase 5: Gestión de Transacciones**
+    *   ...
+*   **Fase 6: Dashboard y Reportes**
+    *   ...
+*   **Fase 7: Autenticación y Autorización Avanzada**
+    *   ...
+*   **Fase 8: Configuración de Aplicación**
+    *   ...
+*   **Fase 9: Pruebas y Despliegue**
+    *   ... 

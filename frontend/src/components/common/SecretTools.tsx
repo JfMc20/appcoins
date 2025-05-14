@@ -9,7 +9,7 @@ import Pathnames from '../../router/pathnames';
  * 
  * Combinación: Control + Alt + D seguido de la tecla T en 2 segundos
  */
-const SecretTools: React.FC = () => {
+export const SecretTools: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [secretSequence, setSecretSequence] = useState<string[]>([]);
@@ -55,6 +55,4 @@ const SecretTools: React.FC = () => {
   
   // Este componente no renderiza nada visible
   return null;
-};
-
-export default SecretTools; 
+}; 

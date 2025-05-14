@@ -91,8 +91,16 @@ Este es el corazón de la aplicación, donde registras todas tus operaciones fin
     *   **Vinculación de Contactos en Transacciones:** Se planea que al registrar transacciones como compras o ventas, puedas seleccionar un contacto existente (cliente/proveedor). Esto agilizará el proceso y permitirá un mejor análisis de la actividad por contacto.
 
 *   **Historial de Transacciones:**
-    *   (Funcionalidad en desarrollo)
-    *   Habrá una sección donde podrás ver todas las transacciones registradas, con opciones para filtrar por fecha, tipo, fuente de fondos, contacto, etc. Esto te permitirá hacer un seguimiento detallado de todos los movimientos.
+    *   **Acceso:** Puedes acceder al historial de transacciones desde el menú de navegación, usualmente bajo la sección "Transacciones" -> "Historial".
+    *   **Visualización:** Se presenta una tabla paginada con todas las transacciones que tienes permiso para ver (los operadores ven sus propias transacciones, los administradores ven todas).
+    *   **Columnas Principales:**
+        *   **Fecha:** Fecha y hora en que se registró la transacción.
+        *   **Tipo:** El tipo de transacción (ej. `DECLARACION_OPERADOR_INICIO_DIA`).
+        *   **Descripción / Detalles:** Un resumen o nota de la transacción. Para las declaraciones de inicio de día, muestra el saldo declarado, la moneda y un identificador de la fuente de fondos afectada.
+        *   **Operador ID:** El identificador del usuario que realizó la transacción (próximamente se mostrará el nombre).
+        *   **Estado:** El estado actual de la transacción (ej. `completed`).
+    *   **Paginación:** Si hay muchas transacciones, puedes navegar entre páginas usando los botones "Anterior" y "Siguiente" al final de la tabla.
+    *   **Botón "Nueva Transacción":** Desde esta página, también tienes un acceso directo para registrar una nueva transacción.
 
 ### 4.3. Gestión de Contactos
 

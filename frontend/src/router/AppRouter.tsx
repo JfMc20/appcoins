@@ -7,7 +7,7 @@ import UserManagementPage from '../pages/admin/UserManagementPage' // Importar l
 import GameManagementPage from '../pages/admin/games/GameManagementPage' // Importar página de gestión de juegos
 import GameItemsPage from '../pages/admin/games/GameItemsPage' // Importar página de gestión de ítems de juegos
 import ExchangeRatePage from '../pages/admin/ExchangeRatePage' // Importar página de tasas de cambio
-import TransactionHistoryPage from '../pages/transactions/TransactionHistoryPage' // Importar página de historial de transacciones
+import TransactionsListPage from '../pages/transactions/TransactionsListPage' // Nueva importación
 import NewTransactionPage from '../pages/transactions/NewTransactionPage' // Importar página de nueva transacción
 import FundingSourcesListPage from '../pages/funding/FundingSourcesListPage'
 import CreateFundingSourcePage from '../pages/funding/CreateFundingSourcePage'
@@ -124,7 +124,7 @@ const AppRouter: React.FC = () => {
           path={Pathnames.transactions.history}
           element={
             <ProtectedRoute>
-              <TransactionHistoryPage />
+              <TransactionsListPage />
             </ProtectedRoute>
           }
         />

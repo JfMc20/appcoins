@@ -8,7 +8,7 @@ interface IconProps {
   color?: string;
 }
 
-const Icon: React.FC<IconProps> = ({ icon, className = '', size, color }) => {
+export const Icon: React.FC<IconProps> = ({ icon, className = '', size, color }) => {
   const IconComponent = icon as React.FC<IconBaseProps>;
   
   return (
@@ -16,6 +16,4 @@ const Icon: React.FC<IconProps> = ({ icon, className = '', size, color }) => {
       <IconComponent size={size} color={color} />
     </div>
   );
-};
-
-export default Icon; 
+}; 

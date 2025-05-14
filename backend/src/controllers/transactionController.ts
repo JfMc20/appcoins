@@ -233,6 +233,50 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
   }
 };
 
-// Aquí podrían ir otras funciones como getTransactionById, getAllTransactions, updateTransaction, etc.
-// export const getAllTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => { ... }
+// Obtener todas las transacciones con paginación
+export const getAllTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const user = req.user as IUser;
+  logger.info(`Usuario [${user?.id} (${user?.role})] solicitando lista de transacciones.`);
+
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20; // Ajustar el límite por defecto según necesidad
+    const skip = (page - 1) * limit;
+
+    // Filtro base: Por ahora, un admin ve todas, un operador solo las suyas.
+    // Esto se puede refinar más adelante con filtros más complejos.
+    const queryFilter = user.role === 'admin' ? {} : { operatorUserId: user.id };
+
+    const transactions = await TransactionModel.find(queryFilter)
+      .sort({ transactionDate: -1, createdAt: -1 }) // Priorizar transactionDate, luego createdAt
+      // .populate('operatorUserId', 'username email') // Ejemplo de populate, lo añadiremos si es necesario
+      // .populate('contactId', 'name nickname') // Ejemplo
+      // .populate('capitalDeclaration.fundingSourceId', 'name currency') // Ejemplo anidado
+      // .populate('paymentDetails.fundingSourceId', 'name currency') // Ejemplo
+      // .populate('itemDetails.itemId', 'name') // Ejemplo
+      .skip(skip)
+      .limit(limit)
+      .lean(); // .lean() para obtener objetos JS planos, puede ser más rápido si no se necesitan métodos de Mongoose
+
+    const totalItems = await TransactionModel.countDocuments(queryFilter);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.status(200).json({
+      data: transactions,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        itemsPerPage: limit,
+      },
+    });
+    logger.info(`Lista de transacciones enviada al usuario [${user?.id}]. Página: ${page}, Límite: ${limit}, Total: ${totalItems}`);
+
+  } catch (error: any) {
+    logger.error(`Error al obtener lista de transacciones para usuario [${user?.id}]:`, error);
+    next(error);
+  }
+};
+
+// Aquí podrían ir otras funciones como getTransactionById, updateTransaction, etc.
 // export const getTransactionById = async (req: Request, res: Response, next: NextFunction): Promise<void> => { ... } 

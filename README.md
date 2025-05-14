@@ -23,7 +23,8 @@ La reventa de ítems y monedas de juegos puede volverse compleja rápidamente. A
     *   Lleva un registro del stock disponible para los ítems que gestionas (próximamente con mayor detalle en UI).
 *   **Seguimiento Integral de Transacciones:**
     *   Registra operaciones de compra (a proveedores o jugadores) y venta (a clientes).
-    *   Vincula transacciones a contactos y actualiza el inventario automáticamente.
+    *   **Visualiza un historial completo de transacciones con paginación y detalles básicos.**
+    *   Vincula transacciones a contactos y actualiza el inventario automáticamente (en desarrollo).
 *   **Gestión de Precios y Tasas de Cambio:**
     *   Configura precios de compra y venta para tus productos.
     *   Maneja múltiples tasas de cambio (ej. USDT-VES, USDT-COP) para operar en diferentes mercados locales.
@@ -43,7 +44,7 @@ La reventa de ítems y monedas de juegos puede volverse compleja rápidamente. A
 
 ## Estado Actual del Proyecto
 
-AppCoins se encuentra en **desarrollo activo**. Módulos fundamentales como la gestión de juegos, fuentes de fondos (para control de capital) y administración de usuarios ya están implementados y son funcionales. La gestión de contactos y el backend para transacciones y tasas de cambio también están avanzados. El trabajo actual se centra en completar la interfaz de transacciones, el dashboard principal y los módulos de informes.
+AppCoins se encuentra en **desarrollo activo**. Módulos fundamentales como la gestión de juegos, fuentes de fondos (para control de capital), la gestión de contactos y administración de usuarios ya están implementados y son funcionales. El backend para transacciones (creación y listado básico) y tasas de cambio también están avanzados. **El frontend ahora cuenta con la capacidad de listar todas las transacciones con paginación.** El trabajo actual se centra en completar la interfaz para otros tipos de transacciones, el dashboard principal y los módulos de informes.
 
 ---
 

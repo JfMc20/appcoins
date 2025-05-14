@@ -59,10 +59,11 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 #### ✅ Implementado:
 - Modelo completo de transacciones (`TransactionModel`)
 - Endpoint para **creación** de transacciones (`POST /api/transactions`)
+- Endpoint para **lectura** de transacciones (`GET /api/transactions` con paginación y filtro básico por rol)
 - Endpoints CRUD completos para Fuentes de Fondos (`/api/funding-sources`)
 
 #### ❌ Pendiente:
-- Endpoints para leer, actualizar y eliminar transacciones (`GET`, `PUT`, `DELETE /api/transactions`)
+- Endpoints para actualizar y eliminar transacciones (`PUT`, `DELETE /api/transactions/:id`)
 - Lógica completa para diferentes tipos de transacciones:
   - Compra/venta de ítems de juego
   - Compra/venta de productos externos
@@ -70,13 +71,13 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
   - Declaraciones de saldo
 - Cálculo de comisiones y ganancias
 - Actualización automática de stock en transacciones
-- Vinculación completa con contactos y fuentes de fondos
+- Vinculación completa con contactos y fuentes de fondos (en formularios y lógica de negocio)
 - Interfaz de usuario para el registro y gestión de transacciones
-    - Listado de transacciones con filtros.
-    - Formularios para los diferentes tipos de transacciones.
-    - **Vinculación Rápida de Contactos**: En el formulario de creación de transacciones, permitir seleccionar/buscar un contacto existente para asociarlo rápidamente.
-    - Vista de detalle de una transacción.
-    - Posibilidad de editar/eliminar (si la lógica de negocio lo permite).
+    - [x] Listado de transacciones con filtros (implementado listado básico con paginación, filtros avanzados pendientes)
+    - [ ] Formularios para los diferentes tipos de transacciones (solo `DECLARACION_OPERADOR_INICIO_DIA` implementado).
+    - [ ] **Vinculación Rápida de Contactos**: En el formulario de creación de transacciones, permitir seleccionar/buscar un contacto existente para asociarlo rápidamente.
+    - [ ] Vista de detalle de una transacción.
+    - [ ] Posibilidad de editar/eliminar (si la lógica de negocio lo permite).
 
 ### Fase 4: Módulo de Gestión de Contactos
 
@@ -119,7 +120,7 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Pantallas de login y registro
 - Manejo de rutas protegidas
 - Tema claro/oscuro
-- Componentes base reutilizables
+- Componentes base reutilizables (incluyendo un nuevo componente `Table` genérico)
 - **Frontend**: Panel de administración de juegos (`/admin/games` ahora `GameManagementPage.tsx`) con funcionalidad completa para:
   - Listar juegos activos/inactivos y archivados (con filtrado desde el backend).
   - Crear nuevos juegos.
@@ -132,11 +133,12 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - **Frontend**: Implementadas herramientas de diagnóstico para administradores (accesibles mediante combinación de teclas y URLs seguras, requieren rol de admin):
   - Depurador de Autenticación (`LoginDebugger.tsx`).
   - Inspector/Modificador de Roles de Usuario (`UserRoleDebug.tsx`, `FixUserAdmin.tsx`).
+- **Frontend**: Página de Historial de Transacciones (`TransactionsListPage.tsx`) con listado paginado de transacciones consumiendo el endpoint del backend.
 
 #### ❌ Pendiente:
 - Dashboard principal con visión general del negocio
 - Interfaz para gestión de productos (*si aplica, revisar si "juegos" cubre esto*)
-- Interfaz para gestión de transacciones
+- Interfaz para gestión de transacciones (completar formularios para todos los tipos, vista de detalle, edición/eliminación)
 - Interfaz para gestión de contactos
 - Interfaz para visualización de informes
 - Vistas responsivas completas para dispositivos móviles

@@ -202,10 +202,8 @@ const ContactsListPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        {/* Botón Editar (Pendiente) */}
                         <button 
-                          // onClick={() => navigate(Pathnames.contacts.edit.replace(':id', contact._id))} // <-- Actualizar ruta
-                          onClick={() => alert(`Editar ${contact.name} - Pendiente`)}
+                          onClick={() => navigate(Pathnames.contacts.edit.replace(':contactId', contact._id))}
                           className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 mr-3"
                         >
                           Editar

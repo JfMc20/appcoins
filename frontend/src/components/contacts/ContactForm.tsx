@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { ContactCreateData, ContactUpdateData } from '../../types/contact.types'; // Asegúrate que estos tipos existen
+import { ContactCreateData, ContactUpdateData, ContactFormData } from '../../types/contact.types'; // Asegúrate que estos tipos existen y ContactFormData se importa
 import { Input, Button, Notification } from '../common'; // Necesitaremos estos componentes comunes
 
 // Asumiendo que tenemos estas constantes definidas en alguna parte, similar a ContactsListPage
@@ -19,7 +19,8 @@ const CONTACT_STATUSES = [
 ];
 
 // Usaremos una unión para los datos, ya que el ID es opcional (presente en update, ausente en create)
-type ContactFormData = Omit<ContactCreateData, 'addresses' | 'details'> & Partial<Omit<ContactUpdateData, 'addresses' | 'details'>>;
+// type ContactFormData = Omit<ContactCreateData, 'addresses' | 'details'> & Partial<Omit<ContactUpdateData, 'addresses' | 'details'>>;
+// La definición de ContactFormData se ha movido a contact.types.ts
 
 interface ContactFormProps {
     onSubmit: SubmitHandler<ContactFormData>;

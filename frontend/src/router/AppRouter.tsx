@@ -21,6 +21,7 @@ import { SecretTools } from '../components/common'
 import Pathnames from './pathnames'
 import ContactsListPage from '../pages/contacts/ContactsListPage'
 import CreateContactPage from '../pages/contacts/CreateContactPage'
+import EditContactPage from '../pages/contacts/EditContactPage'
 
 // Definimos las props para ProtectedRoute
 interface ProtectedRouteProps {
@@ -236,6 +237,16 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute>
               <CreateContactPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Nueva ruta para editar contacto */}
+        <Route
+          path={Pathnames.contacts.edit}
+          element={
+            <ProtectedRoute>
+              <EditContactPage />
             </ProtectedRoute>
           }
         />

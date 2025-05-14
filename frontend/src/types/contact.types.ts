@@ -101,4 +101,7 @@ export interface ContactCreateData {
  */
 export type ContactUpdateData = Partial<ContactCreateData>;
 
+// Tipo para los datos que maneja el formulario de contacto (sin addresses/details por ahora)
+export type ContactFormData = Omit<ContactCreateData, 'addresses' | 'details'>;
+
 // Re-exportar otros tipos si es necesario, o asegurarse de que están definidos arriba. 

@@ -60,7 +60,7 @@ const Pathnames = {
   contacts: {
     list: '/contacts',
     new: '/contacts/new',
-    edit: '/contacts/edit/:id',
+    edit: '/contacts/edit/:contactId',
   },
 }
 

@@ -211,9 +211,12 @@ Basado en el estado actual, se recomienda el siguiente orden de prioridad para e
         *   [x] Página de Listado (`ContactsListPage.tsx` - Tabla, filtros, paginación, búsqueda, botón eliminar funcional)
         *   [x] Componente Formulario (`ContactForm.tsx` - Reutilizable para crear/editar)
         *   [x] Página de Creación (`CreateContactPage.tsx` - Usa ContactForm, llama al servicio)
-        *   [x] Rutas y Navegación (Router, `Pathnames`, SidePanel) - Añadidas rutas y enlace
-        *   [ ] Página de Edición (`EditContactPage.tsx`) - Pendiente
-        *   [ ] Manejo de Direcciones y Detalles Adicionales (UI y Lógica) - Pendiente
+        *   [x] Página de Edición (`EditContactPage.tsx` - Implementada funcionalidad básica de edición)
+        *   [x] Rutas y Navegación (Router, `Pathnames`, SidePanel) - Añadidas rutas y enlace para crear/listar/editar
+        *   [ ] **Mejoras Pendientes en Formulario de Contacto (`ContactForm.tsx` y páginas asociadas):**
+            *   [ ] **Campo descriptivo para "Tipo de Contacto: Otro"**: Implementar lógica para que al seleccionar "Otro" como tipo de contacto, aparezca un campo de texto adicional para especificar la descripción de dicho tipo.
+            *   [ ] **Etiqueta/Vinculación a Juego**: Añadir un campo para seleccionar o ingresar uno o más juegos existentes, permitiendo vincular el contacto a servicios específicos.
+        *   [ ] Manejo de Direcciones y Detalles Adicionales (UI y Lógica) - Pendiente (esto se refiere a las secciones `addresses` y `details` del modelo)
         *   [ ] Vista de Detalle (Opcional) - Pendiente
 *   **Fase 5: Gestión de Transacciones**
     *   ...

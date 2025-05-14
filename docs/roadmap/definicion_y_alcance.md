@@ -54,4 +54,40 @@
     *   **Experiencia de Usuario Multiplataforma:**
         *   La interfaz de usuario debe ser intuitiva y completamente funcional tanto en dispositivos de escritorio como móviles (diseño responsivo).
 
-**Consideración General:** La interfaz de usuario debe ser intuitiva para todas estas funcionalidades, minimizando la entrada manual de datos donde sea posible mediante cálculos automáticos y selecciones. 
+**Consideración General:** La interfaz de usuario debe ser intuitiva para todas estas funcionalidades, minimizando la entrada manual de datos donde sea posible mediante cálculos automáticos y selecciones.
+
+## Alcance del Proyecto (Primera Versión - MVP)
+
+### Módulos Principales Incluidos:
+
+1.  **Módulo de Gestión de Inventario y Productos (Juegos):**
+    *   Definición de juegos y productos (ej. Tibia Coins, etc.). (✅ Implementado)
+    *   Gestión de stock por producto. (✅ Modelo tiene stock, UI de gestión de stock explícita pendiente)
+    *   Precios de compra y venta. (🚧 Backend para tasas, UI de precios por item pendiente)
+    *   **Estado Actual:** Mayormente implementado, con gestión completa de juegos (CRUD, archivado, eliminación) y backend para tasas de cambio. UI para precios específicos por ítem y gestión de stock detallada pendiente.
+
+2.  **Módulo de Gestión de Transacciones:**
+    *   Registro de transacciones (compra, venta, otros movimientos). (🚧 Creación backend básica implementada, UI y lógica completa pendientes)
+    *   Vinculación a clientes y productos. (🚧 Backend soporta, UI pendiente)
+    *   Cálculo automático de totales y comisiones (si aplica). (❌ Pendiente)
+    *   Historial de transacciones. (❌ UI Pendiente, backend para consulta básica podría existir)
+    *   **Estado Actual:** Implementación inicial de backend para crear transacciones. UI, lógica de tipos de transacción, cálculos y listados pendientes.
+
+3.  **Módulo de Gestión de Clientes (Contactos):**
+    *   Base de datos de clientes/contactos. (✅ Implementado)
+    *   Historial de transacciones por cliente. (🚧 Backend soporta, UI pendiente)
+    *   **Estado Actual:** Backend CRUD completo. Frontend para listar, crear y eliminar contactos implementado. Edición de contactos y visualización de historial pendientes.
+
+4.  **Módulo de Informes y Estadísticas Básicas:**
+    *   Informe de ventas y compras diarias/semanales/mensuales. (❌ Pendiente)
+    *   Informe de niveles de stock. (❌ Pendiente)
+    *   Dashboard con métricas clave. (❌ Pendiente)
+    *   **Estado Actual:** Pendiente.
+
+5.  **Módulo de Configuración del Sistema:**
+    *   Gestión de usuarios y roles (administrador, operador). (✅ Implementado)
+    *   Configuración de tasas de cambio (si no son automáticas). (✅ Backend implementado, UI admin pendiente)
+    *   Configuración de tipos de productos y comisiones. (🚧 Gestión de juegos implementada, comisiones pendientes)
+    *   **Estado Actual:** Gestión de usuarios y backend de tasas de cambio implementados. UI para tasas y configuración de comisiones pendiente.
+
+### Fuera del Alcance (Primera Versión): 

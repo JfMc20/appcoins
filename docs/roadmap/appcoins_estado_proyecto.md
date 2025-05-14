@@ -76,14 +76,25 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 ### Fase 4: Módulo de Gestión de Contactos
 
 #### ✅ Implementado:
-- Modelo completo para contactos (ContactModel)
+- Modelo completo para contactos (`ContactModel.ts`)
+- Backend: Rutas (`contactRoutes.ts`) para CRUD básico con protección.
+- Backend: Controlador (`contactController.ts`) con lógica CRUD (validaciones, filtros, paginación, búsqueda, manejo de errores).
+- Frontend: Tipos (`contact.types.ts`).
+- Frontend: Servicio (`contact.service.ts` - funciones CRUD).
+- Frontend: Página de Listado (`ContactsListPage.tsx` - Tabla, filtros, paginación, búsqueda, botón eliminar funcional).
+- Frontend: Componente Formulario (`ContactForm.tsx` - reutilizable).
+- Frontend: Página de Creación (`CreateContactPage.tsx`).
+- Frontend: Rutas y Navegación para contactos.
+
+#### 🚧 En Progreso / Parcialmente Implementado:
+- Vinculación de contactos con transacciones (Backend podría estar listo, Frontend para mostrar historial pendiente).
+- Historial de transacciones por contacto (UI pendiente).
 
 #### ❌ Pendiente:
-- Implementación completa de CRUD para contactos
-- Endpoints para gestionar contactos
-- Vinculación de contactos con transacciones
-- Historial de transacciones por contacto
-- Interfaz de usuario para gestión de contactos
+- Frontend: Página de Edición (`EditContactPage.tsx`).
+- Frontend: Manejo de Direcciones y Detalles Adicionales en UI (si aplica según diseño final de `ContactForm`).
+- Frontend: Vista de Detalle de Contacto (Opcional, o parte de la página de edición).
+- Interfaz de usuario para gestión de contactos (refiriéndose a la finalización de todos los componentes visuales y flujos).
 
 ### Fase 5: Módulo de Informes
 
@@ -104,8 +115,18 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Manejo de rutas protegidas
 - Tema claro/oscuro
 - Componentes base reutilizables
-- **Frontend**: Panel de administración de juegos (`/admin/games`) con funcionalidad **completa** para listar, crear, editar y eliminar juegos (CRUD).
-- **Frontend**: Interfaz para Fuentes de Fondos (`/funding-sources`) con funcionalidad **completa** para listar, crear, editar y eliminar/archivar fuentes (CRUD).
+- **Frontend**: Panel de administración de juegos (`/admin/games` ahora `GameManagementPage.tsx`) con funcionalidad completa para:
+  - Listar juegos activos/inactivos y archivados (con filtrado desde el backend).
+  - Crear nuevos juegos.
+  - Editar juegos existentes.
+  - Archivar juegos activos/inactivos.
+  - Restaurar juegos archivados.
+  - Eliminar permanentemente juegos archivados.
+  - Se eliminó el archivo duplicado `GamesManagementPage.tsx`.
+- **Frontend**: Interfaz para Fuentes de Fondos (`/funding-sources`) con funcionalidad **completa** para listar, crear, editar, archivar/restaurar y eliminar permanentemente fuentes.
+- **Frontend**: Implementadas herramientas de diagnóstico para administradores (accesibles mediante combinación de teclas y URLs seguras, requieren rol de admin):
+  - Depurador de Autenticación (`LoginDebugger.tsx`).
+  - Inspector/Modificador de Roles de Usuario (`UserRoleDebug.tsx`, `FixUserAdmin.tsx`).
 
 #### ❌ Pendiente:
 - Dashboard principal con visión general del negocio

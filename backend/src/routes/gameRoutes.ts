@@ -4,7 +4,8 @@ import {
   getGameById, 
   createGame, 
   updateGame, 
-  deleteGame 
+  deleteGame,
+  permanentlyDeleteGame
 } from '../controllers/gameController';
 import { protectWithJwt } from '../middleware/authMiddleware';
 import { isAdmin } from '../middleware/roleMiddleware';
@@ -27,5 +28,8 @@ router.put('/:id', protectWithJwt, isAdmin, updateGame);
 
 // Eliminar un juego (solo admin)
 router.delete('/:id', protectWithJwt, isAdmin, deleteGame);
+
+// Nueva ruta para eliminación permanente
+router.delete('/:id/permanent', protectWithJwt, isAdmin, permanentlyDeleteGame);
 
 export default router; 

@@ -7,8 +7,10 @@ interface GameTableProps {
   games: Game[];
   onViewItems: (gameId: string) => void;
   onEdit: (game: Game) => void;
-  onStatusChange: (gameId: string, newStatus: 'active' | 'inactive' | 'archived') => void;
-  onDeleteRequest: (gameId: string) => void;
+  onArchiveRequest?: (gameId: string) => void;
+  onRestoreRequest?: (gameId: string) => void;
+  onPermanentDeleteRequest?: (gameId: string) => void;
+  showArchived?: boolean;
   allGamesCount: number;
   onClearFilters?: () => void;
 }
@@ -20,8 +22,10 @@ const GameTable: React.FC<GameTableProps> = ({
   games, 
   onViewItems, 
   onEdit,
-  onStatusChange,
-  onDeleteRequest,
+  onArchiveRequest,
+  onRestoreRequest,
+  onPermanentDeleteRequest,
+  showArchived,
   allGamesCount,
   onClearFilters
 }) => {
@@ -103,25 +107,40 @@ const GameTable: React.FC<GameTableProps> = ({
                   >
                     Editar
                   </Button>
-                  <select
-                    value={game.status}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onStatusChange(game._id, e.target.value as 'active' | 'inactive' | 'archived')}
-                    className="block w-auto pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    title="Cambiar estado"
-                  >
-                    <option value="active">Activo</option>
-                    <option value="inactive">Inactivo</option>
-                    <option value="archived">Archivado</option>
-                  </select>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => onDeleteRequest(game._id)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </Button>
+                  
+                  {showArchived ? (
+                    <>
+                      {onRestoreRequest && (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => onRestoreRequest(game._id)}
+                        >
+                          Restaurar
+                        </Button>
+                      )}
+                      {onPermanentDeleteRequest && (
+                        <Button
+                          variant="danger" 
+                          size="sm"
+                          onClick={() => onPermanentDeleteRequest(game._id)}
+                          className="ml-2"
+                        >
+                          Eliminar Definitivamente
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    onArchiveRequest && game.status !== 'archived' && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => onArchiveRequest(game._id)}
+                      >
+                        Archivar
+                      </Button>
+                    )
+                  )}
                 </div>
               </td>
             </tr>

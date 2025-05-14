@@ -24,11 +24,14 @@ const GameManagementPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
   const [currentGame, setCurrentGame] = useState<Game | null>(null);
-  const [gameToDelete, setGameToDelete] = useState<string | null>(null);
+  const [gameToArchive, setGameToArchive] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showArchivedBackend, setShowArchivedBackend] = useState<boolean>(false);
+  const [showPermanentDeleteConfirmModal, setShowPermanentDeleteConfirmModal] = useState(false);
+  const [gameToPermanentlyDelete, setGameToPermanentlyDelete] = useState<string | null>(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -38,7 +41,9 @@ const GameManagementPage: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await gameService.getAllGames();
+      const fetchStatus = showArchivedBackend ? 'archived' : 'active';
+      console.log('[GameManagementPage] fetchGames - status para el servicio:', fetchStatus);
+      const data = await gameService.getAllGames({ status: fetchStatus, search: searchTerm });
       setGames(data);
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || 'Error al cargar juegos';
@@ -48,7 +53,7 @@ const GameManagementPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [setError]);
+  }, [setError, showArchivedBackend, searchTerm]);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -121,29 +126,73 @@ const GameManagementPage: React.FC = () => {
     }
   };
 
-  const handleDeleteRequest = (gameId: string) => {
-    setGameToDelete(gameId);
-    setShowDeleteConfirmModal(true);
+  const handleArchiveRequest = (gameId: string) => {
+    setGameToArchive(gameId);
+    setShowArchiveConfirmModal(true);
     clearMessages();
   };
 
-  const handleDeleteGame = async () => {
-    if (gameToDelete) {
+  const confirmArchiveGame = async () => {
+    if (gameToArchive) {
       setError(null);
       try {
-        await gameService.deleteGame(gameToDelete);
-        setGames(prevGames => prevGames.filter(game => game._id !== gameToDelete));
-        toast.success('Juego eliminado con éxito!');
+        await gameService.updateGame(gameToArchive, { status: 'archived' });
+        toast.success('Juego archivado con éxito');
+        fetchGames();
       } catch (err: any) {
-        const message = err.response?.data?.message || err.message || 'Error al eliminar juego';
+        const message = err.response?.data?.message || err.message || 'Error al archivar el juego';
         setError(message);
         toast.error(message);
-        console.error('Error al eliminar juego:', err);
+        console.error('Error al archivar juego:', err);
       } finally {
-        setGameToDelete(null);
-        setShowDeleteConfirmModal(false);
+        setGameToArchive(null);
+        setShowArchiveConfirmModal(false);
       }
     }
+  };
+
+  const handleRestoreGame = async (gameId: string) => {
+    setError(null);
+    try {
+      await gameService.updateGame(gameId, { status: 'active' });
+      toast.success('Juego restaurado con éxito');
+      fetchGames();
+    } catch (err: any) {
+      const message = err.response?.data?.message || err.message || 'Error al restaurar el juego';
+      setError(message);
+      toast.error(message);
+      console.error('Error al restaurar juego:', err);
+    }
+  };
+
+  const handlePermanentDeleteRequest = (gameId: string) => {
+    setGameToPermanentlyDelete(gameId);
+    setShowPermanentDeleteConfirmModal(true);
+    clearMessages();
+  };
+
+  const confirmPermanentDeleteGame = async () => {
+    if (gameToPermanentlyDelete) {
+      setError(null);
+      try {
+        await gameService.permanentlyDeleteGameById(gameToPermanentlyDelete);
+        toast.success('Juego eliminado permanentemente con éxito');
+        fetchGames();
+      } catch (err: any) {
+        const message = err.response?.data?.message || err.message || 'Error al eliminar permanentemente el juego';
+        setError(message);
+        toast.error(message);
+        console.error('Error al eliminar permanentemente el juego:', err);
+      } finally {
+        setGameToPermanentlyDelete(null);
+        setShowPermanentDeleteConfirmModal(false);
+      }
+    }
+  };
+
+  const closePermanentDeleteModal = () => {
+    setGameToPermanentlyDelete(null);
+    setShowPermanentDeleteConfirmModal(false);
   };
 
   const toggleCreateForm = () => {
@@ -152,12 +201,16 @@ const GameManagementPage: React.FC = () => {
     clearMessages();
   };
 
+  const toggleArchivedBackendView = () => {
+    setShowArchivedBackend(prev => !prev);
+  };
+
   const filteredGames = useMemo(() => {
     return games.filter(game => {
       const nameMatch = game.name.toLowerCase().includes(searchTerm.toLowerCase());
       const shortNameMatch = (game.shortName ?? '').toLowerCase().includes(searchTerm.toLowerCase());
-      const statusMatch = statusFilter === 'all' || game.status === statusFilter;
-      return (nameMatch || shortNameMatch) && statusMatch;
+      const clientStatusMatch = statusFilter === 'all' || game.status === statusFilter;
+      return (nameMatch || shortNameMatch) && clientStatusMatch;
     });
   }, [games, searchTerm, statusFilter]);
 
@@ -225,9 +278,15 @@ const GameManagementPage: React.FC = () => {
         />
 
         <Card className="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow-lg">
-          <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-            Juegos Configurados {filteredGames.length > 0 && <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({filteredGames.length} {filteredGames.length === 1 ? 'juego' : 'juegos'})</span>}
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Juegos {showArchivedBackend ? 'Archivados' : 'Configurados'} 
+              {filteredGames.length > 0 && <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({filteredGames.length} {filteredGames.length === 1 ? 'juego' : 'juegos'})</span>}
+            </h2>
+            <Button onClick={toggleArchivedBackendView} variant="outline">
+              {showArchivedBackend ? 'Ver Activos/Inactivos' : 'Ver Archivados'}
+            </Button>
+          </div>
           
           {isLoading ? (
             <LoadingSpinner message="Cargando juegos..." />
@@ -236,8 +295,10 @@ const GameManagementPage: React.FC = () => {
               games={filteredGames}
               onViewItems={handleViewGameItems}
               onEdit={handleEditGame}
-              onStatusChange={handleStatusChange}
-              onDeleteRequest={handleDeleteRequest}
+              onArchiveRequest={handleArchiveRequest}
+              onRestoreRequest={handleRestoreGame}
+              onPermanentDeleteRequest={handlePermanentDeleteRequest}
+              showArchived={showArchivedBackend}
               allGamesCount={games.length}
               onClearFilters={handleClearFilters}
             />
@@ -245,25 +306,46 @@ const GameManagementPage: React.FC = () => {
         </Card>
 
         <Modal
-          isOpen={showDeleteConfirmModal}
+          isOpen={showArchiveConfirmModal}
           onClose={() => {
-            setShowDeleteConfirmModal(false);
-            setGameToDelete(null);
+            setShowArchiveConfirmModal(false);
+            setGameToArchive(null);
           }}
-          title="Confirmar Eliminación"
+          title="Confirmar Archivado"
         >
           <p className="text-gray-700 dark:text-gray-300 mb-6">
-            ¿Estás seguro de que deseas eliminar este juego? Esta acción no se puede deshacer.
+            ¿Estás seguro de que deseas archivar este juego? Podrás restaurarlo más tarde desde la vista de archivados.
           </p>
           <div className="flex justify-end space-x-3">
             <Button variant="outline" onClick={() => {
-              setShowDeleteConfirmModal(false);
-              setGameToDelete(null);
+              setShowArchiveConfirmModal(false);
+              setGameToArchive(null);
             }}>
               Cancelar
             </Button>
-            <Button variant="danger" onClick={handleDeleteGame}> 
-              Eliminar
+            <Button variant="secondary" onClick={confirmArchiveGame}>
+              Archivar
+            </Button>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={showPermanentDeleteConfirmModal}
+          onClose={closePermanentDeleteModal}
+          title="Confirmar Eliminación Permanente"
+        >
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            ¿Estás <span className="font-semibold text-red-600 dark:text-red-400">ABSOLUTAMENTE SEGURO</span> de que deseas eliminar este juego permanentemente?
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            Esta acción <strong className="text-red-600 dark:text-red-500">NO</strong> se puede deshacer. Todos los datos asociados podrían perderse.
+          </p>
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={closePermanentDeleteModal}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={confirmPermanentDeleteGame}> 
+              Sí, Eliminar Permanentemente
             </Button>
           </div>
         </Modal>

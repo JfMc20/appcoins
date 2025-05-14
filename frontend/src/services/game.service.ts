@@ -14,7 +14,7 @@ const GAMES_PATH = '/games';
 const GAME_ITEMS_PATH = '/game-items';
 
 // Obtener todos los juegos
-const getAllGames = (filters?: { status?: string; search?: string }): Promise<Game[]> => {
+const getAllGames = (filters: { status?: string; search?: string } = {}): Promise<Game[]> => {
   return api.get<GamesListResponse>(GAMES_PATH, { params: filters })
     .then(response => response.data.data);
 };
@@ -37,9 +37,35 @@ const updateGame = (id: string, gameData: UpdateGameData): Promise<Game> => {
     .then(response => response.data.data);
 };
 
-// Eliminar un juego
-const deleteGame = (id: string, archive: boolean = true): Promise<void> => {
-  return api.delete(`${GAMES_PATH}/${id}`, { params: { archive } });
+// Eliminar un juego (puede ser archivar o eliminar permanentemente según el endpoint del backend)
+// La función actual parece apuntar a una eliminación que también puede archivar con un query param.
+// Vamos a mantenerla así si es necesario, y añadimos una específica para permanente.
+const deleteGame = async (id: string, archive: boolean = true): Promise<Game | void> => {
+  // El endpoint actual /api/games/:id con método DELETE parece manejar el archivado basado en el query param 'archive'
+  // Si archive es true, cambia el estado a 'archived'. Si no se pasa 'archive' o es false, podría eliminar (según la lógica del backend).
+  // Revisar la lógica del backend para deleteGame para confirmar.
+  const response = await api.delete<{ success: boolean, message?: string, data?: Game }>(`${GAMES_PATH}/${id}${archive ? '?archive=true' : ''}`);
+  if (response.data.success && response.data.data) {
+    return response.data.data; // Devuelve el juego (posiblemente con estado actualizado)
+  }
+  // Si no devuelve data (ej. eliminación física), no se devuelve nada o se maneja el mensaje.
+  // Considerar lanzar un error si !response.data.success
+};
+
+// Nueva función para eliminar permanentemente un juego
+const permanentlyDeleteGameById = async (id: string): Promise<void> => {
+  try {
+    const response = await api.delete<{ message: string }>(`${GAMES_PATH}/${id}/permanent`);
+    // No se espera que devuelva el juego, solo un mensaje de éxito.
+    // El manejo de errores (ej. si el juego no existe o no está archivado) se hará con el try/catch y lo que devuelva el API.
+    // Podrías querer que devuelva algo más específico o manejar la respuesta de manera diferente.
+    console.log(response.data.message); // O usar toast.success(response.data.message);
+  } catch (error) {
+    // El apiClient debería manejar y lanzar errores que pueden ser atrapados aquí
+    // o en el componente que llama a esta función.
+    console.error('Error al eliminar permanentemente el juego:', error);
+    throw error; // Re-lanzar para que el componente lo maneje (ej. mostrar toast.error)
+  }
 };
 
 // Obtener todos los ítems de juegos
@@ -89,7 +115,8 @@ const gameService = {
   getGameById,
   createGame,
   updateGame,
-  deleteGame,
+  deleteGame, // Esta es la que archiva/desarchiva o elimina según el backend
+  permanentlyDeleteGameById, // Nueva función
   getGameItems,
   getGameItemById,
   createGameItem,

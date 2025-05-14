@@ -59,7 +59,7 @@ Los objetivos clave para la planificación general del frontend son:
 *   **Manejo de Formularios:** Se utiliza el estado de React y se podría considerar `react-hook-form` para formularios más complejos si es necesario. (Enfoque actual: estado de React)
 *   **Notificaciones (Toasts):** `react-toastify` está en uso. (✅ Implementado)
 
-## 8. Consideraciones de UX/UI Generales
+## 8. Consideraciones de UX/UI Generales 
 
 *   **Diseño Responsivo:** Es un objetivo continuo. Algunas páginas están más adaptadas que otras. Se necesita una revisión y mejora general para asegurar la completa funcionalidad en móviles. (🚧 En progreso)
 *   **Estados de Carga y Error:** Se utilizan `LoadingSpinner` y `Notification` para feedback al usuario. (✅ Implementado, mejora continua)

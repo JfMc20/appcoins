@@ -145,7 +145,7 @@ export const deleteGame = async (req: Request, res: Response, next: NextFunction
       // Simplemente cambiamos el estado a 'archived' en lugar de eliminar
       const archivedGame = await GameModel.findByIdAndUpdate(
         req.params.id,
-        { status: 'archived' }, 
+        { status: 'archived' },
         { new: true }
       );
       logger.info(`[deleteGame] Juego después de intentar archivar: ID ${archivedGame?._id}, Nuevo Estado: ${archivedGame?.status}`);

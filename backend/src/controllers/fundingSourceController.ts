@@ -404,7 +404,7 @@ export const getArchivedFundingSources = async (req: Request, res: Response, nex
     logger.error(`Error al obtener fuentes de fondos archivadas para usuario ${authenticatedUserId}:`, error);
     next(error);
   }
-};
+}; 
 
 /**
  * Elimina permanentemente una fuente de fondos del usuario autenticado.

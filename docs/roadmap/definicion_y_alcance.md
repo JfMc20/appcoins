@@ -54,7 +54,7 @@
     *   **Experiencia de Usuario Multiplataforma:**
         *   La interfaz de usuario debe ser intuitiva y completamente funcional tanto en dispositivos de escritorio como móviles (diseño responsivo).
 
-**Consideración General:** La interfaz de usuario debe ser intuitiva para todas estas funcionalidades, minimizando la entrada manual de datos donde sea posible mediante cálculos automáticos y selecciones.
+**Consideración General:** La interfaz de usuario debe ser intuitiva para todas estas funcionalidades, minimizando la entrada manual de datos donde sea posible mediante cálculos automáticos y selecciones. 
 
 ## Alcance del Proyecto (Primera Versión - MVP)
 

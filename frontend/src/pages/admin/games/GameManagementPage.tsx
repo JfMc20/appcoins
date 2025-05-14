@@ -282,7 +282,7 @@ const GameManagementPage: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
               Juegos {showArchivedBackend ? 'Archivados' : 'Configurados'} 
               {filteredGames.length > 0 && <span className="text-sm font-normal text-gray-500 dark:text-gray-400">({filteredGames.length} {filteredGames.length === 1 ? 'juego' : 'juegos'})</span>}
-            </h2>
+          </h2>
             <Button onClick={toggleArchivedBackendView} variant="outline">
               {showArchivedBackend ? 'Ver Activos/Inactivos' : 'Ver Archivados'}
             </Button>

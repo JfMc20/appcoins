@@ -164,7 +164,7 @@ const FundingSourcesListPage: React.FC = () => {
                           let content: React.ReactNode;
                           const accessor = column.accessor;
 
-                          if (column.Cell) {
+                              if (column.Cell) {
                             // Si column.Cell está definido, llamarlo con el valor apropiado y tipado.
                             if (accessor === 'type' || accessor === 'status') {
                               content = (column.Cell as (props: { value: string; row: { original: FundingSource } }) => React.ReactNode)(
@@ -199,9 +199,9 @@ const FundingSourcesListPage: React.FC = () => {
                               content = JSON.stringify(rawValue); // Para otros objetos
                             } else if (rawValue === undefined || rawValue === null) {
                               content = ''; // O 'N/A' para valores nulos/indefinidos
-                            } else {
+                              } else {
                               content = rawValue; // string, number
-                            }
+                              }
                           }
                           
                           return (

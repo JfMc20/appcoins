@@ -57,7 +57,7 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 ### Fase 3: Módulo de Transacciones
 
 #### ✅ Implementado:
-- Modelo completo de transacciones (TransactionModel)
+- Modelo completo de transacciones (`TransactionModel`)
 - Endpoint para **creación** de transacciones (`POST /api/transactions`)
 - Endpoints CRUD completos para Fuentes de Fondos (`/api/funding-sources`)
 
@@ -72,6 +72,11 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Actualización automática de stock en transacciones
 - Vinculación completa con contactos y fuentes de fondos
 - Interfaz de usuario para el registro y gestión de transacciones
+    - Listado de transacciones con filtros.
+    - Formularios para los diferentes tipos de transacciones.
+    - **Vinculación Rápida de Contactos**: En el formulario de creación de transacciones, permitir seleccionar/buscar un contacto existente para asociarlo rápidamente.
+    - Vista de detalle de una transacción.
+    - Posibilidad de editar/eliminar (si la lógica de negocio lo permite).
 
 ### Fase 4: Módulo de Gestión de Contactos
 

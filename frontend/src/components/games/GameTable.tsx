@@ -120,9 +120,9 @@ const GameTable: React.FC<GameTableProps> = ({
                         </Button>
                       )}
                       {onPermanentDeleteRequest && (
-                        <Button
-                          variant="danger" 
-                          size="sm"
+                  <Button
+                    variant="danger"
+                    size="sm"
                           onClick={() => onPermanentDeleteRequest(game._id)}
                           className="ml-2"
                         >
@@ -138,7 +138,7 @@ const GameTable: React.FC<GameTableProps> = ({
                         onClick={() => onArchiveRequest(game._id)}
                       >
                         Archivar
-                      </Button>
+                  </Button>
                     )
                   )}
                 </div>

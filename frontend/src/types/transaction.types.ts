@@ -92,22 +92,16 @@ export interface Transaction {
 }
 
 // Interfaces para respuestas de API
-export interface TransactionResponse {
-  success: boolean;
-  data: Transaction;
-  message?: string;
-}
+export type TransactionResponse = Transaction; // Modificado: Respuesta directa de la transacción
 
 export interface TransactionListResponse {
-  success: boolean;
   data: Transaction[];
   pagination?: {
-    total: number;
-    page: number;
-    limit: number;
-    pages: number;
+    currentPage: number; // Ajustado para coincidir con la paginación de contactos
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
   };
-  message?: string;
 }
 
 // Interfaces para filtros de búsqueda

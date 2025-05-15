@@ -24,6 +24,7 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Gestión de roles (admin/operador)
 - Sistema de usuarios con un usuario de prueba (test@test.com)
 - Estructura básica de archivos y carpetas (siguiendo las prácticas recomendadas)
+- Implementación de interfaces TypeScript para todos los modelos principales (AppSettings, Contact, ExternalProduct, FundingSource, GameItem, Game, Transaction, User).
 
 #### ✅ Recientemente completado:
 - Implementación completa de los modelos:
@@ -36,7 +37,11 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
   - transaction.service.ts
 
 #### ❌ Pendiente:
-- Implementación de interfaces para modelos
+- Interfaz de administración para gestionar tasas de cambio
+- Actualización manual de tasas desde la interfaz
+- Gestión de precios para GameItems
+- Gestión de precios para ExternalProducts
+- Estrategias de precios avanzadas
 
 ### Fase 2: Módulo de Gestión de Precios y Tasas de Cambio
 
@@ -129,6 +134,13 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
   - Restaurar juegos archivados.
   - Eliminar permanentemente juegos archivados.
   - Se eliminó el archivo duplicado `GamesManagementPage.tsx`.
+- **Frontend**: Panel de administración de ítems de juego (accesible desde cada juego, ej. `/admin/games/:gameId/items`) con funcionalidad completa para:
+    - Listar ítems de juego con filtros (por nombre/código, tipo, estado).
+    - Crear nuevos ítems de juego.
+    - Editar ítems de juego existentes (actualmente el cambio de estado y la actualización de stock son acciones directas en la tabla; el formulario de edición completo para todos los campos está pendiente de un botón/modal específico).
+    - Cambiar estado de los ítems (activo, inactivo, archivado) directamente desde la tabla.
+    - Actualizar stock de ítems (si aplica) directamente desde la tabla.
+    - Eliminar permanentemente ítems de juego con confirmación.
 - **Frontend**: Interfaz para Fuentes de Fondos (`/funding-sources`) con funcionalidad **completa** para listar, crear, editar, archivar/restaurar y eliminar permanentemente fuentes.
 - **Frontend**: Implementadas herramientas de diagnóstico para administradores (accesibles mediante combinación de teclas y URLs seguras, requieren rol de admin):
   - Depurador de Autenticación (`LoginDebugger.tsx`).
@@ -163,8 +175,12 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 
 ### 1. Interfaces para Juegos (GameModel)
 - **Lista de Juegos (GamesList)**: Tabla con filtros, buscador y acciones rápidas
-- **Detalle de Juego (GameDetail)**: Información completa, métricas y transacciones relacionadas
+- **Detalle de Juego (GameDetail)**: Información completa, métricas y transacciones relacionadas. Incluye la lista de ítems configurados para el juego.
 - **Formulario de Juego (GameForm)**: Creación/edición de juegos con validaciones
+
+### 1.1. Interfaces para Ítems de Juego (GameItemModel)
+- **Lista de Ítems de Juego (GameItemsList)**: Tabla dentro de la vista de un juego específico (`GameItemsPage.tsx`), con filtros por tipo/estado, búsqueda y acciones (cambiar estado, actualizar stock, eliminar permanentemente).
+- **Formulario de Ítem de Juego (GameItemForm)**: Para creación y edición de ítems de juego, con todos sus campos y validaciones.
 
 ### 2. Interfaces para Fuentes de Fondos (FundingSourceModel)
 - **Dashboard de Fuentes (FundingDashboard)**: Resumen de saldos y distribución de capital
@@ -190,22 +206,24 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 Basado en el estado actual, se recomienda el siguiente orden de prioridad para el desarrollo:
 
 1.  **¡COMPLETADO!** (Gestión Usuarios Frontend)
-2.  **¡COMPLETADO!** (Interfaz de Juegos Frontend)
-3.  **¡COMPLETADO!** (Interfaz de Fuentes de Fondos Frontend - CRUD)
-4.  **Transacciones Básicas (Fase 3 parcial)**: Completar la lógica e interfaces para registro de transacciones.
-5.  **Gestión de Contactos (Fase 4)**: Implementar el CRUD e interfaces para contactos.
-6.  **Precios y Estrategias (Fase 2)**: Completar la gestión de precios y tasas.
-7.  **Transacciones Avanzadas (Fase 3 completo)**: Finalizar todas las funcionalidades de transacciones.
-8.  **Informes Básicos (Fase 5 parcial)**: Implementar informes fundamentales para el negocio.
-9.  **Interfaz Completa (Fase 6 completo)**: Finalizar todas las pantallas y mejoras de UX.
-10. **Informes Avanzados (Fase 5 completo)**: Implementar informes personalizados y avanzados.
+2.  **¡COMPLETADO!** (Interfaz de Juegos Frontend - CRUD de Juegos)
+3.  **¡COMPLETADO!** (Interfaz de Ítems de Juego Frontend - CRUD de Ítems de Juego)
+4.  **¡COMPLETADO!** (Interfaz de Fuentes de Fondos Frontend - CRUD)
+5.  **Transacciones Básicas (Fase 3 parcial)**: Completar la lógica e interfaces para registro de transacciones.
+6.  **Gestión de Contactos (Fase 4)**: Implementar el CRUD e interfaces para contactos.
+7.  **Precios y Estrategias (Fase 2)**: Completar la gestión de precios y tasas.
+8.  **Transacciones Avanzadas (Fase 3 completo)**: Finalizar todas las funcionalidades de transacciones.
+9.  **Informes Básicos (Fase 5 parcial)**: Implementar informes fundamentales para el negocio.
+10. **Interfaz Completa (Fase 6 completo)**: Finalizar todas las pantallas y mejoras de UX.
+11. **Informes Avanzados (Fase 5 completo)**: Implementar informes personalizados y avanzados.
 
 ## Próximos Pasos Inmediatos
 
-1.  **¡HECHO!** (Documentación)
-2.  **¡HECHO!** (Implementar interfaz de juegos)
-3.  **¡HECHO!** (Implementar la interfaz frontend para fuentes de fondos - CRUD).
-4.  Desarrollar sistema de gestión de contactos completo (Backend y Frontend).
+1.  **¡HECHO!** (Documentación inicial)
+2.  **¡HECHO!** (Implementar interfaz de gestión de Juegos - CRUD de Juegos)
+3.  **¡HECHO!** (Implementar interfaz de gestión de Ítems de Juego - CRUD de Ítems)
+4.  **¡HECHO!** (Implementar la interfaz frontend para fuentes de fondos - CRUD).
+5.  Desarrollar sistema de gestión de contactos completo (Backend y Frontend).
 
 *   **[Fase 4: Gestión de Contactos](frontend/src/pages/contacts/ContactsListPage.tsx)**
     *   **Backend:**

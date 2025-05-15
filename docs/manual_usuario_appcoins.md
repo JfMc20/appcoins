@@ -129,6 +129,42 @@ Si tu operación involucra múltiples juegos, este módulo permite su configurac
 *   **Crear/Editar Juegos:** Definir o modificar los detalles de cada juego.
 *   **Archivar/Restaurar Juegos:** Gestionar el ciclo de vida de los juegos en el sistema.
 
+#### 4.4.1. Gestión de Ítems de Juego
+
+Una vez que un juego está configurado, puedes administrar los ítems específicos asociados a ese juego. Esto te permite definir los productos o servicios que comercializas para cada título.
+
+*   **Acceder a la Gestión de Ítems:**
+    1.  Desde la lista de "Juegos Configurados", selecciona el juego para el cual deseas administrar ítems.
+    2.  Esto te llevará a una página donde verás los ítems ya configurados para ese juego y podrás realizar diversas acciones.
+
+*   **Listar Ítems de un Juego:**
+    *   Visualizarás una tabla con todos los ítems del juego seleccionado.
+    *   La tabla mostrará detalles como Nombre, Código, Tipo, si es Comercializable, Stock (si aplica) y Estado.
+    *   Podrás utilizar filtros para buscar ítems por nombre, código, tipo o estado.
+
+*   **Crear un Nuevo Ítem de Juego:**
+    1.  En la página de ítems del juego, busca el botón "Crear nuevo ítem".
+    2.  Se desplegará un formulario donde deberás completar los detalles del ítem:
+        *   **Nombre:** El nombre descriptivo del ítem (ej. "Tibia Coins", "Suscripción 1 Mes").
+        *   **Código del Ítem (Opcional):** Un código interno si lo utilizas.
+        *   **Tipo:** Selecciona si es una Moneda, Ítem, Servicio u Otro.
+        *   **Descripción (Opcional):** Detalles adicionales sobre el ítem.
+        *   **¿Gestiona Stock?:** Indica si llevarás un control de inventario para este ítem.
+        *   **Stock Actual (si gestiona stock):** La cantidad inicial si aplica.
+        *   **¿Es Comercializable?:** Indica si el ítem está activamente a la venta.
+        *   **Estado Inicial:** Por defecto, usualmente "Activo".
+    3.  Guarda el formulario para añadir el nuevo ítem al juego.
+
+*   **Editar un Ítem de Juego Existente:**
+    *   La edición de los detalles de un ítem (nombre, código, tipo, descripción, si gestiona stock, si es comercializable) se realiza típicamente a través de un formulario de edición, accesible desde la lista de ítems (próximamente se habilitará un botón o acción directa para edición completa de todos los campos).
+    *   **Actualizar Stock:** Si un ítem gestiona stock, podrás actualizar la cantidad directamente desde la tabla de ítems.
+    *   **Cambiar Estado:** Puedes cambiar el estado de un ítem (Activo, Inactivo, Archivado) usando el menú desplegable en la columna "Acciones" de la tabla de ítems. Esto actualiza cómo se muestra y se puede usar el ítem en el sistema.
+
+*   **Eliminar Permanentemente un Ítem de Juego:**
+    *   Desde la tabla de ítems, en la columna "Acciones", encontrarás un botón para "Eliminar".
+    *   Al hacer clic, se te pedirá confirmación, ya que **esta acción es irreversible** y borra el ítem de forma definitiva de la base de datos.
+    *   A diferencia del archivado (que es un cambio de estado), la eliminación borra el registro del ítem.
+
 ### 4.5. Gestión de Usuarios (Solo Administradores)
 
 *   Los administradores pueden crear, listar, editar y eliminar cuentas de usuario (tanto operadores como otros administradores).

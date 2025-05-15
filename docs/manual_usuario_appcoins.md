@@ -174,6 +174,31 @@ Una vez que un juego está configurado, puedes administrar los ítems específic
 
 *   AppCoins puede integrarse con servicios externos para obtener tasas de cambio actualizadas entre diferentes monedas, lo cual es crucial si operas con múltiples divisas. Esta configuración generalmente la maneja un administrador.
 
+### 4.7. Gestión de Tasas de Cambio (Administradores)
+
+Este módulo permite a los administradores supervisar y gestionar las tasas de cambio utilizadas en el sistema.
+
+*   **Acceso a la Gestión de Tasas de Cambio:**
+    *   Los administradores encontrarán una sección dedicada a "Tasas de Cambio" en el panel de administración.
+
+*   **Visualizar Tasas de Cambio Actuales:**
+    *   Se presenta un dashboard (`ExchangeRateDashboard`) que muestra las tasas de cambio más recientes que el sistema ha obtenido para los pares de monedas configurados (ej. USDT a VES, USDT a COP).
+    *   Cada tasa muestra su valor actual, el valor anterior, el cambio porcentual (si aplica), la fuente de la tasa (ej. CriptoYa - Binance P2P) y la fecha de la última actualización.
+
+*   **Actualización Manual de Tasas:**
+    *   En el dashboard de tasas de cambio, existe un botón "Actualizar Tasas".
+    *   Al presionarlo, el sistema intentará obtener las tasas más recientes de las APIs externas configuradas (como CriptoYa) para todas las monedas fiat activas.
+    *   Esto es útil si se necesita forzar una actualización fuera del ciclo automático programado o después de realizar cambios en la configuración de monedas.
+
+*   **Gestión de Monedas Soportadas (Próximamente):**
+    *   Se planea añadir funcionalidades para que los administradores puedan:
+        *   Ver la lista de monedas fiat que el sistema puede rastrear (ej. VES, COP, USD).
+        *   Activar o desactivar monedas para la obtención de tasas.
+        *   (Posiblemente) Añadir nuevas monedas fiat soportadas o editar los detalles de las existentes.
+
+*   **Gestión de APIs de Tasas de Cambio (Próximamente):**
+    *   Se planea permitir a los administradores ver y gestionar las fuentes API configuradas para obtener las tasas.
+
 ## 5. Roles de Usuario
 
 *   **Operador:** Es el usuario principal que realiza las transacciones diarias, gestiona contactos y fuentes de fondos bajo su responsabilidad, y realiza las declaraciones de saldo.

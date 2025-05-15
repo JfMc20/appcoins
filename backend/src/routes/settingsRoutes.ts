@@ -1,7 +1,7 @@
 import express from 'express';
 import { getExchangeRates, refreshExchangeRates } from '../controllers/settingsController';
 import { logger } from '../utils/logger'; // Importar logger
-import { simpleApiKeyAuth } from '../middleware/authMiddleware'; // <<< IMPORTAR MIDDLEWARE
+import { protectWithJwt, restrictTo } from '../middleware/authMiddleware'; // Importar protectWithJwt y restrictTo
 // Importar middlewares de autenticación/autorización si son necesarios aquí
 // import { isAuthenticated, isAdmin } from '../middlewares/authMiddleware'; // Ejemplo
 
@@ -13,9 +13,10 @@ const router = express.Router();
 // En modo desarrollo, deshabilitamos temporalmente la autenticación
 router.get(
   '/exchange-rates',
-  simpleApiKeyAuth, // Habilitamos la autenticación por API Key
+  protectWithJwt,        // Usar autenticación JWT
+  restrictTo('admin'), // Requerir rol de administrador
   (req, res, next) => {
-    logger.info('[Router] Petición GET /api/settings/exchange-rates recibida.');
+    logger.info('[Router] Petición GET /api/settings/exchange-rates recibida por admin.');
     getExchangeRates(req, res, next);
   }
 );
@@ -24,9 +25,10 @@ router.get(
 // En modo desarrollo, deshabilitamos temporalmente la autenticación
 router.post(
   '/exchange-rates/refresh',
-  simpleApiKeyAuth, // Habilitamos la autenticación por API Key
+  protectWithJwt,        // Usar autenticación JWT
+  restrictTo('admin'), // Requerir rol de administrador
   (req, res, next) => { // <<< Envoltura y LOG AÑADIDO
-    logger.info('[Router] Petición POST /api/settings/exchange-rates/refresh recibida.');
+    logger.info('[Router] Petición POST /api/settings/exchange-rates/refresh recibida por admin.');
     refreshExchangeRates(req, res, next);
   }
 );

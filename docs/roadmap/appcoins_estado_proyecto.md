@@ -49,15 +49,22 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Integración con API externa (CriptoYa) para tasas de cambio fiat
 - Actualización automática de tasas mediante cron job
 - Almacenamiento de tasas en AppSettingsModel
-- Endpoint para obtener las tasas actuales
-- Estructura para configurar monedas soportadas
+- Endpoint para obtener las tasas actuales (`GET /api/settings/exchange-rates`)
+- Endpoint para refrescar manualmente las tasas (`POST /api/settings/exchange-rates/refresh`)
+- Estructura para configurar monedas soportadas en `AppSettingsModel`
+- Frontend: Página de visualización de Tasas de Cambio (`ExchangeRatePage.tsx` y `ExchangeRateDashboard.tsx`) que muestra las tasas actuales y permite la actualización manual.
 
 #### ❌ Pendiente:
-- Interfaz de administración para gestionar tasas de cambio
-- Actualización manual de tasas desde la interfaz
-- Gestión de precios para GameItems
-- Gestión de precios para ExternalProducts
-- Estrategias de precios avanzadas
+- **Backend**: Ajustar autenticación de rutas (`/api/settings/exchange-rates` y `/api/settings/exchange-rates/refresh`) para usar JWT + rol de admin.
+- **Frontend**: Asegurar que `ExchangeRatePage.tsx` esté accesible desde el menú de admin.
+- **Frontend**: Interfaz de administración en `ExchangeRatePage.tsx` o similar para:
+    - Gestionar `supportedFiatCurrencies` (listar, activar/desactivar).
+    - (Opcional Avanzado) CRUD completo para `supportedFiatCurrencies`.
+    - Visualizar `exchangeRateAPIs` configuradas.
+    - (Opcional Avanzado) Gestionar `exchangeRateAPIs`.
+- Gestión de precios para GameItems (definición de precios, estrategias básicas).
+- Gestión de precios para ExternalProducts (definición de precios, estrategias básicas).
+- Estrategias de precios avanzadas (márgenes dinámicos, etc.).
 
 ### Fase 3: Módulo de Transacciones
 

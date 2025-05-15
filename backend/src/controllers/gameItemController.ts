@@ -227,7 +227,7 @@ export const updateGameItemStock = async (req: Request, res: Response, next: Nex
   }
 };
 
-// Eliminar un ítem de juego (o cambiar su estado a 'archived')
+// Eliminar un ítem de juego permanentemente
 export const deleteGameItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const gameItem = await GameItemModel.findById(req.params.id);
@@ -240,33 +240,15 @@ export const deleteGameItem = async (req: Request, res: Response, next: NextFunc
       return;
     }
     
-    // Verificamos si el parámetro de consulta 'archive' está presente y es true
-    const shouldArchive = req.query.archive === 'true';
+    // Eliminación física del documento
+    // En un sistema de producción, probablemente querrías verificar dependencias antes de eliminar
+    await GameItemModel.findByIdAndDelete(req.params.id);
     
-    if (shouldArchive) {
-      // Simplemente cambiamos el estado a 'archived' en lugar de eliminar
-      const archivedItem = await GameItemModel.findByIdAndUpdate(
-        req.params.id,
-        { status: 'archived' },
-        { new: true }
-      ).populate('gameId', 'name shortName');
-      
-      res.status(200).json({
-        success: true,
-        message: 'Ítem de juego archivado exitosamente',
-        data: archivedItem
-      });
-    } else {
-      // Eliminación física del documento
-      // En un sistema de producción, probablemente querrías verificar dependencias antes de eliminar
-      await GameItemModel.findByIdAndDelete(req.params.id);
-      
-      res.status(200).json({
-        success: true,
-        message: 'Ítem de juego eliminado exitosamente',
-        data: {}
-      });
-    }
+    res.status(200).json({
+      success: true,
+      message: 'Ítem de juego eliminado exitosamente',
+      data: {}
+    });
   } catch (error: any) {
     logger.error(`Error al eliminar ítem de juego: ${error}`);
     next(error);

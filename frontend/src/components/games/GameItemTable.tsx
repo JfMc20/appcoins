@@ -7,6 +7,7 @@ interface GameItemTableProps {
   items: GameItem[];
   onUpdateStock: (itemId: string, newStock: number) => Promise<void>;
   onStatusChange: (itemId: string, newStatus: 'active' | 'inactive' | 'archived') => Promise<void>;
+  onDeleteItem?: (itemId: string) => Promise<void>;
   allItemsCount: number;
   onClearFilters?: () => void;
 }
@@ -18,6 +19,7 @@ const GameItemTable: React.FC<GameItemTableProps> = ({
   items, 
   onUpdateStock, 
   onStatusChange,
+  onDeleteItem,
   allItemsCount,
   onClearFilters
 }) => {
@@ -149,6 +151,20 @@ const GameItemTable: React.FC<GameItemTableProps> = ({
                   <option value="inactive">Inactivo</option>
                   <option value="archived">Archivado</option>
                 </select>
+                {onDeleteItem && (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => {
+                      if (window.confirm(`¿Estás seguro de que deseas eliminar el ítem "${item.name}"? Esta acción no se puede deshacer.`)) {
+                        onDeleteItem(item._id);
+                      }
+                    }}
+                    className="ml-2"
+                  >
+                    Eliminar
+                  </Button>
+                )}
               </td>
             </tr>
           ))}

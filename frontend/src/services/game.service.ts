@@ -105,9 +105,18 @@ const updateGameItemStock = (id: string, currentStock: number): Promise<GameItem
     .then(response => response.data.data as GameItem);
 };
 
-// Eliminar un ítem de juego
-const deleteGameItem = (id: string, archive: boolean = true): Promise<void> => {
-  return api.delete(`${GAME_ITEMS_PATH}/${id}`, { params: { archive } });
+// Eliminar un ítem de juego permanentemente
+const deleteGameItem = (id: string): Promise<void> => {
+  return api.delete(`${GAME_ITEMS_PATH}/${id}`)
+    .then(response => {
+      // Asumiendo que una respuesta exitosa sin contenido (204) o con un mensaje (200) es suficiente
+      // No se necesita devolver datos específicos aquí para una eliminación.
+      console.log('Ítem eliminado exitosamente desde el servicio:', response.data);
+    })
+    .catch(error => {
+      console.error('Error al eliminar ítem desde el servicio:', error);
+      throw error; // Re-lanzar para que el componente lo maneje
+    });
 };
 
 const gameService = {

@@ -133,6 +133,22 @@ const GameItemsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteGameItem = async (itemId: string) => {
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      await gameService.deleteGameItem(itemId);
+      setGameItems(prevItems => prevItems.filter(item => item._id !== itemId));
+      setSuccessMessage('Ítem eliminado exitosamente.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Error al eliminar el ítem.');
+      console.error('Error al eliminar el ítem:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const toggleCreateForm = () => {
     setShowCreateForm(!showCreateForm);
     clearMessages();
@@ -257,6 +273,7 @@ const GameItemsPage: React.FC = () => {
             items={filteredItems}
             onUpdateStock={handleUpdateItemStock}
             onStatusChange={handleUpdateItemStatus}
+            onDeleteItem={handleDeleteGameItem}
             allItemsCount={gameItems.length}
             onClearFilters={resetFilters}
           />

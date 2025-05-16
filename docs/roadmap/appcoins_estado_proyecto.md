@@ -104,6 +104,7 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
     - Filtrar ítems de juego por juego seleccionado en el formulario de transacción.
     - Permitir la selección de moneda para el precio unitario en transacciones de compra/venta.
     - Ajustar el cálculo y la entrada del monto de pago cuando la moneda del precio unitario y la moneda de la fuente de fondos difieran.
+    - Implementar lógica de validación/ayuda para cantidades de ítems específicos (ej. Tibia Coins en múltiplos de 25) en el formulario de transacciones.
     - Almacenar `contactId` en transacciones de compra/venta para permitir análisis futuros de actividad por contacto (ej. balances, clientes frecuentes).
     - Considerar la captura de datos suficientes durante las transacciones (ej. precio unitario, ítem, contacto) para facilitar futuras funcionalidades de autocompletado en la creación de nuevas transacciones.
     - (Considerar para después) Opción para crear un nuevo contacto directamente desde el formulario de transacción (usando un modal).

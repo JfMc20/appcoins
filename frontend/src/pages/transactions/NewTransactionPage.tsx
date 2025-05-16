@@ -8,7 +8,7 @@ import transactionService from '../../services/transaction.service';
 import gameService from '../../services/game.service';
 import contactService from '../../services/contact.service';
 import { FundingSource } from '../../types/fundingSource.types';
-import { GameItem } from '../../types/game.types';
+import { GameItem, Game } from '../../types/game.types';
 import { Contact } from '../../types/contact.types';
 import { CreateTransactionData, TransactionType, CapitalDeclarationEntry, TransactionItemDetail, TransactionPaymentDetail } from '../../types/transaction.types';
 import { toast } from 'react-toastify';
@@ -39,6 +39,7 @@ const NewTransactionPage: React.FC = () => {
   const [declaredBalance, setDeclaredBalance] = useState<string>('');
   
   // Estados para COMPRA/VENTA_ITEM_JUEGO (itemDetails)
+  const [selectedGameId, setSelectedGameId] = useState<string>('');
   const [gameItemId, setGameItemId] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('');
   const [unitPriceAmount, setUnitPriceAmount] = useState<string>('');
@@ -50,8 +51,10 @@ const NewTransactionPage: React.FC = () => {
   const [paymentCurrency, setPaymentCurrency] = useState<string>('USD');
   
   // Estados para datos de UI y carga
+  const [games, setGames] = useState<Game[]>([]);
   const [fundingSources, setFundingSources] = useState<FundingSource[]>([]);
-  const [gameItems, setGameItems] = useState<GameItem[]>([]);
+  const [allGameItems, setAllGameItems] = useState<GameItem[]>([]);
+  const [filteredGameItems, setFilteredGameItems] = useState<GameItem[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedDeclaracionFS, setSelectedDeclaracionFS] = useState<FundingSource | null>(null);
 
@@ -65,18 +68,22 @@ const NewTransactionPage: React.FC = () => {
   const fetchInitialData = useCallback(async () => {
     setIsFetchingInitialData(true);
     try {
-      const [sourcesData, itemsData, contactsData] = await Promise.all([
+      const [sourcesData, itemsData, contactsData, gamesData] = await Promise.all([
         fundingSourceService.getActiveFundingSources(),
         gameService.getGameItems({ status: 'active' }),
-        contactService.getAllContacts({ limit: 500 })
+        contactService.getAllContacts({ limit: 500 }),
+        gameService.getAllGames({ status: 'active' })
       ]);
       setFundingSources(sourcesData);
-      setGameItems(itemsData);
+      setAllGameItems(itemsData);
       setContacts(contactsData.data);
+      setGames(gamesData);
 
       setDeclaracionFundingSourceId('');
       setDeclaredBalance('');
+      setSelectedGameId('');
       setGameItemId('');
+      setFilteredGameItems([]);
       setQuantity('');
       setUnitPriceAmount('');
       setPaymentFundingSourceId('');
@@ -104,6 +111,30 @@ const NewTransactionPage: React.FC = () => {
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
+
+  // Filtrar ítems de juego cuando cambia el juego seleccionado o la lista maestra de ítems
+  useEffect(() => {
+    console.log('[Debug] Selected Game ID:', selectedGameId);
+    console.log('[Debug] All Game Items (before filter):', JSON.parse(JSON.stringify(allGameItems))); // Clonar para loggear bien
+    if (selectedGameId && allGameItems.length > 0) {
+      const filtered = allGameItems.filter(item => {
+        const itemIdIsString = typeof item.gameId === 'string';
+        if (itemIdIsString) {
+          return item.gameId === selectedGameId;
+        } else if (item.gameId && typeof item.gameId === 'object') {
+          // Si gameId es un objeto Game populado, comparamos su _id
+          return (item.gameId as Game)._id === selectedGameId;
+        }
+        return false;
+      });
+      console.log('[Debug] Filtered Game Items:', JSON.parse(JSON.stringify(filtered)));
+      setFilteredGameItems(filtered);
+    } else {
+      console.log('[Debug] Clearing filtered items (no game selected or no items)');
+      setFilteredGameItems([]);
+    }
+    setGameItemId(''); // Resetear el ítem seleccionado al cambiar de juego
+  }, [selectedGameId, allGameItems]);
 
   // Efecto para actualizar la moneda cuando cambia la fuente seleccionada para DECLARACIÓN
   useEffect(() => {
@@ -184,10 +215,10 @@ const NewTransactionPage: React.FC = () => {
           status: 'completed',
         };
       } else if (transactionType === 'COMPRA_ITEM_JUEGO' || transactionType === 'VENTA_ITEM_JUEGO') {
-        if (!gameItemId || !paymentFundingSourceId || quantity === '' || unitPriceAmount === '' || paymentAmount === '') {
+        if (!selectedGameId || !gameItemId || !paymentFundingSourceId || quantity === '' || unitPriceAmount === '' || paymentAmount === '') {
           throw new Error('Completa todos los campos para la compra/venta del ítem.');
         }
-        const selectedGameItem = gameItems.find(i => i._id === gameItemId);
+        const selectedGameItem = allGameItems.find(i => i._id === gameItemId);
         if (!selectedGameItem) throw new Error('Ítem de juego no encontrado.');
         
         const selectedPaymentFS = fundingSources.find(fs => fs._id === paymentFundingSourceId);
@@ -308,6 +339,27 @@ const NewTransactionPage: React.FC = () => {
   const renderItemTransactionFields = () => (
     <>
       <div>
+        <label htmlFor="selectedGameId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Juego
+        </label>
+        <select
+          id="selectedGameId"
+          name="selectedGameId"
+          value={selectedGameId}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedGameId(e.target.value)}
+          required={transactionType === 'COMPRA_ITEM_JUEGO' || transactionType === 'VENTA_ITEM_JUEGO'}
+          className={commonSelectClassName}
+        >
+          <option value="" disabled>Selecciona un juego...</option>
+          {games.map(game => (
+            <option key={game._id} value={game._id!}>
+              {game.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
         <label htmlFor="gameItemId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Ítem de Juego
         </label>
@@ -318,14 +370,21 @@ const NewTransactionPage: React.FC = () => {
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setGameItemId(e.target.value)}
           required={transactionType === 'COMPRA_ITEM_JUEGO' || transactionType === 'VENTA_ITEM_JUEGO'}
           className={commonSelectClassName}
+          disabled={!selectedGameId || filteredGameItems.length === 0}
         >
           <option value="" disabled>Selecciona un ítem...</option>
-          {gameItems.map(item => (
+          {filteredGameItems.map(item => (
             <option key={item._id} value={item._id!}>
               {item.name}
             </option>
           ))}
         </select>
+        {!selectedGameId && (
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Selecciona un juego para ver sus ítems.</p>
+        )}
+        {selectedGameId && filteredGameItems.length === 0 && (
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Este juego no tiene ítems registrados o activos.</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -447,12 +506,14 @@ const NewTransactionPage: React.FC = () => {
                   setTransactionType(newType);
                   setDeclaracionFundingSourceId('');
                   setDeclaredBalance('');
+                  setSelectedGameId('');
                   setGameItemId('');
                   setQuantity('');
                   setUnitPriceAmount('');
                   setPaymentFundingSourceId('');
                   setPaymentAmount('');
                   setContactId('');
+                  setError(null);
                 }}
                 required
                 className={commonSelectClassName}
@@ -510,7 +571,7 @@ const NewTransactionPage: React.FC = () => {
                 isLoading={isLoading} 
                 disabled={isLoading || isFetchingInitialData || 
                   (transactionType === 'DECLARACION_OPERADOR_INICIO_DIA' && !declaracionFundingSourceId) ||
-                  ((transactionType === 'COMPRA_ITEM_JUEGO' || transactionType === 'VENTA_ITEM_JUEGO') && (!gameItemId || !paymentFundingSourceId))
+                  ((transactionType === 'COMPRA_ITEM_JUEGO' || transactionType === 'VENTA_ITEM_JUEGO') && (!selectedGameId || !gameItemId || !paymentFundingSourceId))
                 }
               >
                 {submitButtonText}

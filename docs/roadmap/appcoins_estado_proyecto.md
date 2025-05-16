@@ -53,13 +53,18 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Endpoint para refrescar manualmente las tasas (`POST /api/settings/exchange-rates/refresh`)
 - Estructura para configurar monedas soportadas en `AppSettingsModel`
 - Frontend: Página de visualización de Tasas de Cambio (`ExchangeRatePage.tsx` y `ExchangeRateDashboard.tsx`) que muestra las tasas actuales y permite la actualización manual.
+- Backend: Rutas (`/api/settings/exchange-rates` y `/api/settings/exchange-rates/refresh`) usan JWT + rol de admin.
+- Backend: Nuevos endpoints para gestión de AppSettings (`GET /api/settings/admin/appsettings`, `PUT /api/settings/admin/supported-currencies`) con protección de admin.
+- Frontend: Servicio (`settings.service.ts`) para interactuar con los nuevos endpoints de AppSettings.
+- Frontend: Tipos (`appSettings.types.ts`) definidos.
+- Frontend: Página de Administración `AppSettingsPage.tsx` para gestionar monedas fiat soportadas (listar, activar/desactivar).
+- Frontend: Enlace a `AppSettingsPage.tsx` añadido al `SidePanel.tsx` para administradores.
+- Frontend: Ruta para `AppSettingsPage.tsx` configurada en `AppRouter.tsx`.
 
 #### ❌ Pendiente:
-- **Backend**: Ajustar autenticación de rutas (`/api/settings/exchange-rates` y `/api/settings/exchange-rates/refresh`) para usar JWT + rol de admin.
-- **Frontend**: Asegurar que `ExchangeRatePage.tsx` esté accesible desde el menú de admin.
-- **Frontend**: Interfaz de administración en `ExchangeRatePage.tsx` o similar para:
-    - Gestionar `supportedFiatCurrencies` (listar, activar/desactivar).
-    - (Opcional Avanzado) CRUD completo para `supportedFiatCurrencies`.
+- **Frontend**: Asegurar que `ExchangeRatePage.tsx` esté accesible desde el menú de admin (si no lo está ya como "Tasas de Cambio").
+- **Frontend**: Interfaz de administración en `ExchangeRatePage.tsx` o `AppSettingsPage.tsx` para:
+    - (Opcional Avanzado) CRUD completo para `supportedFiatCurrencies` (actualmente solo activar/desactivar).
     - Visualizar `exchangeRateAPIs` configuradas.
     - (Opcional Avanzado) Gestionar `exchangeRateAPIs`.
 - Gestión de precios para GameItems (definición de precios, estrategias básicas).
@@ -160,6 +165,11 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Interfaz para gestión de transacciones (completar formularios para todos los tipos, vista de detalle, edición/eliminación)
 - Interfaz para gestión de contactos
 - Interfaz para visualización de informes
+- **Frontend**: Interfaz de administración para la configuración general de la aplicación (AppSettings), incluyendo:
+    - [x] Gestión de monedas fiat soportadas (activar/desactivar).
+    - [ ] Gestión de comisiones por defecto.
+    - [ ] Gestión de APIs de tasas de cambio.
+    - [ ] Otras configuraciones globales.
 - Vistas responsivas completas para dispositivos móviles
 - Integración completa con todos los endpoints del backend
 

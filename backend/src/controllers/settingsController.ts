@@ -120,10 +120,10 @@ export const updateSupportedCurrencies = async (req: Request, res: Response, nex
       }
       await settings.save();
       logger.info(`[Controller] ${updatedCount} monedas fiat soportadas actualizadas.`);
-      res.status(200).json({ message: `${updatedCount} monedas actualizadas exitosamente.`, data: settings.supportedFiatCurrencies });
+      res.status(200).json({ message: `${updatedCount} monedas actualizadas exitosamente.`, settings: settings });
     } else {
       logger.info('[Controller] No hubo cambios en las monedas fiat soportadas.');
-      res.status(200).json({ message: 'No se realizaron cambios.', data: settings.supportedFiatCurrencies });
+      res.status(200).json({ message: 'No se realizaron cambios.', settings: settings });
     }
 
   } catch (error) {

@@ -199,6 +199,24 @@ Este módulo permite a los administradores supervisar y gestionar las tasas de c
 *   **Gestión de APIs de Tasas de Cambio (Próximamente):**
     *   Se planea permitir a los administradores ver y gestionar las fuentes API configuradas para obtener las tasas.
 
+### 4.8. Ajustes de la Aplicación (Solo Administradores)
+
+Esta sección permite a los administradores configurar diversos aspectos globales del funcionamiento de AppCoins.
+
+*   **Acceso a los Ajustes de la Aplicación:**
+    *   En el panel de administración, encontrarás un ítem de menú llamado "Ajustes App" (o similar).
+
+*   **Gestión de Monedas Fiat Soportadas:**
+    *   **Visualización:** Se presenta una lista de todas las monedas fiat que el sistema tiene configuradas (ej. Dólar Estadounidense - USD, Bolívar Venezolano - VES, Peso Colombiano - COP).
+    *   Para cada moneda, se muestra su nombre, código, símbolo y su estado actual (Activa/Inactiva).
+    *   **Activar/Desactivar Monedas:** Mediante un interruptor (toggle/checkbox) junto a cada moneda, los administradores pueden:
+        *   **Activar una moneda:** Si una moneda está activa, el sistema intentará obtener tasas de cambio para ella (si hay APIs configuradas para esa moneda) y permitirá su uso en otras partes del sistema (ej. al definir precios o registrar transacciones).
+        *   **Desactivar una moneda:** Si una moneda se desactiva, el sistema dejará de intentar obtener tasas para ella y podría restringirse su uso. Esto es útil para monedas que temporalmente no se desean utilizar sin necesidad de eliminarlas por completo de la configuración.
+    *   Los cambios se guardan automáticamente al accionar el interruptor.
+
+*   **Otras Configuraciones (Próximamente):**
+    *   En el futuro, esta sección podría incluir la gestión de comisiones por defecto, configuración de notificaciones, información del negocio, etc.
+
 ## 5. Roles de Usuario
 
 *   **Operador:** Es el usuario principal que realiza las transacciones diarias, gestiona contactos y fuentes de fondos bajo su responsabilidad, y realiza las declaraciones de saldo.

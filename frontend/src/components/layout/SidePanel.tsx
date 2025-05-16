@@ -13,7 +13,8 @@ import {
   FaCoins,
   FaExchangeAlt,
   FaWallet,
-  FaAddressBook
+  FaAddressBook,
+  FaCog
 } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { Icon } from '../common';
@@ -45,7 +46,8 @@ const iconComponents: Record<string, IconType> = {
   chevronLeft: FaChevronLeft,
   chevronRight: FaChevronRight,
   wallet: FaWallet,
-  addressBook: FaAddressBook
+  addressBook: FaAddressBook,
+  cog: FaCog
 };
 
 const navSections: NavSection[] = [
@@ -62,6 +64,7 @@ const navSections: NavSection[] = [
       { title: 'Usuarios', path: Pathnames.admin.users, iconName: 'users' },
       { title: 'Juegos', path: Pathnames.admin.games.root, iconName: 'gamepad' },
       { title: 'Tasas de Cambio', path: Pathnames.admin.exchangeRates, iconName: 'exchange' },
+      { title: 'Ajustes App', path: Pathnames.admin.appSettings, iconName: 'cog' },
     ]
   },
   {

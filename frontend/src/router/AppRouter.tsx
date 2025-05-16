@@ -22,6 +22,7 @@ import Pathnames from './pathnames'
 import ContactsListPage from '../pages/contacts/ContactsListPage'
 import CreateContactPage from '../pages/contacts/CreateContactPage'
 import EditContactPage from '../pages/contacts/EditContactPage'
+import AppSettingsPage from '../pages/admin/AppSettingsPage'
 
 // Definimos las props para ProtectedRoute
 interface ProtectedRouteProps {
@@ -115,6 +116,16 @@ const AppRouter: React.FC = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <ExchangeRatePage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Nueva Ruta para Ajustes de Aplicación */}
+        <Route
+          path={Pathnames.admin.appSettings}
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AppSettingsPage />
             </ProtectedRoute>
           }
         />

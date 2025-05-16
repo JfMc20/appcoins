@@ -17,6 +17,8 @@ import {
 import { DashboardLayout } from '../../../components/layout';
 import useNotification from '../../../hooks/useNotification';
 import useGameItemFilters from '../../../hooks/useGameItemFilters';
+import Modal from '../../../components/common/Modal';
+import ItemPriceManager from '../../../components/games/ItemPriceManager';
 
 const GameItemsPage: React.FC = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -25,6 +27,10 @@ const GameItemsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Nuevos estados para la gestión de precios
+  const [showPriceManagerModal, setShowPriceManagerModal] = useState(false);
+  const [selectedGameItemForPricing, setSelectedGameItemForPricing] = useState<{ id: string; name: string } | null>(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -154,6 +160,19 @@ const GameItemsPage: React.FC = () => {
     clearMessages();
   };
 
+  const handleManagePrices = (itemId: string, itemName: string) => {
+    setSelectedGameItemForPricing({ id: itemId, name: itemName });
+    setShowPriceManagerModal(true);
+    clearMessages(); // Limpiar mensajes de notificaciones anteriores
+  };
+
+  const handleClosePriceManager = () => {
+    setShowPriceManagerModal(false);
+    setSelectedGameItemForPricing(null);
+    // Opcionalmente, podríamos querer recargar los ítems o el ítem específico si los precios se actualizaron.
+    // fetchGameAndItems(); // Descomentar si se quiere recargar todo
+  };
+
   if (isLoading && !game) {
     return (
       <DashboardLayout>
@@ -273,11 +292,26 @@ const GameItemsPage: React.FC = () => {
             items={filteredItems}
             onUpdateStock={handleUpdateItemStock}
             onStatusChange={handleUpdateItemStatus}
-            onDeleteItem={handleDeleteGameItem}
+            onDeleteItem={user?.role === 'admin' ? handleDeleteGameItem : undefined}
+            onManagePrices={handleManagePrices}
             allItemsCount={gameItems.length}
             onClearFilters={resetFilters}
           />
         </Card>
+
+        {selectedGameItemForPricing && (
+          <Modal
+            isOpen={showPriceManagerModal}
+            onClose={handleClosePriceManager}
+            title={`Gestionar Precios para: ${selectedGameItemForPricing.name}`}
+          >
+            <ItemPriceManager 
+              gameItemId={selectedGameItemForPricing.id}
+              gameItemName={selectedGameItemForPricing.name}
+              onClose={handleClosePriceManager} 
+            />
+          </Modal>
+        )}
       </div>
     </DashboardLayout>
   );

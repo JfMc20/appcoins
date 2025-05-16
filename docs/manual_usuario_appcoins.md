@@ -248,6 +248,38 @@ AppCoins es un proyecto en desarrollo. Algunas de las funcionalidades planeadas 
 *   Gestión avanzada de precios y estrategias.
 *   Funcionalidades completas para todos los tipos de transacciones.
 
+## Gestión de Precios de Artículos
+
+AppCoins ahora permite una gestión detallada de los precios para los artículos de juego (`Game Items`). Esta funcionalidad está diseñada para ser accedida por los administradores del sistema.
+
+**Acceso a la Gestión de Precios:**
+
+1.  Navegue al panel de administración.
+2.  Diríjase a la sección de "Juegos" y seleccione el juego deseado.
+3.  En la tabla de "Artículos de Juego" (`Game Items List`), encontrará un botón de "Precios" asociado a cada artículo en la columna de acciones.
+4.  Al hacer clic en el botón "Precios", se desplegará una ventana modal titulada "Administrador de Precios del Artículo" (`Item Price Manager`).
+
+**Funcionalidades Disponibles en el Administrador de Precios:**
+
+Dentro de esta ventana modal, los administradores pueden realizar las siguientes acciones:
+
+*   **Visualizar Precios Existentes:** Se muestra una lista de todos los precios actualmente configurados para el artículo. Cada entrada de la lista especificará la moneda (por ejemplo, USD, EUR, ARS), el monto, y el tipo de precio (ej. `default`, `sale`, `premium`).
+*   **Añadir Nuevos Precios:**
+    *   Utilice el formulario "Añadir/Editar Precio" (`PriceForm`) dentro del modal.
+    *   Complete los campos requeridos:
+        *   **Moneda:** Seleccione o ingrese el código de la moneda (ej. USD).
+        *   **Monto:** Ingrese el valor numérico del precio.
+        *   **Tipo de Precio:** Especifique el tipo (ej. `default`).
+    *   Haga clic en "Guardar Precio" (o "Añadir Precio") para registrar el nuevo precio.
+*   **Editar Precios Existentes:**
+    *   Seleccione un precio de la lista para cargarlo en el formulario de edición.
+    *   Modifique los campos necesarios (moneda, monto, tipo).
+    *   Guarde los cambios.
+*   **Eliminar Precios:**
+    *   Junto a cada precio en la lista, habrá una opción (por ejemplo, un botón "Eliminar") para quitar ese precio específico del artículo.
+
+Esta característica avanzada de gestión de precios ofrece a los administradores la flexibilidad necesaria para implementar diversas estrategias de monetización y adaptar los precios de los artículos de juego según las necesidades del mercado o promociones especiales.
+
 ---
 
 Este manual se irá actualizando a medida que la aplicación evolucione. 

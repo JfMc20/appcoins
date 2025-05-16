@@ -8,6 +8,7 @@ interface GameItemTableProps {
   onUpdateStock: (itemId: string, newStock: number) => Promise<void>;
   onStatusChange: (itemId: string, newStatus: 'active' | 'inactive' | 'archived') => Promise<void>;
   onDeleteItem?: (itemId: string) => Promise<void>;
+  onManagePrices: (itemId: string, itemName: string) => void;
   allItemsCount: number;
   onClearFilters?: () => void;
 }
@@ -20,6 +21,7 @@ const GameItemTable: React.FC<GameItemTableProps> = ({
   onUpdateStock, 
   onStatusChange,
   onDeleteItem,
+  onManagePrices,
   allItemsCount,
   onClearFilters
 }) => {
@@ -141,30 +143,39 @@ const GameItemTable: React.FC<GameItemTableProps> = ({
                 </span>
               </td>
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                <select
-                  value={item.status}
-                  onChange={(e) => onStatusChange(item._id, e.target.value as 'active' | 'inactive' | 'archived')}
-                  className="block w-full pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option disabled>Cambiar estado</option>
-                  <option value="active">Activo</option>
-                  <option value="inactive">Inactivo</option>
-                  <option value="archived">Archivado</option>
-                </select>
-                {onDeleteItem && (
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => {
-                      if (window.confirm(`¿Estás seguro de que deseas eliminar el ítem "${item.name}"? Esta acción no se puede deshacer.`)) {
-                        onDeleteItem(item._id);
-                      }
-                    }}
-                    className="ml-2"
+                <div className="flex items-center space-x-1">
+                  <select
+                    value={item.status}
+                    onChange={(e) => onStatusChange(item._id, e.target.value as 'active' | 'inactive' | 'archived')}
+                    className="block w-full pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   >
-                    Eliminar
+                    <option disabled>Estado</option>
+                    <option value="active">Activo</option>
+                    <option value="inactive">Inactivo</option>
+                    <option value="archived">Archivado</option>
+                  </select>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => onManagePrices(item._id, item.name)}
+                  >
+                    Precios
                   </Button>
-                )}
+                  {onDeleteItem && (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => {
+                        if (window.confirm(`¿Estás seguro de que deseas eliminar el ítem \"${item.name}\"? Esta acción no se puede deshacer.`)) {
+                          onDeleteItem(item._id);
+                        }
+                      }}
+                      className="ml-1"
+                    >
+                      Eliminar
+                    </Button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}

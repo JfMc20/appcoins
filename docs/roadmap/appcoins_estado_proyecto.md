@@ -100,6 +100,13 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - **Backend**: Cálculo de comisiones y ganancias/pérdidas en transacciones relevantes.
 - **Frontend**: Interfaz de usuario para el registro y gestión de transacciones:
     - Formularios específicos y usables para los diferentes tipos de transacciones (compra, venta, gasto, ingreso, transferencia).
+    - Diseñar formularios con alta intuitividad, mostrando solo campos relevantes y guiando al usuario.
+    - Filtrar ítems de juego por juego seleccionado en el formulario de transacción.
+    - Permitir la selección de moneda para el precio unitario en transacciones de compra/venta.
+    - Ajustar el cálculo y la entrada del monto de pago cuando la moneda del precio unitario y la moneda de la fuente de fondos difieran.
+    - Almacenar `contactId` en transacciones de compra/venta para permitir análisis futuros de actividad por contacto (ej. balances, clientes frecuentes).
+    - Considerar la captura de datos suficientes durante las transacciones (ej. precio unitario, ítem, contacto) para facilitar futuras funcionalidades de autocompletado en la creación de nuevas transacciones.
+    - (Considerar para después) Opción para crear un nuevo contacto directamente desde el formulario de transacción (usando un modal).
     - Vinculación completa con contactos y fuentes de fondos en los formularios.
     - Vista de detalle de una transacción.
     - Posibilidad de editar/eliminar transacciones (si la lógica de negocio lo permite y con las debidas confirmaciones/auditoría).

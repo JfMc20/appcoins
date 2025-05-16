@@ -16,6 +16,7 @@ import userRoutes from './routes/UserRoutes'; // Importar rutas de gestión de u
 import gameRoutes from './routes/gameRoutes'; // Importar rutas de juegos
 import gameItemRoutes from './routes/gameItemRoutes'; // Importar rutas de ítems de juego
 import contactRoutes from './routes/contactRoutes'; // <-- Importar nuevas rutas de contactos
+import priceRoutes from './routes/priceRoutes'; // Importar las nuevas rutas de precios
 
 // Inicializar la aplicación Express
 const app: Application = express();
@@ -90,6 +91,9 @@ app.use('/api/game-items', gameItemRoutes);
 
 logger.info('[App] Montando rutas de contactos en /api/contacts...');
 app.use('/api/contacts', contactRoutes); // <-- Usar rutas de contactos
+
+logger.info('[App] Montando rutas de precios en /api/prices...');
+app.use('/api/prices', priceRoutes); // Registrar las nuevas rutas de precios
 
 // Manejo de rutas no encontradas (404)
 app.use((req: Request, res: Response, next: NextFunction) => {

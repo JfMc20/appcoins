@@ -1,5 +1,5 @@
 import express from 'express';
-import { getExchangeRates, refreshExchangeRates } from '../controllers/settingsController';
+import { getExchangeRates, refreshExchangeRates, getAppSettings, updateSupportedCurrencies } from '../controllers/settingsController';
 import { logger } from '../utils/logger'; // Importar logger
 import { protectWithJwt, restrictTo } from '../middleware/authMiddleware'; // Importar protectWithJwt y restrictTo
 // Importar middlewares de autenticación/autorización si son necesarios aquí
@@ -31,6 +31,23 @@ router.post(
     logger.info('[Router] Petición POST /api/settings/exchange-rates/refresh recibida por admin.');
     refreshExchangeRates(req, res, next);
   }
+);
+
+// Rutas de Admin para Settings
+// GET /api/settings/admin/appsettings (o /api/admin/settings si se usa un router base /admin)
+router.get(
+  '/admin/appsettings', // Ruta para obtener toda la configuración
+  protectWithJwt,
+  restrictTo('admin'),
+  getAppSettings // Usar directamente la función del controlador
+);
+
+// PUT /api/settings/admin/supported-currencies
+router.put(
+  '/admin/supported-currencies',
+  protectWithJwt,
+  restrictTo('admin'),
+  updateSupportedCurrencies // Usar directamente la función del controlador
 );
 
 export default router; 

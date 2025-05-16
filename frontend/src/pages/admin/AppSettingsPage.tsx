@@ -138,16 +138,31 @@ const AppSettingsPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Aquí se podrían añadir más secciones para otras configuraciones de AppSettings en el futuro */}
-        {/* Ejemplo:
-        <section className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        <section className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">
-            Comisiones por Transacción
+            APIs de Tasas de Cambio Externas
           </h2>
-          <p>Default Sell Rate: {appSettings.defaultTransactionFees.sellRate} ({appSettings.defaultTransactionFees.type})</p>
-          // ... más detalles y formulario para editar
+          {appSettings && appSettings.exchangeRateAPIs && appSettings.exchangeRateAPIs.length > 0 ? (
+            <div className="space-y-4">
+              {appSettings.exchangeRateAPIs.map((api, index) => (
+                <div key={api.name || index} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
+                  <h3 className="font-medium text-gray-800 dark:text-white">{api.name}</h3>
+                  {api.baseUrl && <p className="text-sm text-gray-600 dark:text-gray-400">URL Base: {api.baseUrl}</p>}
+                  {api.priority !== undefined && <p className="text-sm text-gray-600 dark:text-gray-400">Prioridad: {api.priority}</p>}
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Estado: <span className={api.isEnabled ? 'text-green-500' : 'text-red-500'}>{api.isEnabled ? 'Habilitada' : 'Deshabilitada'}</span>
+                  </p>
+                  {/* No mostramos apiKey por seguridad */}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-600 dark:text-gray-400">
+              No hay APIs de tasas de cambio configuradas.
+            </p>
+          )}
         </section>
-        */}
+
       </div>
     </DashboardLayout>
   );

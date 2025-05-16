@@ -64,4 +64,44 @@ Los objetivos clave para la planificación general del frontend son:
 *   **Diseño Responsivo:** Es un objetivo continuo. Algunas páginas están más adaptadas que otras. Se necesita una revisión y mejora general para asegurar la completa funcionalidad en móviles. (🚧 En progreso)
 *   **Estados de Carga y Error:** Se utilizan `LoadingSpinner` y `Notification` para feedback al usuario. (✅ Implementado, mejora continua)
 *   **Accesibilidad (a11y):** Aunque no ha sido un foco principal explícito, se intentará seguir buenas prácticas. El uso futuro de Headless UI podría ayudar. (🚧 A mejorar)
-*   **Rendimiento Percibido:** Optimizar la carga de datos y la respuesta de la interfaz. (�� Objetivo continuo) 
+*   **Rendimiento Percibido:** Optimizar la carga de datos y la respuesta de la interfaz. (🚧 Objetivo continuo)
+
+#### ❌ Pendiente:
+- **Frontend**: Interfaz de administración en `AppSettingsPage.tsx` (o una nueva página si se prefiere) para:
+    - Visualizar las `exchangeRateAPIs` configuradas en `AppSettings`.
+    - (Opcional Avanzado) CRUD completo para `supportedFiatCurrencies` (actualmente solo activar/desactivar, faltaría añadir/editar/eliminar).
+    - (Opcional Avanzado) Permitir la gestión (CRUD) de `exchangeRateAPIs` (nombre, API key, URL base, prioridad, estado).
+- **Backend y Frontend**: Gestión de precios para `GameItems`:
+    - Definir cómo se almacenarán los precios (¿en `GameItemModel` directamente o en un modelo separado de precios?).
+    - Endpoints para crear/actualizar precios de ítems.
+    - Interfaz para que los administradores definan y modifiquen precios base, costos, y posiblemente reglas de precios simples.
+- **Backend y Frontend**: Gestión de precios para `ExternalProducts` (similar a GameItems).
+- **Backend y Frontend**: Estrategias de precios avanzadas (ej. márgenes de ganancia configurables por defecto o por tipo de producto/juego, precios dinámicos basados en tasas de cambio o costos, etc.).
+
+#### ❌ Pendiente:
+// Esta fase está mayormente completa en cuanto a su alcance original.
+// Los ítems restantes se han movido o detallado en fases posteriores. 
+
+## Próximos Pasos Inmediatos (Tareas Concretas a Corto Plazo)
+
+Esta sección se actualiza con las tareas más inmediatas del backlog, extrayéndolas de las fases pendientes. Las prioridades pueden cambiar según las necesidades del proyecto.
+
+1.  **Fase 2: Gestión de Precios y Tasas de Cambio (Continuación)**:
+    *   **Tarea**: Visualizar las `exchangeRateAPIs` configuradas en `AppSettingsPage.tsx`.
+        *   **Objetivo**: Permitir a los administradores ver las APIs de tasas de cambio que el sistema está utilizando.
+        *   **Alcance**: Solo lectura por ahora.
+    *   **Tarea (Opcional/Siguiente)**: Implementar la gestión CRUD básica para `exchangeRateAPIs` si se decide continuar con esta parte de la configuración.
+
+2.  **Fase 3: Módulo de Transacciones (Enfoque Principal)**:
+    *   **Tarea**: Desarrollar la lógica de backend para transacciones de "Compra" y "Venta" de `GameItems`.
+        *   **Objetivo**: Permitir registrar compras y ventas, actualizando el stock del ítem y el saldo de la fuente de fondos.
+        *   **Alcance Backend**: Modificar `transactionController.ts` y `transaction.service.ts` (o equivalentes) para manejar estos nuevos tipos de transacción, incluyendo validaciones, actualización de `GameItemModel.currentStock` y `FundingSourceModel.currentBalance`.
+    *   **Tarea**: Crear/Adaptar formularios en `NewTransactionPage.tsx` para los tipos "Compra de GameItem" y "Venta de GameItem".
+        *   **Objetivo**: Proveer la interfaz para que los usuarios registren estas transacciones.
+        *   **Alcance Frontend**: Nuevos componentes de formulario o adaptación del existente, lógica para enviar datos al backend, selección de `GameItem`, `FundingSource`, `Contact` (si aplica), cantidades, precios.
+
+3.  **Fase 4: Módulo de Gestión de Contactos (Mejoras Pendientes)**:
+    *   **Tarea**: Implementar las mejoras en `ContactForm.tsx`:
+        *   Campo descriptivo para "Tipo de Contacto: Otro".
+        *   Funcionalidad para vincular/etiquetar un contacto a uno o más juegos.
+    *   **Tarea**: Implementar el manejo y visualización de `addresses` y `details` del `ContactModel` en la UI. 

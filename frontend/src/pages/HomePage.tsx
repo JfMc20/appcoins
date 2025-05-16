@@ -43,12 +43,12 @@ const HomePage: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Accede directamente a las acciones más comunes.
             </p>
-            <div className="space-y-2">
-              <button className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
+            <div className="flex flex-wrap gap-2">
+              <button className="flex-grow py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors text-sm">
                 Nueva Transacción
               </button>
               {user?.role === 'admin' && (
-                <button className="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors">
+                <button className="flex-grow py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors text-sm">
                   Crear Usuario
                 </button>
               )}

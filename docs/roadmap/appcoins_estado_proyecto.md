@@ -57,16 +57,25 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
 - Frontend: Página de Administración `AppSettingsPage.tsx` para gestionar monedas fiat soportadas (listar, activar/desactivar).
 - Frontend: Enlace a `AppSettingsPage.tsx` añadido al `SidePanel.tsx` para administradores.
 - Frontend: Ruta para `AppSettingsPage.tsx` configurada en `AppRouter.tsx`.
+- **Backend y Frontend**: Gestión de precios para `GameItems`:
+  - Decisión de diseño: Precios gestionados en un `PriceModel` separado y no como subdocumento de `GameItemModel`.
+  - **Backend**:
+    - Creación de `src/models/PriceModel.ts` (con `IPrice` y `PriceSchema`).
+    - Creación del controlador `src/controllers/priceController.ts` (con funciones CRUD).
+    - Creación de rutas `src/routes/priceRoutes.ts` (protegidas para administradores) y registro en `app.ts`.
+  - **Frontend**:
+    - Creación de `src/types/price.types.ts` (con interfaz `Price` y `PriceFormData`).
+    - Creación del servicio `src/services/price.service.ts`.
+    - Integración de un modal de gestión de precios en `src/pages/admin/games/GameItemsPage.tsx`.
+    - Desarrollo del componente `src/components/games/ItemPriceManager.tsx` para la lógica de visualización, creación, edición y eliminación de precios.
+    - Desarrollo del componente `src/components/pricing/PriceForm.tsx` para el formulario de precios.
+    - Refinamiento de la interfaz de usuario y experiencia de usuario del `ItemPriceManager.tsx` para mayor intuitividad y claridad.
 
 #### ❌ Pendiente:
 - **Frontend**: Interfaz de administración en `AppSettingsPage.tsx` (o una nueva página si se prefiere) para:
     - Visualizar las `exchangeRateAPIs` configuradas en `AppSettings`.
     - (Opcional Avanzado) CRUD completo para `supportedFiatCurrencies` (actualmente solo activar/desactivar, faltaría añadir/editar/eliminar).
     - (Opcional Avanzado) Permitir la gestión (CRUD) de `exchangeRateAPIs` (nombre, API key, URL base, prioridad, estado).
-- **Backend y Frontend**: Gestión de precios para `GameItems`:
-    - Definir cómo se almacenarán los precios (¿en `GameItemModel` directamente o en un modelo separado de precios?).
-    - Endpoints para crear/actualizar precios de ítems.
-    - Interfaz para que los administradores definan y modifiquen precios base, costos, y posiblemente reglas de precios simples.
 - **Backend y Frontend**: Gestión de precios para `ExternalProducts` (similar a GameItems).
 - **Backend y Frontend**: Estrategias de precios avanzadas (ej. márgenes de ganancia configurables por defecto o por tipo de producto/juego, precios dinámicos basados en tasas de cambio o costos, etc.).
 

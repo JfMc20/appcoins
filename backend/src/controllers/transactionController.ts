@@ -4,6 +4,8 @@ import TransactionModel, { ITransaction, ICapitalDeclarationEntry } from '../mod
 import FundingSourceModel, { IFundingSource } from '../models/FundingSourceModel';
 import { logger } from '../utils/logger';
 import { IUser } from '../models/UserModel'; // <--- CORREGIDO: Usar IUser
+import { TransactionService } from '../services/transaction.service'; // +++ AÑADIR IMPORTACIÓN
+import { AppError } from '../utils/errorHandler'; // +++ CORREGIR RUTA IMPORTACIÓN
 
 // Helper para obtener el inicio y fin de un día
 const getStartAndEndOfDay = (date: Date): { startOfDay: Date; endOfDay: Date } => {
@@ -30,6 +32,8 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
     notes,
     contactId,
     status, // Podría venir del cliente o definirse aquí.
+    itemDetails, // +++ AÑADIR itemDetails
+    paymentDetails, // +++ AÑADIR paymentDetails
   } = req.body as ITransaction;
 
   const currentTransactionDate = transactionDate ? new Date(transactionDate) : new Date();
@@ -43,6 +47,8 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
       transactionDate: currentTransactionDate,
       status: status || 'completed', // Default a completed si no se especifica
     };
+
+    let savedTransaction: ITransaction | undefined;
 
     // Lógica específica por tipo de transacción
     if (type === 'DECLARACION_OPERADOR_INICIO_DIA') {
@@ -109,6 +115,9 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
       }];
       // Otros campos como paymentDetails no aplicarían directamente aquí
 
+      const txToCreate = { ...newTransactionData }; // Copiar para no modificar el original si no es necesario
+      savedTransaction = await TransactionModel.create(txToCreate);
+
     } else if (type === 'AJUSTE_ADMIN_CAPITAL') {
       if (user.role !== 'admin') {
         logger.warn(`Usuario [${user.id}] con rol [${user.role}] intentó crear AJUSTE_ADMIN_CAPITAL sin ser admin.`);
@@ -151,6 +160,8 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
       newTransactionData.capitalDeclaration = updatedCapitalDeclarations;
       // Otros campos como paymentDetails no aplicarían directamente aquí
 
+      savedTransaction = await TransactionModel.create(newTransactionData);
+
     } else if (type === 'DECLARACION_SALDO_INICIAL_CAPITAL') {
         // Lógica similar a AJUSTE_ADMIN_CAPITAL, pero podría tener diferentes permisos o usos.
         // Por ahora, asumimos que solo admin puede hacerlo y es similar a un ajuste.
@@ -177,48 +188,71 @@ export const createTransaction = async (req: Request, res: Response, next: NextF
         }
         newTransactionData.capitalDeclaration = updatedEntries;
 
+        savedTransaction = await TransactionModel.create(newTransactionData);
+
+    // +++ NUEVA LÓGICA PARA TRANSACCIONES DE GAMEITEM USANDO EL SERVICIO +++
+    } else if (type === 'COMPRA_ITEM_JUEGO') {
+      if (!itemDetails || !paymentDetails) {
+        throw new AppError('Para COMPRA_ITEM_JUEGO se requieren itemDetails y paymentDetails.', 400);
+      }
+      const contactIdToPass = contactId && (typeof contactId === 'object' && '_id' in contactId) ? (contactId as any)._id.toString() : contactId;
+      savedTransaction = await TransactionService.processGameItemPurchase({
+        operatorUserId: user.id,
+        transactionDate: currentTransactionDate,
+        itemDetails,
+        paymentDetails,
+        contactId: contactIdToPass,
+        notes,
+        status: status || 'completed',
+      });
+    } else if (type === 'VENTA_ITEM_JUEGO') {
+      if (!itemDetails || !paymentDetails) {
+        throw new AppError('Para VENTA_ITEM_JUEGO se requieren itemDetails y paymentDetails.', 400);
+      }
+      const contactIdToPass = contactId && (typeof contactId === 'object' && '_id' in contactId) ? (contactId as any)._id.toString() : contactId;
+      savedTransaction = await TransactionService.processGameItemSale({
+        operatorUserId: user.id,
+        transactionDate: currentTransactionDate,
+        itemDetails,
+        paymentDetails,
+        contactId: contactIdToPass,
+        notes,
+        status: status || 'completed',
+      });
+    // --- FIN DE NUEVA LÓGICA ---
     } else {
-      // Manejo para otros tipos de transacciones (COMPRA, VENTA, etc.)
-      // Esta lógica se desarrollará en futuras fases.
-      // Por ahora, si no es un tipo de declaración de capital, podríamos no hacer nada específico aquí
-      // o verificar si es un tipo conocido y si no, error.
       const knownTypes = (TransactionModel.schema.path('type') as any).options.enum; // <--- CORREGIDO
       if (!knownTypes.includes(type)) {
         res.status(400).json({ message: `Tipo de transacción desconocido: ${type}` });
         return;
       }
-      logger.info(`Procesando tipo de transacción general: ${type}`);
+      logger.info(`Procesando tipo de transacción general no cubierto por servicio: ${type}`);
       // Para otros tipos, asegurar que no se envíe capitalDeclaration si no aplica.
       const typesUsingCapitalDeclaration = ['DECLARACION_SALDO_INICIAL_CAPITAL', 'DECLARACION_OPERADOR_INICIO_DIA', 'AJUSTE_ADMIN_CAPITAL'];
       if (capitalDeclaration && !typesUsingCapitalDeclaration.includes(type)) { // <--- CORREGIDO
           delete newTransactionData.capitalDeclaration;
       }
-
-      // Aquí iría la lógica para paymentDetails, itemDetails, profitDetails, etc.
-      // Por ejemplo, si hay paymentDetails, actualizar la fundingSource correspondiente (aumentar o disminuir saldo)
-      // Esta parte es compleja y depende mucho del 'type'.
-      // Ejemplo muy básico para un paymentDetails genérico (necesita mucha más lógica):
-      if (newTransactionData.paymentDetails && newTransactionData.paymentDetails.fundingSourceId && typeof newTransactionData.paymentDetails.amount === 'number') {
-          const paymentSource = await FundingSourceModel.findById(newTransactionData.paymentDetails.fundingSourceId);
-          if (!paymentSource) {
-              res.status(404).json({ message: `Fuente de fondos del pago ${newTransactionData.paymentDetails.fundingSourceId} no encontrada.`});
-              return;
-          }
-          // Asumimos que 'amount' en paymentDetails es el cambio neto. 
-          // Positivo si es ingreso a la fuente, negativo si es egreso.
-          // Se necesita una lógica más clara sobre si 'amount' es siempre positivo y el 'type' define el flujo.
-          // Por simplicidad aquí, asumimos que 'amount' puede ser negativo.
-          paymentSource.currentBalance += newTransactionData.paymentDetails.amount; 
-          await paymentSource.save();
-          logger.info(`Saldo de FundingSource [${paymentSource.id}] actualizado a ${paymentSource.currentBalance} por transacción tipo [${type}].`);
-          newTransactionData.paymentDetails.fundingSourceBalanceBefore = paymentSource.currentBalance - newTransactionData.paymentDetails.amount;
-          newTransactionData.paymentDetails.fundingSourceBalanceAfter = paymentSource.currentBalance;
+      // Eliminar itemDetails y paymentDetails si no son relevantes para el tipo de transacción no cubierto por el servicio
+      // Esta es una suposición, se necesitaría una lógica más específica por tipo si estos campos fueran usados por otros tipos.
+      if (type !== 'COMPRA_PRODUCTO_EXTERNO' && type !== 'VENTA_PRODUCTO_EXTERNO') { // Ejemplo, ajustar según necesidad
+          delete newTransactionData.itemDetails;
+          delete newTransactionData.paymentDetails;
       }
 
+      // La lógica genérica de actualización de paymentSource se elimina de aquí,
+      // ya que los tipos que implican pagos complejos deben ser manejados por el servicio
+      // o tener su propio bloque 'else if'.
+
+      savedTransaction = await TransactionModel.create(newTransactionData);
     }
 
-    const savedTransaction = await TransactionModel.create(newTransactionData);
-    logger.info(`Transacción [${type}] creada con ID: ${savedTransaction._id} por usuario [${user.id}]`);
+    if (!savedTransaction) {
+      // Esto no debería ocurrir si todos los flujos asignan a savedTransaction o retornan/tiran error.
+      logger.error(`Transacción tipo [${type}] no resultó en un documento guardado.`);
+      throw new AppError('No se pudo procesar la transacción.', 500);
+    }
+
+    logger.info(`Transacción [${type}] procesada con ID: ${savedTransaction._id} por usuario [${user.id}]`);
     res.status(201).json(savedTransaction);
 
   } catch (error: any) {
@@ -251,7 +285,7 @@ export const getAllTransactions = async (req: Request, res: Response, next: Next
       .sort({ transactionDate: -1, createdAt: -1 }) // Priorizar transactionDate, luego createdAt
       // .populate('operatorUserId', 'username email') // Ejemplo de populate, lo añadiremos si es necesario
       // .populate('contactId', 'name nickname') // Ejemplo
-      // .populate('capitalDeclaration.fundingSourceId', 'name currency') // Ejemplo anidado
+      // .populate('capitalDeclaration.fundingSourceId', 'name currency') // Ejemplo
       // .populate('paymentDetails.fundingSourceId', 'name currency') // Ejemplo
       // .populate('itemDetails.itemId', 'name') // Ejemplo
       .skip(skip)

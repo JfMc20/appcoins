@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 import TransactionModel, { ITransaction, TransactionType, ITransactionItemDetail, ITransactionPaymentDetail, IProfitDetail } from '../models/TransactionModel';
-import GameItemModel, { IGameItem } from '../models/GameItemModel';
+import GameItemModel, { IGameItem, IAverageCost } from '../models/GameItemModel';
 import FundingSourceModel, { IFundingSource } from '../models/FundingSourceModel';
+import AppSettingsModel, { IAppSettings } from '../models/AppSettingsModel';
+import { getConversionRate } from './ExchangeRateService';
 import { AppError } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
 
@@ -22,6 +24,14 @@ interface IProcessGameItemSaleData extends IProcessGameItemPurchaseData {
 }
 
 export class TransactionService {
+  private static async getAppSettings(): Promise<IAppSettings | null> {
+    const appSettings = await AppSettingsModel.findOne({ configIdentifier: 'global_settings' });
+    if (!appSettings) {
+      logger.error('AppSettings (global_settings) no encontradas en la base de datos.');
+    }
+    return appSettings;
+  }
+
   /**
    * Procesa una transacción de COMPRA_ITEM_JUEGO.
    * - Valida los datos de entrada.
@@ -53,6 +63,11 @@ export class TransactionService {
       // Por ahora, lo dejamos como advertencia y continuamos, asumiendo que paymentDetails.amount es el correcto.
     }
 
+    const appSettings = await this.getAppSettings();
+    if (!appSettings) {
+      throw new AppError('Configuración de la aplicación no encontrada, no se puede procesar la transacción.', 500);
+    }
+    const refCurrency = appSettings.defaultReferenceCurrency.toUpperCase();
 
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -89,35 +104,36 @@ export class TransactionService {
       // Actualizar stock y costo promedio del GameItem
       const oldStock = gameItem.currentStock;
       const purchaseQuantity = itemDetails.quantity;
-      const purchasePricePerUnitInItemCurrency = itemDetails.unitPrice.amount;
-      // const purchaseCurrency = itemDetails.unitPrice.currency;
+      const purchaseUnitPriceInTxCurrency = itemDetails.unitPrice.amount;
+      const purchaseCurrency = itemDetails.unitPrice.currency.toUpperCase();
 
       gameItem.currentStock += purchaseQuantity;
 
-      // TODO: Lógica para actualizar averageCostRef.
-      // Esto es complejo si las monedas difieren o si averageCostRef no existe.
-      // Por ahora, un placeholder simple. Se necesitará una moneda de referencia y conversión.
-      // Asumimos que averageCostRef y la compra están en la misma moneda por ahora para simplificar:
-      if (gameItem.averageCostRef && gameItem.averageCostRef.currency === itemDetails.unitPrice.currency) {
-        const oldTotalCost = oldStock * gameItem.averageCostRef.amount;
-        const purchaseTotalCost = purchaseQuantity * purchasePricePerUnitInItemCurrency;
+      // Actualizar averageCostRef en la moneda de referencia
+      let costOfPurchaseInRefCurrency: number;
+      const conversionRateToRef = getConversionRate(purchaseCurrency, refCurrency, appSettings);
+      if (conversionRateToRef === null) {
+        throw new AppError(`No se pudo obtener la tasa de conversión de ${purchaseCurrency} a ${refCurrency}.`, 500);
+      }
+      costOfPurchaseInRefCurrency = purchaseUnitPriceInTxCurrency * conversionRateToRef;
+
+      let newAverageCostAmount: number;
+      if (gameItem.averageCostRef && typeof gameItem.averageCostRef.amount === 'number' && gameItem.averageCostRef.currency === refCurrency) {
+        const oldTotalCostInRef = oldStock * gameItem.averageCostRef.amount;
+        const purchaseTotalCostInRef = purchaseQuantity * costOfPurchaseInRefCurrency;
         const newTotalStock = oldStock + purchaseQuantity;
         if (newTotalStock > 0) {
-            gameItem.averageCostRef.amount = (oldTotalCost + purchaseTotalCost) / newTotalStock;
+          newAverageCostAmount = (oldTotalCostInRef + purchaseTotalCostInRef) / newTotalStock;
         } else {
-            gameItem.averageCostRef.amount = purchasePricePerUnitInItemCurrency; // Si no había stock, el nuevo costo es el de compra
+          newAverageCostAmount = costOfPurchaseInRefCurrency; 
         }
       } else {
-        // Inicializar o recalcular averageCostRef si la moneda es diferente o no existe.
-        // Esto requiere una estrategia de conversión a una moneda de referencia (ej. USDT).
-        // Por ahora, si no existe o la moneda no coincide, establecemos el costo de esta compra.
-        // ¡¡ESTO ES UNA SIMPLIFICACIÓN Y DEBE MEJORARSE!!
-        gameItem.averageCostRef = {
-            amount: purchasePricePerUnitInItemCurrency,
-            currency: itemDetails.unitPrice.currency,
-        };
-        logger.warn(`AverageCostRef para ${gameItem.name} fue establecido/reemplazado. Se necesita mejorar la lógica de conversión de moneda.`);
+        newAverageCostAmount = costOfPurchaseInRefCurrency;
+        if (gameItem.averageCostRef && gameItem.averageCostRef.currency !== refCurrency) {
+            logger.warn(`La moneda de averageCostRef existente (${gameItem.averageCostRef.currency}) para ${gameItem.name} no era la de referencia (${refCurrency}). Se está sobrescribiendo.`);
+        }
       }
+      gameItem.averageCostRef = { amount: newAverageCostAmount, currency: refCurrency };
       
       await gameItem.save({ session });
       await fundingSource.save({ session });
@@ -129,13 +145,23 @@ export class TransactionService {
         contactId: contactId ? (typeof contactId === 'string' ? new mongoose.Types.ObjectId(contactId) : contactId) : undefined,
         itemDetails: {
             ...itemDetails,
-            itemNameSnapshot: gameItem.name, // Guardar el nombre actual del ítem
-            gameIdSnapshot: gameItem.gameId, // Guardar el ID del juego actual
+            itemNameSnapshot: gameItem.name, 
+            gameIdSnapshot: gameItem.gameId, 
         },
         paymentDetails: {
             ...paymentDetails,
             fundingSourceBalanceBefore: previousFundingSourceBalance,
             fundingSourceBalanceAfter: fundingSource.currentBalance,
+            exchangeRatesUsed: purchaseCurrency !== refCurrency ? [{
+                fromCurrency: purchaseCurrency,
+                toCurrency: refCurrency,
+                rate: conversionRateToRef,
+                source: 'AppSettings' // O la fuente real de la tasa
+            }] : undefined,
+            valueInReferenceCurrency: { // Guardar el valor del pago en moneda de referencia
+                amount: paymentDetails.amount * (getConversionRate(paymentDetails.currency, refCurrency, appSettings) || 0), // Si es null, será 0. Considerar manejo de error.
+                currency: refCurrency
+            }
         },
         notes,
         status: status || 'completed',
@@ -186,6 +212,11 @@ export class TransactionService {
       // Similar a la compra, por ahora es una advertencia.
     }
 
+    const appSettings = await this.getAppSettings();
+    if (!appSettings) {
+      throw new AppError('Configuración de la aplicación no encontrada, no se puede procesar la transacción.', 500);
+    }
+    const refCurrency = appSettings.defaultReferenceCurrency.toUpperCase();
 
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -203,6 +234,9 @@ export class TransactionService {
       if (!gameItem.averageCostRef || typeof gameItem.averageCostRef.amount !== 'number' || !gameItem.averageCostRef.currency) {
         // En un sistema robusto, podría haber una política para ventas sin costo promedio (ej. error, o asumir costo cero)
         throw new AppError(`Costo promedio no definido o inválido para ${gameItem.name}. No se puede calcular la ganancia.`, 500);
+      }
+      if (gameItem.averageCostRef.currency !== refCurrency) {
+          throw new AppError(`La moneda del costo promedio (${gameItem.averageCostRef.currency}) para ${gameItem.name} no es la moneda de referencia (${refCurrency}). Se requiere ajuste.`, 500);
       }
 
       const fundingSource = await FundingSourceModel.findById(paymentDetails.fundingSourceId).session(session);
@@ -223,32 +257,23 @@ export class TransactionService {
 
       gameItem.currentStock -= itemDetails.quantity;
 
-      // Calcular ProfitDetails
-      // TODO: Mejorar esto con conversión de moneda a una moneda de referencia común.
-      // Asumimos que el precio de venta (paymentDetails.amount) y el costo (averageCostRef.amount)
-      // están o pueden convertirse a la misma moneda de referencia para el cálculo de ganancia.
-      // Por ahora, una simplificación grande si las monedas no coinciden.
-      let costOfGoodsAmount = 0;
-      let grossProfitAmount = 0;
-      const profitCurrency = gameItem.averageCostRef.currency; // Usar la moneda del costo como referencia para la ganancia
+      // Calcular ProfitDetails en la moneda de referencia
+      const salePriceInTxCurrency = itemDetails.unitPrice.amount;
+      const saleCurrency = itemDetails.unitPrice.currency.toUpperCase();
+      const totalSaleAmountInTxCurrency = paymentDetails.amount; // Asumimos que es el total de la venta en su moneda
 
-      if (itemDetails.unitPrice.currency === gameItem.averageCostRef.currency) {
-          costOfGoodsAmount = itemDetails.quantity * gameItem.averageCostRef.amount;
-          grossProfitAmount = paymentDetails.amount - costOfGoodsAmount; // Asume paymentDetails.amount es el total de la venta
-      } else {
-          // ¡¡NECESITA MEJORA URGENTE!! Caso donde moneda de venta y moneda de costo difieren.
-          // Esto es una placeholder y probablemente incorrecto sin conversión.
-          logger.error(`Monedas de venta (${itemDetails.unitPrice.currency}) y costo (${gameItem.averageCostRef.currency}) difieren para ${gameItem.name}. Cálculo de ganancia puede ser incorrecto.`);
-          // Podríamos intentar una conversión si tuviéramos tasas, o registrar la ganancia en la moneda de venta
-          // y el costo en su moneda, dejando la reconciliación para después.
-          // Por ahora, no calcularemos profit si las monedas son diferentes para evitar datos erróneos.
-          // O, si paymentDetails.currency es la moneda de referencia, convertir el costo a esa.
-           throw new AppError(`Discrepancia de monedas en cálculo de ganancia para ${gameItem.name}. Venta en ${itemDetails.unitPrice.currency}, costo en ${gameItem.averageCostRef.currency}. Funcionalidad no implementada.`, 501);
+      const conversionRateSaleToRef = getConversionRate(saleCurrency, refCurrency, appSettings);
+      if (conversionRateSaleToRef === null) {
+        throw new AppError(`No se pudo obtener la tasa de conversión de ${saleCurrency} a ${refCurrency} para la venta.`, 500);
       }
+      const totalSaleAmountInRefCurrency = totalSaleAmountInTxCurrency * conversionRateSaleToRef;
+      const costOfGoodsSoldPerUnitInRefCurrency = gameItem.averageCostRef.amount; // Ya está en refCurrency
+      const totalCostOfGoodsSoldInRefCurrency = itemDetails.quantity * costOfGoodsSoldPerUnitInRefCurrency;
+      const grossProfitInRefCurrency = totalSaleAmountInRefCurrency - totalCostOfGoodsSoldInRefCurrency;
       
       const profitDetails: IProfitDetail = {
-        costOfGoods: { amount: costOfGoodsAmount, currency: profitCurrency },
-        grossProfit: { amount: grossProfitAmount, currency: profitCurrency },
+        costOfGoods: { amount: totalCostOfGoodsSoldInRefCurrency, currency: refCurrency },
+        grossProfit: { amount: grossProfitInRefCurrency, currency: refCurrency },
         // netProfit y commission se pueden añadir después
       };
       
@@ -269,6 +294,16 @@ export class TransactionService {
             ...paymentDetails,
             fundingSourceBalanceBefore: previousFundingSourceBalance,
             fundingSourceBalanceAfter: fundingSource.currentBalance,
+            exchangeRatesUsed: saleCurrency !== refCurrency ? [{
+                fromCurrency: saleCurrency,
+                toCurrency: refCurrency,
+                rate: conversionRateSaleToRef,
+                source: 'AppSettings'
+            }] : undefined,
+            valueInReferenceCurrency: {
+                amount: totalSaleAmountInRefCurrency,
+                currency: refCurrency
+            }
         },
         profitDetails,
         notes,

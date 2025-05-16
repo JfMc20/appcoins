@@ -173,6 +173,83 @@ export const updateFiatExchangeRates = async (): Promise<void> => {
   }
 };
 
+/**
+ * Obtiene una tasa de conversión entre dos monedas utilizando las tasas almacenadas en AppSettings.
+ * @param fromCurrency Código de la moneda de origen (ej: 'ARS').
+ * @param toCurrency Código de la moneda de destino (ej: 'COP').
+ * @param appSettings El documento de configuración de la aplicación que contiene las tasas actuales.
+ * @returns La tasa de conversión (cuánto de toCurrency obtienes por 1 unidad de fromCurrency), o null si no se puede convertir.
+ */
+export const getConversionRate = (
+  fromCurrency: string,
+  toCurrency: string,
+  appSettings: IAppSettings | null // Permitir null para manejar el caso donde no se cargan las settings
+): number | null => {
+  if (!appSettings || !appSettings.currentExchangeRates) {
+    logger.error('AppSettings o currentExchangeRates no disponibles para getConversionRate.');
+    return null;
+  }
+
+  const refCurrency = appSettings.defaultReferenceCurrency.toUpperCase();
+  const from = fromCurrency.toUpperCase();
+  const to = toCurrency.toUpperCase();
+
+  if (from === to) {
+    return 1.0;
+  }
+
+  const rates = appSettings.currentExchangeRates;
+
+  // Caso 1: Convertir DESDE la moneda de referencia HACIA otra moneda
+  // Ej: USDT -> ARS. Necesitamos la tasa USDT_ARS (cuántos ARS por 1 USDT)
+  if (from === refCurrency) {
+    const pairKey = `${refCurrency}_${to}`;
+    const rateDetail = rates.get(pairKey);
+    if (rateDetail && typeof rateDetail.currentRate === 'number') {
+      logger.debug(`Tasa directa encontrada para ${pairKey}: ${rateDetail.currentRate}`);
+      return rateDetail.currentRate;
+    }
+    logger.warn(`No se encontró tasa directa para ${pairKey}`);
+    return null;
+  }
+
+  // Caso 2: Convertir DESDE otra moneda HACIA la moneda de referencia
+  // Ej: ARS -> USDT. Necesitamos la tasa USDT_ARS y luego invertirla (1 / (USDT_ARS))
+  if (to === refCurrency) {
+    const pairKey = `${refCurrency}_${from}`;
+    const rateDetail = rates.get(pairKey);
+    if (rateDetail && typeof rateDetail.currentRate === 'number' && rateDetail.currentRate !== 0) {
+      logger.debug(`Tasa inversa para ${from}_${refCurrency} (basada en ${pairKey}): ${1 / rateDetail.currentRate}`);
+      return 1 / rateDetail.currentRate;
+    }
+    logger.warn(`No se encontró tasa directa para ${pairKey} para conversión inversa, o tasa es cero.`);
+    return null;
+  }
+
+  // Caso 3: Conversión cruzada a través de la moneda de referencia
+  // Ej: ARS -> COP (ARS -> USDT -> COP)
+  // Tasa ARS->USDT = 1 / (tasa USDT_ARS)
+  // Tasa USDT->COP = tasa USDT_COP
+  // Tasa ARS->COP = (1 / tasa USDT_ARS) * tasa USDT_COP
+  const rateFromToRefKey = `${refCurrency}_${from}`; // Tasa para convertir 'from' a la referencia (ej. USDT_ARS)
+  const rateRefToToKey = `${refCurrency}_${to}`;   // Tasa para convertir la referencia a 'to' (ej. USDT_COP)
+
+  const rateDetailFromToRef = rates.get(rateFromToRefKey);
+  const rateDetailRefToTo = rates.get(rateRefToToKey);
+
+  if (rateDetailFromToRef && typeof rateDetailFromToRef.currentRate === 'number' && rateDetailFromToRef.currentRate !== 0 &&
+      rateDetailRefToTo && typeof rateDetailRefToTo.currentRate === 'number') {
+    const rateFromToRef = 1 / rateDetailFromToRef.currentRate; // ej. ARS por 1 USDT
+    const rateRefToTo = rateDetailRefToTo.currentRate;         // ej. COP por 1 USDT
+    const crossRate = rateFromToRef * rateRefToTo;
+    logger.debug(`Tasa cruzada para ${from}->${to} vía ${refCurrency}: ${crossRate} ( ${from}->${refCurrency}=${rateFromToRef}, ${refCurrency}->${to}=${rateRefToTo} )`);
+    return crossRate;
+  }
+  
+  logger.warn(`No se pudieron encontrar tasas para conversión cruzada ${from} -> ${to} vía ${refCurrency}. Faltan: ${!rateDetailFromToRef ? rateFromToRefKey : ''} ${!rateDetailRefToTo ? rateRefToToKey : ''}`);
+  return null;
+};
+
 // Podríamos añadir más funciones aquí para otros pares o para la lógica de actualización
 // y almacenamiento de tasas en appSettings más adelante.
 

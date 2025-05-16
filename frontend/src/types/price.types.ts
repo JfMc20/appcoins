@@ -14,6 +14,18 @@ export interface Price {
   updatedAt?: string | Date;
 }
 
+export interface PriceFormData {
+  _id?: string; // Para identificar el precio al editarlo
+  priceType: string;
+  currency: string;
+  value: number; // PriceForm se encargará de convertir el input string a number
+  isActive?: boolean; // isActive debe ser manejado
+  validFrom?: string; // Formato YYYY-MM-DD para input date
+  validTo?: string;   // Formato YYYY-MM-DD para input date
+  region?: string;
+  notes?: string;
+}
+
 // Podríamos añadir enums aquí si queremos ser más estrictos con los tipos de precio o entidad en el frontend
 // export enum PriceEntityType {
 //   GAME_ITEM = 'GameItem',

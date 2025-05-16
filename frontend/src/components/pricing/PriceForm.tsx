@@ -1,24 +1,33 @@
-import React, { useState, useEffect, FormEvent } from 'react';
-import { Price } from '../../types/price.types';
-import { Input, Button } from '../common'; // Corregido: ../common
+import React, { useState, useEffect, FormEvent, useCallback } from 'react';
+// Price ya no se usa directamente para initialData si PriceFormData es suficiente
+// import { Price } from '../../types/price.types'; 
+import { PriceFormData as ExternalPriceFormData } from '../../types/price.types'; // Renombrar para evitar colisión
+import { Input, Button } from '../common';
 
+// Eliminar la definición local de PriceFormData
+/*
 export interface PriceFormData {
   priceType: string;
   currency: string;
-  value: number | string; // El input de número puede devolver string
+  value: number | string; 
   isActive: boolean;
   validFrom?: string;
   validTo?: string;
   region?: string;
   notes?: string;
 }
+*/
+
+// Interfaz local para el estado del formulario, donde 'value' puede ser string
+interface PriceFormState extends Omit<ExternalPriceFormData, 'value'> {
+  value: string; // Permitir string para el input
+}
 
 interface PriceFormProps {
-  initialData?: Price | null;
-  onSubmit: (data: PriceFormData) => Promise<void>;
+  initialData?: ExternalPriceFormData | null; 
+  onSubmit: (data: ExternalPriceFormData) => Promise<void>; // onSubmit espera el tipo externo con value: number
   onCancel: () => void;
   isLoading?: boolean;
-  // Podríamos pasar monedas o tipos de precio predefinidos como props si fuera necesario
 }
 
 const PriceForm: React.FC<PriceFormProps> = ({ 
@@ -27,11 +36,13 @@ const PriceForm: React.FC<PriceFormProps> = ({
   onCancel, 
   isLoading 
 }) => {
-  const [formData, setFormData] = useState<PriceFormData>(() => {
-    const defaults: PriceFormData = {
+
+  const getInitialFormState = useCallback((): PriceFormState => {
+    const defaults: PriceFormState = {
+      _id: undefined,
       priceType: '',
-      currency: 'USDT', // Podría venir de AppSettings
-      value: '',
+      currency: 'USDT',
+      value: '', // value es string aquí
       isActive: true,
       validFrom: '',
       validTo: '',
@@ -40,63 +51,45 @@ const PriceForm: React.FC<PriceFormProps> = ({
     };
     if (initialData) {
       return {
-        priceType: initialData.priceType,
-        currency: initialData.currency,
-        value: initialData.value,
-        isActive: initialData.isActive,
-        validFrom: initialData.validFrom ? new Date(initialData.validFrom).toISOString().split('T')[0] : '',
-        validTo: initialData.validTo ? new Date(initialData.validTo).toISOString().split('T')[0] : '',
+        _id: initialData._id,
+        priceType: initialData.priceType || '',
+        currency: initialData.currency || 'USDT',
+        value: typeof initialData.value === 'number' ? String(initialData.value) : '', // Convertir número a string
+        isActive: typeof initialData.isActive === 'boolean' ? initialData.isActive : true,
+        validFrom: initialData.validFrom || '',
+        validTo: initialData.validTo || '',
         region: initialData.region || '',
         notes: initialData.notes || ''
       };
     }
     return defaults;
-  });
+  }, [initialData]); // Dependencia de useCallback
+
+  const [formState, setFormState] = useState<PriceFormState>(getInitialFormState);
 
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        priceType: initialData.priceType,
-        currency: initialData.currency,
-        value: initialData.value,
-        isActive: initialData.isActive,
-        validFrom: initialData.validFrom ? new Date(initialData.validFrom).toISOString().split('T')[0] : '',
-        validTo: initialData.validTo ? new Date(initialData.validTo).toISOString().split('T')[0] : '',
-        region: initialData.region || '',
-        notes: initialData.notes || ''
-      });
-    } else {
-      // Reset a valores por defecto si no hay initialData (ej. al cambiar de editar a crear)
-      setFormData({
-        priceType: '',
-        currency: 'USDT', 
-        value: '',
-        isActive: true,
-        validFrom: '',
-        validTo: '',
-        region: '',
-        notes: ''
-      });
-    }
-  }, [initialData]);
+    setFormState(getInitialFormState());
+  }, [getInitialFormState]); // Usar la función memoizada como dependencia
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
       const { checked } = e.target as HTMLInputElement;
-      setFormData(prev => ({ ...prev, [name]: checked }));
+      setFormState(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      // Para todos los demás inputs (incluido 'value'), el valor es string
+      setFormState(prev => ({ ...prev, [name]: value })); 
     }
   };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const dataToSubmit: PriceFormData = {
-        ...formData,
-        value: parseFloat(formData.value as string) // Asegurar que el valor sea numérico
+    const valueAsNumber = parseFloat(formState.value); 
+    const dataToSubmit: ExternalPriceFormData = {
+        ...formState,
+        value: isNaN(valueAsNumber) ? 0 : valueAsNumber, // Convertir a número
     };
-    onSubmit(dataToSubmit);
+    onSubmit(dataToSubmit); // Enviar datos con value como number
   };
 
   return (
@@ -107,7 +100,7 @@ const PriceForm: React.FC<PriceFormProps> = ({
           type="text"
           name="priceType"
           id="priceType"
-          value={formData.priceType}
+          value={formState.priceType}
           onChange={handleChange}
           placeholder="Ej: costo, venta_base, oferta"
           required
@@ -121,10 +114,10 @@ const PriceForm: React.FC<PriceFormProps> = ({
             type="number"
             name="value"
             id="value"
-            value={formData.value}
+            value={formState.value} // Es string aquí, el input lo maneja
             onChange={handleChange}
             placeholder="0.00"
-            step="any" // Permite decimales
+            step="any"
             required
           />
         </div>
@@ -134,7 +127,7 @@ const PriceForm: React.FC<PriceFormProps> = ({
             type="text"
             name="currency"
             id="currency"
-            value={formData.currency}
+            value={formState.currency}
             onChange={handleChange}
             placeholder="Ej: USDT, USD, EUR"
             required
@@ -150,7 +143,7 @@ const PriceForm: React.FC<PriceFormProps> = ({
             type="date"
             name="validFrom"
             id="validFrom"
-            value={formData.validFrom}
+            value={formState.validFrom || ''}
             onChange={handleChange}
             />
         </div>
@@ -160,7 +153,7 @@ const PriceForm: React.FC<PriceFormProps> = ({
             type="date"
             name="validTo"
             id="validTo"
-            value={formData.validTo}
+            value={formState.validTo || ''}
             onChange={handleChange}
             />
         </div>
@@ -172,7 +165,7 @@ const PriceForm: React.FC<PriceFormProps> = ({
           type="text"
           name="region"
           id="region"
-          value={formData.region}
+          value={formState.region || ''}
           onChange={handleChange}
           placeholder="Ej: LATAM, EU"
         />
@@ -183,7 +176,7 @@ const PriceForm: React.FC<PriceFormProps> = ({
         <textarea
           name="notes"
           id="notes"
-          value={formData.notes}
+          value={formState.notes || ''}
           onChange={handleChange}
           rows={3}
           placeholder="Notas adicionales sobre este precio..."
@@ -196,7 +189,7 @@ const PriceForm: React.FC<PriceFormProps> = ({
           id="isActive"
           name="isActive"
           type="checkbox"
-          checked={formData.isActive}
+          checked={formState.isActive ?? true} 
           onChange={handleChange}
           className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-indigo-600"
         />

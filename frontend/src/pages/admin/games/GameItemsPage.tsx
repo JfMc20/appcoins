@@ -30,7 +30,7 @@ const GameItemsPage: React.FC = () => {
 
   // Nuevos estados para la gestión de precios
   const [showPriceManagerModal, setShowPriceManagerModal] = useState(false);
-  const [selectedGameItemForPricing, setSelectedGameItemForPricing] = useState<{ id: string; name: string } | null>(null);
+  const [selectedGameItemForPricing, setSelectedGameItemForPricing] = useState<GameItem | null>(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -161,9 +161,15 @@ const GameItemsPage: React.FC = () => {
   };
 
   const handleManagePrices = (itemId: string, itemName: string) => {
-    setSelectedGameItemForPricing({ id: itemId, name: itemName });
-    setShowPriceManagerModal(true);
-    clearMessages(); // Limpiar mensajes de notificaciones anteriores
+    // Encontrar el gameItem completo para pasarlo al modal de precios
+    const gameItemForPricing = gameItems.find(item => item._id === itemId);
+    if (gameItemForPricing) {
+      setSelectedGameItemForPricing(gameItemForPricing); // Guardar el objeto GameItem completo
+      setShowPriceManagerModal(true);
+      clearMessages(); 
+    } else {
+      setError("No se pudo encontrar el artículo para gestionar sus precios.");
+    }
   };
 
   const handleClosePriceManager = () => {
@@ -300,16 +306,17 @@ const GameItemsPage: React.FC = () => {
         </Card>
 
         {selectedGameItemForPricing && (
-          <Modal
-            isOpen={showPriceManagerModal}
-            onClose={handleClosePriceManager}
-            title={`Gestionar Precios para: ${selectedGameItemForPricing.name}`}
+          <Modal 
+            isOpen={showPriceManagerModal} 
+            onClose={handleClosePriceManager} 
+            title={`Administrar Precios: ${selectedGameItemForPricing?.name || 'Artículo'}`}
           >
-            <ItemPriceManager 
-              gameItemId={selectedGameItemForPricing.id}
-              gameItemName={selectedGameItemForPricing.name}
-              onClose={handleClosePriceManager} 
-            />
+            {selectedGameItemForPricing && (
+              <ItemPriceManager 
+                gameItem={selectedGameItemForPricing} // Pasar el objeto GameItem completo
+                onClose={handleClosePriceManager} 
+              />
+            )}
           </Modal>
         )}
       </div>

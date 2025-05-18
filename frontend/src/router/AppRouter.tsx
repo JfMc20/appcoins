@@ -4,8 +4,8 @@ import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
 import HomePage from '../pages/HomePage' // Crearemos esta página simple pronto
 import UserManagementPage from '../pages/admin/UserManagementPage' // Importar la nueva página
-import GameManagementPage from '../pages/admin/games/GameManagementPage' // Importar página de gestión de juegos
-import GameItemsPage from '../pages/admin/games/GameItemsPage' // Importar página de gestión de ítems de juegos
+import GameManagementPage from '../pages/games/GameManagementPage' // Importar página de gestión de juegos
+import GameItemsPage from '../pages/games/GameItemsPage' // Importar página de gestión de ítems de juegos
 import ExchangeRatePage from '../pages/admin/ExchangeRatePage' // Importar página de tasas de cambio
 import TransactionsListPage from '../pages/transactions/TransactionsListPage' // Nueva importación
 import NewTransactionPage from '../pages/transactions/NewTransactionPage' // Importar página de nueva transacción
@@ -263,9 +263,11 @@ const AppRouter: React.FC = () => {
         />
 
         {/* Ruta por defecto - redireccionar a home o login */}
-        <Route 
-          path="*" 
-          element={isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <Navigate to={Pathnames.auth.login} replace />} 
+        <Route
+          path="*"
+          element={
+            isAuthenticated ? <Navigate to={Pathnames.home} replace /> : <Navigate to={Pathnames.auth.login} replace />
+          }
         />
       </Routes>
     </Router>

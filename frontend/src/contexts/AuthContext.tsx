@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const token = authService.getCurrentUserToken()
         const user = authService.getCurrentUser()
-        
+
         if (token) {
           // Ya no necesitamos actualizar headers aquí, la API lo hace por sí misma
           if (user) {
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         })
       }
     }
-    
+
     loadUserFromStorage()
   }, [])
 
@@ -82,14 +82,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (!data.token) {
         throw new Error('El servidor no devolvió un token de autenticación')
       }
-      
+
       // Ya no actualizamos headers aquí, la API lo hace automáticamente
-      
+      console.log('Datos de usuario:', data)
       // Verificar si tenemos los datos de usuario
       if (!data.user) {
         throw new Error('El servidor no devolvió datos de usuario')
       }
-      
+
       setAuthState({
         user: data.user,
         token: data.token,
@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Error al iniciar sesión'
       console.error('Error de login:', errorMessage)
-      
+
       setAuthState((prev) => ({
         ...prev,
         isLoading: false,
@@ -109,7 +109,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user: null,
         token: null,
       }))
-      
+
       // Limpiar cualquier dato de autenticación parcial
       authService.logout()
       throw new Error(errorMessage)
@@ -147,16 +147,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('No hay usuario para actualizar el rol')
       return
     }
-    
+
     try {
       const updatedUser = { ...authState.user, role }
       localStorage.setItem('userObject', JSON.stringify(updatedUser))
-      
-      setAuthState(prev => ({
+
+      setAuthState((prev) => ({
         ...prev,
-        user: updatedUser
+        user: updatedUser,
       }))
-      
+
       console.log(`Rol actualizado a "${role}" correctamente`)
     } catch (error) {
       console.error('Error al forzar cambio de rol:', error)
@@ -164,13 +164,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        ...authState, 
-        loginUser, 
-        registerUser, 
+    <AuthContext.Provider
+      value={{
+        ...authState,
+        loginUser,
+        registerUser,
         logoutUser,
-        forceUserRole
+        forceUserRole,
       }}
     >
       {children}

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
 
 const UserRoleDebug: React.FC = () => {
   const { user, token } = useAuth();

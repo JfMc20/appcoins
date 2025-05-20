@@ -5,7 +5,6 @@ import ContactForm from '../../components/contacts/ContactForm';
 import { ContactCreateData } from '../../types/contact.types';
 import contactService from '../../services/contact.service';
 import { toast } from 'react-toastify';
-import Pathnames from '../../router/pathnames'; // Asumimos que existe y tiene contacts.list
 
 const CreateContactPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);

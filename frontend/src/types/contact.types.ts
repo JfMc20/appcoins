@@ -1,5 +1,3 @@
-import { FundingSource } from "./fundingSource.types"; // Importar si se vincula con fuentes
-
 // Interfaces para subdocumentos del frontend
 export interface ContactDetail {
   type: 'email' | 'phone' | 'whatsapp' | 'telegram' | 'discord' | 'game_username' | 'other';

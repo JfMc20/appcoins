@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { settingsService } from '../../services/settings.service';
-import { AppSettings, SupportedCurrency } from '../../types/appSettings.types';
+import { AppSettings } from '../../types/appSettings.types';
 import { LoadingSpinner, Notification } from '../../components/common';
 import { DashboardLayout } from '../../components/layout';
 

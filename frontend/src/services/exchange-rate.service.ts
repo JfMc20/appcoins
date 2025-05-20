@@ -142,4 +142,5 @@ class ExchangeRateService {
   }
 }
 
-export default new ExchangeRateService(); 
+const exchangeRateService = new ExchangeRateService();
+export default exchangeRateService; 

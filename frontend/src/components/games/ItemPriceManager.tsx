@@ -4,7 +4,6 @@ import { Price, PriceFormData } from '../../types/price.types';
 import { priceService } from '../../services/price.service';
 import PriceForm from '../pricing/PriceForm';
 import Button from '../common/Button';
-import Card from '../common/Card';
 import { PlusCircle, Edit3, Trash2, List } from 'lucide-react';
 
 interface ItemPriceManagerProps {

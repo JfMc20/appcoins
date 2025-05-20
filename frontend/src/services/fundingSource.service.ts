@@ -4,7 +4,6 @@ import type {
   CreateFundingSourceData,
   UpdateFundingSourceData,
   FundingSourceResponse,
-  FundingSourceListResponse,
 } from '../types/fundingSource.types'
 
 const FUNDING_SOURCES_PATH = '/funding-sources'

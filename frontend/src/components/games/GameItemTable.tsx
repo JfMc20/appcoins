@@ -166,7 +166,7 @@ const GameItemTable: React.FC<GameItemTableProps> = ({
                       variant="danger"
                       size="sm"
                       onClick={() => {
-                        if (window.confirm(`¿Estás seguro de que deseas eliminar el ítem \"${item.name}\"? Esta acción no se puede deshacer.`)) {
+                        if (window.confirm(`¿Estás seguro de que deseas eliminar el ítem "${item.name}"? Esta acción no se puede deshacer.`)) {
                           onDeleteItem(item._id);
                         }
                       }}

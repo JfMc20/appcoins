@@ -19,7 +19,6 @@ import {
 } from 'react-icons/fa'
 import type { IconType } from 'react-icons'
 import { Icon } from '../common'
-import { type } from './../../types/transaction.types'
 
 // Definir la estructura de un ítem de navegación
 interface NavItem {

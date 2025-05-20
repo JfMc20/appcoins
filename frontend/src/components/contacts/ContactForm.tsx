@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { ContactCreateData, ContactUpdateData, ContactFormData } from '../../types/contact.types'; // Asegúrate que estos tipos existen y ContactFormData se importa
+import { ContactFormData } from '../../types/contact.types'; // Asegúrate que estos tipos existen y ContactFormData se importa
 import { Input, Button, Notification } from '../common'; // Necesitaremos estos componentes comunes
 
 // Asumiendo que tenemos estas constantes definidas en alguna parte, similar a ContactsListPage

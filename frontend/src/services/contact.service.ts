@@ -1,6 +1,5 @@
 import api from './api';
 import {
-  Contact,
   PaginatedContactsResponse,
   GetContactsParams,
   CreateContactData,

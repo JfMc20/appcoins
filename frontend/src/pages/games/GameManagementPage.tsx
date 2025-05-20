@@ -12,6 +12,7 @@ import { DashboardLayout } from '../../components/layout'
 import useNotification from '../../hooks/useNotification'
 import Modal from '../../components/common/Modal'
 import { toast } from 'react-toastify'
+import TibiaInitialSetup from '../../components/games/TibiaInitialSetup'
 
 const GameManagementPage: React.FC = () => {
   const [games, setGames] = useState<Game[]>([])
@@ -26,6 +27,7 @@ const GameManagementPage: React.FC = () => {
   const [showArchivedBackend, setShowArchivedBackend] = useState<boolean>(false)
   const [showPermanentDeleteConfirmModal, setShowPermanentDeleteConfirmModal] = useState(false)
   const [gameToPermanentlyDelete, setGameToPermanentlyDelete] = useState<string | null>(null)
+  const [showTibiaSetup, setShowTibiaSetup] = useState(false)
 
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -114,29 +116,6 @@ const GameManagementPage: React.FC = () => {
 
   const handleViewGameItems = (gameId: string) => {
     navigate(`/admin/games/${gameId}/items`)
-  }
-
-  const handleStatusChange = async (gameId: string, newStatus: 'active' | 'inactive' | 'archived') => {
-    setError(null)
-    try {
-      const updatedGame = await gameService.updateGame(gameId, { status: newStatus })
-      setGames((prevGames) =>
-        prevGames.map((game) => (game._id === gameId ? { ...game, status: updatedGame.status } : game)),
-      )
-      toast.success(`Estado del juego actualizado a: ${newStatus}`)
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        const message = err.message || 'Error al actualizar estado'
-        setError(message)
-        toast.error(message)
-        console.error('Error actualizando estado:', err)
-      } else {
-        const message = 'Error desconocido al actualizar estado'
-        setError(message)
-        toast.error(message)
-        console.error('Error desconocido al actualizar estado:', err)
-      }
-    }
   }
 
   const handleArchiveRequest = (gameId: string) => {
@@ -258,12 +237,27 @@ const GameManagementPage: React.FC = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestión de Juegos</h1>
-          <Button variant="primary" onClick={handleCreateGame}>
-            Crear nuevo juego
-          </Button>
+          <div className="space-x-4">
+            <Button variant="secondary" onClick={() => setShowTibiaSetup(true)}>
+              Configurar Tibia
+            </Button>
+            <Button variant="primary" onClick={handleCreateGame}>
+              Crear nuevo juego
+            </Button>
+          </div>
         </div>
 
         {error && <Notification type="error" message={error} onClose={clearMessages} />}
+
+        {showTibiaSetup && (
+          <Modal
+            isOpen={showTibiaSetup}
+            onClose={() => setShowTibiaSetup(false)}
+            title="Configuración de Tibia"
+          >
+            <TibiaInitialSetup />
+          </Modal>
+        )}
 
         {showCreateForm && (
           <Modal

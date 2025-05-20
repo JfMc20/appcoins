@@ -178,8 +178,8 @@ const GameItemSchema: Schema<IGameItem> = new Schema(
 
 // Índices sugeridos
 GameItemSchema.index({ gameId: 1 });
-GameItemSchema.index({ gameId: 1, name: 1 }, { unique: true });
-GameItemSchema.index({ gameId: 1, itemCode: 1 }, { unique: true, sparse: true }); // Asegura unicidad si itemCode existe
+GameItemSchema.index({ gameId: 1, name: 1 });
+GameItemSchema.index({ gameId: 1, itemCode: 1 }, { unique: true, sparse: true });
 GameItemSchema.index({ type: 1 });
 GameItemSchema.index({ status: 1 });
 GameItemSchema.index({ managesStock: 1 });

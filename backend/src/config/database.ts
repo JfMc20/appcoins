@@ -7,11 +7,11 @@ dotenv.config(); // Asegurarse de que las variables de entorno estén cargadas
 // La URI de MongoDB puede venir de una variable de entorno (para Docker Compose/Producción)
 // o usar un valor predeterminado para desarrollo local.
 const MONGO_URI_DEFAULT = 'mongodb://localhost:27017/AdminCoins';
-const MONGO_URI = process.env.MONGODB_URI || MONGO_URI_DEFAULT;
+export const MONGODB_URI = process.env.MONGODB_URI || MONGO_URI_DEFAULT;
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGODB_URI);
     logger.db('Conectado exitosamente a MongoDB.');
 
     // Opcional: Escuchar eventos de conexión después de la conexión inicial

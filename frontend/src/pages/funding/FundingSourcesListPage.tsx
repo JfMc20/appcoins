@@ -1,95 +1,123 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '../../components/layout';
-import { FundingSource } from '../../types/fundingSource.types';
-import fundingSourceService from '../../services/fundingSource.service';
-import { LoadingSpinner, Notification, Button } from '../../components/common';
-import Pathnames from '../../router/pathnames';
-import { toast } from 'react-toastify';
+import type React from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { DashboardLayout } from '../../components/layout'
+import type { FundingSource } from '../../types/fundingSource.types'
+import fundingSourceService from '../../services/fundingSource.service'
+import { LoadingSpinner, Notification, Button } from '../../components/common'
+import Pathnames from '../../router/pathnames'
+import { toast } from 'react-toastify'
 
 const FundingSourcesListPage: React.FC = () => {
-  const [fundingSources, setFundingSources] = useState<FundingSource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showArchived, setShowArchived] = useState(false);
-  const navigate = useNavigate();
+  const [fundingSources, setFundingSources] = useState<FundingSource[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
+  const navigate = useNavigate()
 
   const fetchFundingSources = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
     try {
-      let sources;
+      let sources: FundingSource[] = []
       if (showArchived) {
-        sources = await fundingSourceService.getArchivedFundingSources();
+        sources = await fundingSourceService.getArchivedFundingSources()
       } else {
-        sources = await fundingSourceService.getActiveFundingSources();
+        sources = await fundingSourceService.getActiveFundingSources()
       }
-      setFundingSources(sources);
-    } catch (err: any) {
-      console.error('Error fetching funding sources:', err);
-      setError(err.response?.data?.message || err.message || 'Error al cargar las fuentes de fondos');
-      setFundingSources([]);
+      setFundingSources(sources)
+    } catch (err: unknown) {
+      console.error('Error fetching funding sources:', err)
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Error desconocido al cargar las fuentes de fondos')
+      }
+      setFundingSources([])
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [showArchived]);
+  }, [showArchived])
 
   useEffect(() => {
-    fetchFundingSources();
-  }, [fetchFundingSources]);
+    fetchFundingSources()
+  }, [fetchFundingSources])
 
   const handleCreateNew = () => {
-    navigate(Pathnames.funding.new);
-  };
+    navigate(Pathnames.funding.new)
+  }
 
   const handleEdit = (id: string) => {
-    navigate(Pathnames.funding.edit.replace(':id', id));
-  };
+    navigate(Pathnames.funding.edit.replace(':id', id))
+  }
 
   const handleDelete = async (id: string) => {
     if (window.confirm('¿Está seguro de que desea archivar esta fuente de fondos?')) {
       try {
-        await fundingSourceService.deleteFundingSource(id);
-        toast.success('Fuente archivada correctamente.');
-        fetchFundingSources();
-      } catch (err: any) {
-        console.error('Error archivando fuente de fondos:', err);
-        const apiError = err.response?.data?.message || err.message || 'Error al archivar la fuente de fondos.';
-        setError(apiError);
-        toast.error(apiError);
+        await fundingSourceService.deleteFundingSource(id)
+        toast.success('Fuente archivada correctamente.')
+        fetchFundingSources()
+      } catch (err: unknown) {
+        console.error('Error archivando fuente de fondos:', err)
+        if (err instanceof Error) {
+          setError(err.message)
+          toast.error(err.message)
+        } else {
+          setError('Error desconocido al archivar la fuente de fondos')
+        }
       }
     }
-  };
+  }
 
   const handlePermanentDelete = async (id: string) => {
-    if (window.confirm('¿Está seguro de que desea ELIMINAR PERMANENTEMENTE esta fuente de fondos? Esta acción no se puede deshacer.')) {
+    if (
+      window.confirm(
+        '¿Está seguro de que desea ELIMINAR PERMANENTEMENTE esta fuente de fondos? Esta acción no se puede deshacer.',
+      )
+    ) {
       try {
-        await fundingSourceService.permanentlyDeleteFundingSourceById(id);
-        toast.success('Fuente eliminada permanentemente.');
-        fetchFundingSources(); // Actualizar la lista
-      } catch (err: any) {
-        console.error('Error eliminando permanentemente la fuente de fondos:', err);
-        const apiError = err.response?.data?.message || err.message || 'Error al eliminar permanentemente la fuente de fondos.';
-        setError(apiError);
-        toast.error(apiError);
+        await fundingSourceService.permanentlyDeleteFundingSourceById(id)
+        toast.success('Fuente eliminada permanentemente.')
+        fetchFundingSources() // Actualizar la lista
+      } catch (err: unknown) {
+        console.error('Error eliminando permanentemente la fuente de fondos:', err)
+        if (err instanceof Error) {
+          setError(err.message)
+          toast.error(err.message)
+        } else {
+          setError('Error desconocido al eliminar permanentemente la fuente de fondos')
+        }
       }
     }
-  };
+  }
 
   const toggleShowArchived = () => {
-    setShowArchived(!showArchived);
-  };
+    setShowArchived(!showArchived)
+  }
 
   const columns = [
     { Header: 'Nombre', accessor: 'name' },
-    { Header: 'Tipo', accessor: 'type', Cell: ({ value }: { value: string }) => fundingSourceService.getFundingSourceTypeDisplay(value) },
+    {
+      Header: 'Tipo',
+      accessor: 'type',
+      Cell: ({ value }: { value: string }) => fundingSourceService.getFundingSourceTypeDisplay(value),
+    },
     { Header: 'Moneda', accessor: 'currency' },
-    { Header: 'Saldo Actual', accessor: 'currentBalance', Cell: ({ value }: { value: number }) => value?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 'N/A' },
-    { Header: 'Estado', accessor: 'status', Cell: ({ value }: { value: string }) => fundingSourceService.getFundingSourceStatusDisplay(value) },
+    {
+      Header: 'Saldo Actual',
+      accessor: 'currentBalance',
+      Cell: ({ value }: { value: number }) =>
+        value?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 'N/A',
+    },
+    {
+      Header: 'Estado',
+      accessor: 'status',
+      Cell: ({ value }: { value: string }) => fundingSourceService.getFundingSourceStatusDisplay(value),
+    },
     {
       Header: 'Acciones',
       accessor: '_id',
-      Cell: ({ value: id, row }: { value:string, row: { original: FundingSource } }) => (
+      Cell: ({ value: id, row }: { value: string; row: { original: FundingSource } }) => (
         <div className="flex space-x-2">
           <Button variant="outline" onClick={() => handleEdit(String(id))} className="p-2">
             Editar
@@ -112,7 +140,7 @@ const FundingSourcesListPage: React.FC = () => {
         </div>
       ),
     },
-  ];
+  ]
 
   return (
     <DashboardLayout>
@@ -130,9 +158,9 @@ const FundingSourcesListPage: React.FC = () => {
             </Button>
           </div>
         </div>
-        
+
         {error && <Notification type="error" message={error} onClose={() => setError(null)} />}
-        
+
         {isLoading ? (
           <LoadingSpinner message="Cargando fuentes de fondos..." />
         ) : (
@@ -161,49 +189,60 @@ const FundingSourcesListPage: React.FC = () => {
                     {fundingSources.map((source) => (
                       <tr key={source._id}>
                         {columns.map((column) => {
-                          let content: React.ReactNode;
-                          const accessor = column.accessor;
+                          let content: React.ReactNode
+                          const accessor = column.accessor
 
-                              if (column.Cell) {
+                          if (column.Cell) {
                             // Si column.Cell está definido, llamarlo con el valor apropiado y tipado.
                             if (accessor === 'type' || accessor === 'status') {
-                              content = (column.Cell as (props: { value: string; row: { original: FundingSource } }) => React.ReactNode)(
-                                { value: source[accessor], row: { original: source } }
-                              );
+                              content = (
+                                column.Cell as (props: {
+                                  value: string
+                                  row: { original: FundingSource }
+                                }) => React.ReactNode
+                              )({ value: source[accessor], row: { original: source } })
                             } else if (accessor === 'currentBalance') {
-                              content = (column.Cell as (props: { value: number; row: { original: FundingSource } }) => React.ReactNode)(
-                                { value: source[accessor], row: { original: source } }
-                              );
+                              content = (
+                                column.Cell as (props: {
+                                  value: number
+                                  row: { original: FundingSource }
+                                }) => React.ReactNode
+                              )({ value: source[accessor], row: { original: source } })
                             } else if (accessor === '_id') {
                               // Aseguramos que _id es un string para la Cell, aunque sea opcional en el tipo.
                               // Las acciones usualmente no tienen sentido sin un ID.
                               // Si source._id pudiera ser undefined aquí y eso es un estado válido para mostrar,
                               // la Cell de Acciones debería manejarlo o no mostrar nada.
-                              content = (column.Cell as (props: { value: string; row: { original: FundingSource } }) => React.ReactNode)(
-                                { value: source._id || '', row: { original: source } } // Pasamos string vacío si _id es undefined
-                              );
+                              content = (
+                                column.Cell as (props: {
+                                  value: string
+                                  row: { original: FundingSource }
+                                }) => React.ReactNode
+                              )(
+                                { value: source._id || '', row: { original: source } }, // Pasamos string vacío si _id es undefined
+                              )
                             } else {
                               // Fallback para una columna inesperada con Cell. Esto no debería ocurrir con la configuración actual.
-                              const unexpectedRawValue = source[accessor as keyof FundingSource];
-                              content = String(unexpectedRawValue != null ? unexpectedRawValue : '');
+                              const unexpectedRawValue = source[accessor as keyof FundingSource]
+                              content = String(unexpectedRawValue != null ? unexpectedRawValue : '')
                             }
                           } else {
                             // No hay column.Cell. Obtener el valor crudo y formatear si es necesario.
-                            const rawValue = source[accessor as keyof Omit<FundingSource, '_id'>];
+                            const rawValue = source[accessor as keyof Omit<FundingSource, '_id'>]
 
                             if (rawValue instanceof Date) {
-                              content = rawValue.toLocaleDateString(); // Formatear Fecha a string
+                              content = rawValue.toLocaleDateString() // Formatear Fecha a string
                             } else if (typeof rawValue === 'boolean') {
-                              content = rawValue ? 'Sí' : 'No'; // Ejemplo para booleanos
+                              content = rawValue ? 'Sí' : 'No' // Ejemplo para booleanos
                             } else if (typeof rawValue === 'object' && rawValue !== null) {
-                              content = JSON.stringify(rawValue); // Para otros objetos
+                              content = JSON.stringify(rawValue) // Para otros objetos
                             } else if (rawValue === undefined || rawValue === null) {
-                              content = ''; // O 'N/A' para valores nulos/indefinidos
-                              } else {
-                              content = rawValue; // string, number
-                              }
+                              content = '' // O 'N/A' para valores nulos/indefinidos
+                            } else {
+                              content = rawValue // string, number
+                            }
                           }
-                          
+
                           return (
                             <td
                               key={`${source._id}-${column.Header}`}
@@ -211,7 +250,7 @@ const FundingSourcesListPage: React.FC = () => {
                             >
                               {content}
                             </td>
-                          );
+                          )
                         })}
                       </tr>
                     ))}
@@ -223,7 +262,7 @@ const FundingSourcesListPage: React.FC = () => {
         )}
       </div>
     </DashboardLayout>
-  );
-};
+  )
+}
 
-export default FundingSourcesListPage; 
+export default FundingSourcesListPage

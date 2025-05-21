@@ -1,5 +1,5 @@
 import api from './api';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL } from '../config/api.config';
 import axios, { AxiosError } from 'axios';
 
 export interface ExchangeRateDetail {

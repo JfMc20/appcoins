@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DashboardLayout } from '../../components/layout'
 import type { Contact, GetContactsParams, PaginatedContactsResponse } from '../../types/contact.types'
@@ -68,9 +68,9 @@ const ContactsListPage: React.FC = () => {
   }, [])
 
   // Debounce para la búsqueda
-  const debouncedFetch = useCallback(
-    debounce((params: GetContactsParams) => fetchContacts(params), 500),
-    [fetchContacts],
+  const debouncedFetch = useMemo(
+    () => debounce((params: GetContactsParams) => fetchContacts(params), 500),
+    [fetchContacts]
   )
 
   // useEffect para cargar datos cuando cambian los filtros o la página

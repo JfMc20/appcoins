@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { API_BASE_URL, BASE_DOMAIN } from '../config';
+import { API_BASE_URL, BASE_DOMAIN } from '../config/api.config';
 import { toggleOfflineMode } from '../services/api';
 
 interface ConnectionErrorProps {

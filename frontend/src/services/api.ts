@@ -1,5 +1,5 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import { API_BASE_URL } from '../config'
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import { API_BASE_URL } from '../config/api.config'
 
 // Variable para controlar el modo offline (para desarrollo)
 const OFFLINE_MODE = localStorage.getItem('OFFLINE_MODE') === 'true'

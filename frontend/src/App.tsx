@@ -4,7 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ConnectionError from './components/ConnectionError';
 import OfflineIndicator from './components/OfflineIndicator';
 import { checkApiConnection, toggleOfflineMode } from './services/api';
-import { API_BASE_URL } from './config';
+import { API_BASE_URL } from './config/api.config';
 import './App.css';
 
 // Máximo número de intentos automáticos para evitar bucles

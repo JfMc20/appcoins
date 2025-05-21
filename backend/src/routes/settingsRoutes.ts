@@ -1,5 +1,5 @@
 import express from 'express';
-import { getExchangeRates, refreshExchangeRates, getAppSettings, updateSupportedCurrencies } from '../controllers/settingsController';
+import { getExchangeRates, refreshExchangeRates, getAppSettings, updateSupportedCurrencies, addExchangeRateAPI, updateExchangeRateAPI, deleteExchangeRateAPI, updateExchangeRatePairStatus } from '../controllers/settingsController';
 import { logger } from '../utils/logger'; // Importar logger
 import { protectWithJwt, restrictTo } from '../middleware/authMiddleware'; // Importar protectWithJwt y restrictTo
 // Importar middlewares de autenticación/autorización si son necesarios aquí
@@ -48,6 +48,40 @@ router.put(
   protectWithJwt,
   restrictTo('admin'),
   updateSupportedCurrencies // Usar directamente la función del controlador
+);
+
+// --- New Routes for Exchange Rate APIs (Admin) --- //
+
+// POST /api/settings/admin/exchange-rate-apis
+router.post(
+  '/admin/exchange-rate-apis',
+  protectWithJwt,
+  restrictTo('admin'),
+  addExchangeRateAPI
+);
+
+// PUT /api/settings/admin/exchange-rate-apis/:apiName
+router.put(
+  '/admin/exchange-rate-apis/:apiName',
+  protectWithJwt,
+  restrictTo('admin'),
+  updateExchangeRateAPI
+);
+
+// DELETE /api/settings/admin/exchange-rate-apis/:apiName
+router.delete(
+  '/admin/exchange-rate-apis/:apiName',
+  protectWithJwt,
+  restrictTo('admin'),
+  deleteExchangeRateAPI
+);
+
+// PUT /api/settings/exchange-rates/:pairKey/status - Nueva ruta para actualizar estado de habilitado
+router.put(
+  '/exchange-rates/:pairKey/status',
+  protectWithJwt,        // Usar autenticación JWT
+  restrictTo('admin'), // Requerir rol de administrador
+  updateExchangeRatePairStatus // Usar la nueva función del controlador
 );
 
 export default router; 

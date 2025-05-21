@@ -172,11 +172,11 @@ Una vez que un juego está configurado, puedes administrar los ítems específic
 
 ### 4.6. Tasas de Cambio (Información General)
 
-*   AppCoins puede integrarse con servicios externos para obtener tasas de cambio actualizadas entre diferentes monedas, lo cual es crucial si operas con múltiples divisas. Esta configuración generalmente la maneja un administrador.
+*   AppCoins puede integrarse con servicios externos para obtener tasas de cambio actualizadas entre diferentes monedas, lo cual es crucial si operas con múltiples divisas. Las tasas disponibles para su uso en otras partes del sistema dependen de cuáles pares de monedas estén **habilitados** por el administrador.
 
 ### 4.7. Gestión de Tasas de Cambio (Administradores)
 
-Este módulo permite a los administradores supervisar y gestionar las tasas de cambio utilizadas en el sistema.
+Este módulo permite a los administradores supervisar, actualizar y gestionar la disponibilidad de las tasas de cambio utilizadas en el sistema.
 
 *   **Acceso a la Gestión de Tasas de Cambio:**
     *   Los administradores encontrarán una sección dedicada a "Tasas de Cambio" en el panel de administración.
@@ -184,35 +184,34 @@ Este módulo permite a los administradores supervisar y gestionar las tasas de c
 *   **Visualizar Tasas de Cambio Actuales:**
     *   Se presenta un dashboard (`ExchangeRateDashboard`) que muestra las tasas de cambio más recientes que el sistema ha obtenido para los pares de monedas configurados (ej. USDT a VES, USDT a COP).
     *   Cada tasa muestra su valor actual, el valor anterior, el cambio porcentual (si aplica), la fuente de la tasa (ej. CriptoYa - Binance P2P) y la fecha de la última actualización.
+    *   **Estado Habilitado/Deshabilitado:** Cada tarjeta de tasa de cambio incluye un interruptor (toggle) que indica si ese par de monedas está actualmente habilitado para su uso en otras partes de la aplicación (como el cálculo de precios en transacciones). Las tarjetas también cambian ligeramente su apariencia (ej. borde o transparencia) para reflejar visualmente su estado.
+
+*   **Habilitar o Deshabilitar Pares de Monedas:**
+    *   Mediante el interruptor junto a cada tasa, un administrador puede fácilmente habilitar o deshabilitar un par de monedas específico.
+    *   **Si una tasa se deshabilita,** no aparecerá en las listas de selección de tasas en otras partes de la aplicación donde se necesite una tasa activa (por ejemplo, al calcular precios). La información de la tasa histórica se conservará, pero no estará disponible para nuevas operaciones.
+    *   **Si una tasa se habilita,** volverá a estar disponible para su selección y uso.
+    *   Los cambios se guardan automáticamente al accionar el interruptor.
 
 *   **Actualización Manual de Tasas:**
     *   En el dashboard de tasas de cambio, existe un botón "Actualizar Tasas".
-    *   Al presionarlo, el sistema intentará obtener las tasas más recientes de las APIs externas configuradas (como CriptoYa) para todas las monedas fiat activas.
-    *   Esto es útil si se necesita forzar una actualización fuera del ciclo automático programado o después de realizar cambios en la configuración de monedas.
-
-*   **Gestión de Monedas Soportadas (Próximamente):**
-    *   Se planea añadir funcionalidades para que los administradores puedan:
-        *   Ver la lista de monedas fiat que el sistema puede rastrear (ej. VES, COP, USD).
-        *   Activar o desactivar monedas para la obtención de tasas.
-        *   (Posiblemente) Añadir nuevas monedas fiat soportadas o editar los detalles de las existentes.
-
-*   **Gestión de APIs de Tasas de Cambio (Próximamente):**
-    *   Se planea permitir a los administradores ver y gestionar las fuentes API configuradas para obtener las tasas.
+    *   Al presionarlo, el sistema intentará obtener las tasas más recientes de las APIs externas configuradas (como CriptoYa) para todas las monedas fiat activas (según la configuración en Ajustes de la Aplicación). Las tasas obtenidas se actualizarán en este dashboard, y si un par específico estaba habilitado, seguirá estándolo con el nuevo valor.
+    *   Esto es útil si se necesita forzar una actualización fuera del ciclo automático programado o después de realizar cambios en la configuración de monedas soportadas.
 
 ### 4.8. Ajustes de la Aplicación (Solo Administradores)
 
-Esta sección permite a los administradores configurar diversos aspectos globales del funcionamiento de AppCoins.
+Esta sección permite a los administradores configurar diversos aspectos globales del funcionamiento de AppCoins, **incluyendo la lista maestra de monedas fiat soportadas por el sistema.**
 
 *   **Acceso a los Ajustes de la Aplicación:**
     *   En el panel de administración, encontrarás un ítem de menú llamado "Ajustes App" (o similar).
 
 *   **Gestión de Monedas Fiat Soportadas:**
-    *   **Visualización:** Se presenta una lista de todas las monedas fiat que el sistema tiene configuradas (ej. Dólar Estadounidense - USD, Bolívar Venezolano - VES, Peso Colombiano - COP).
-    *   Para cada moneda, se muestra su nombre, código, símbolo y su estado actual (Activa/Inactiva).
+    *   **Visualización:** Se presenta una lista de todas las monedas fiat que el sistema tiene configuradas y para las cuales se pueden obtener tasas (ej. Dólar Estadounidense - USD, Bolívar Venezolano - VES, Peso Colombiano - COP).
+    *   Para cada moneda, se muestra su nombre, código, símbolo y su estado actual (Activa/Inactiva) en el contexto de la configuración general del sistema para la obtención de tasas.
     *   **Activar/Desactivar Monedas:** Mediante un interruptor (toggle/checkbox) junto a cada moneda, los administradores pueden:
-        *   **Activar una moneda:** Si una moneda está activa, el sistema intentará obtener tasas de cambio para ella (si hay APIs configuradas para esa moneda) y permitirá su uso en otras partes del sistema (ej. al definir precios o registrar transacciones).
-        *   **Desactivar una moneda:** Si una moneda se desactiva, el sistema dejará de intentar obtener tasas para ella y podría restringirse su uso. Esto es útil para monedas que temporalmente no se desean utilizar sin necesidad de eliminarlas por completo de la configuración.
+        *   **Activar una moneda:** Si una moneda está activa aquí, el sistema intentará obtener tasas de cambio que la involucren (si hay APIs configuradas que soporten pares con esta moneda) y permitirá su selección como moneda en otras partes del sistema.
+        *   **Desactivar una moneda:** Si una moneda se desactiva aquí, el sistema dejará de intentar obtener tasas que la involucren.
     *   Los cambios se guardan automáticamente al accionar el interruptor.
+    *   *(Actualmente, esta sección solo permite activar/desactivar monedas existentes. La funcionalidad para añadir/editar/eliminar monedas soportadas es una mejora futura opcional).* 
 
 *   **Otras Configuraciones (Próximamente):**
     *   En el futuro, esta sección podría incluir la gestión de comisiones por defecto, configuración de notificaciones, información del negocio, etc.

@@ -29,6 +29,7 @@ La reventa de ítems y monedas de juegos puede volverse compleja rápidamente. A
     *   Configura precios de compra y venta para tus productos.
     *   Maneja múltiples tasas de cambio (ej. USDT-VES, USDT-COP) para operar en diferentes mercados locales.
     *   Integración con APIs externas para la actualización de tasas de monedas fiat.
+    *   **Control de disponibilidad de tasas por par de monedas individualmente.**
 *   **Administración de Contactos (Clientes/Proveedores):**
     *   Mantén una base de datos organizada de tus contactos comerciales.
 *   **Roles de Usuario:**
@@ -44,7 +45,7 @@ La reventa de ítems y monedas de juegos puede volverse compleja rápidamente. A
 
 ## Estado Actual del Proyecto
 
-AppCoins se encuentra en **desarrollo activo**. Módulos fundamentales como la gestión de juegos, fuentes de fondos (para control de capital), la gestión de contactos y administración de usuarios ya están implementados y son funcionales. El backend para transacciones (creación y listado básico) y tasas de cambio también están avanzados. **El frontend ahora cuenta con la capacidad de listar todas las transacciones con paginación.** El trabajo actual se centra en completar la interfaz para otros tipos de transacciones, el dashboard principal y los módulos de informes.
+AppCoins se encuentra en **desarrollo activo**. Módulos fundamentales como la gestión de juegos, fuentes de fondos (para control de capital), la gestión de contactos y administración de usuarios ya están implementados y son funcionales. El backend para transacciones (creación y listado básico) y tasas de cambio también están avanzados. **El frontend ahora cuenta con la capacidad de listar todas las transacciones con paginación y la gestión del estado de habilitado por cada par de tasas de cambio.** La página de Ajustes de la Aplicación ha sido simplificada para centrarse en la gestión de monedas soportadas. El trabajo actual se centra en completar la interfaz para otros tipos de transacciones, el dashboard principal y los módulos de informes.
 
 ---
 

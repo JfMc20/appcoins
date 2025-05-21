@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Regla: Verificación de Información - No Asumir
+
+Este documento establece una regla fundamental para la interacción con el código base: **Nunca asumas información** sobre la existencia de archivos, el contenido de los mismos, la estructura de datos o la implementación de funciones.
+
+**Siempre verifica la información necesaria utilizando las herramientas disponibles:**
+
+1.  **Para conocer el contenido de un archivo o parte de él:** Utiliza la herramienta `read_file`.
+2.  **Para explorar la estructura de directorios y listar archivos:** Utiliza la herramienta `list_dir`.
+3.  **Para encontrar la ubicación de un archivo por nombre (incluso parcial):** Utiliza la herramienta `file_search`.
+4.  **Para encontrar fragmentos de código relevantes semánticamente a una consulta:** Utiliza la herramienta `codebase_search`.
+5.  **Para encontrar texto exacto o patrones regex en archivos:** Utiliza la herramienta `grep_search`.
+Antes de proponer un cambio, una solución o responder a una pregunta que dependa de detalles específicos del código, asegúrate de haber obtenido la información directamente del código base usando estas herramientas. Esto garantiza precisión y evita errores basados en suposiciones obsoletas o incorrectas.

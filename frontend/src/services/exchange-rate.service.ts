@@ -11,6 +11,7 @@ export interface ExchangeRateDetail {
   changePercent?: number; // Cambio porcentual
   lastUpdated?: string;   // Fecha de actualización
   source?: string;        // Fuente de los datos
+  isEnabled: boolean;     // Agregar campo para estado habilitado
 }
 
 export interface ExchangeRatesMap {
@@ -90,6 +91,34 @@ class ExchangeRateService {
     } catch (error: unknown) {
       console.error('Error al actualizar tasas de cambio:', error);
       // Mostrar información más detallada del error
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response) {
+          console.error('Detalles del error de respuesta:', {
+            status: axiosError.response.status,
+            data: axiosError.response.data
+          });
+        } else if (axiosError.request) {
+          console.error('No hubo respuesta del servidor. Verifica la URL y que el servidor esté activo.');
+        } else {
+          console.error('Error al configurar la petición:', axiosError.message);
+        }
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Actualiza el estado de habilitado de una tasa de cambio
+   */
+  async updateExchangeRateStatus(pairKey: string, isEnabled: boolean): Promise<any> {
+    try {
+      console.log(`Actualizando estado de ${pairKey} a ${isEnabled ? 'habilitado' : 'deshabilitado'}`);
+      const response = await api.put(`/settings/exchange-rates/${pairKey}/status`, { isEnabled });
+      console.log('Respuesta de actualización de estado:', response.data);
+      return response.data;
+    } catch (error: unknown) {
+      console.error(`Error al actualizar estado de ${pairKey}:`, error);
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
         if (axiosError.response) {

@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import AppSettingsModel from '../models/AppSettingsModel';
+import AppSettingsModel, { IAppSettings, ICurrentRateDetail, IExchangeRateAPI } from '../models/AppSettingsModel';
 import { logger } from '../utils/logger';
 import { updateFiatExchangeRates } from '../services/ExchangeRateService';
-import { Types } from 'mongoose';
+import { appSettingsService } from '../services/appSettings.service';
 
 /**
  * Obtiene las tasas de cambio actuales almacenadas en AppSettings.
  */
-export const getExchangeRates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const getExchangeRates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const settings = await AppSettingsModel.findOne({ configIdentifier: 'global_settings' });
 
@@ -38,10 +38,10 @@ export const getExchangeRates = async (req: Request, res: Response, next: NextFu
  * Obtiene la configuración completa de AppSettings.
  * Solo para administradores.
  */
-export const getAppSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const getAppSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   logger.info('[Controller] Solicitud para obtener AppSettings completa recibida.');
   try {
-    const settings = await AppSettingsModel.findOne({ configIdentifier: 'global_settings' });
+    const settings = await appSettingsService.getAppSettings();
 
     if (!settings) {
       logger.warn('[Controller] AppSettings no encontradas al solicitar configuración completa.');
@@ -61,7 +61,7 @@ export const getAppSettings = async (req: Request, res: Response, next: NextFunc
 /**
  * Dispara manualmente la actualización de las tasas de cambio.
  */
-export const refreshExchangeRates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const refreshExchangeRates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   logger.info('[Controller] Solicitud para refrescar tasas de cambio recibida.');
   try {
     await updateFiatExchangeRates();
@@ -81,7 +81,7 @@ export const refreshExchangeRates = async (req: Request, res: Response, next: Ne
  * Solo para administradores.
  * Espera en req.body un array de objetos: { code: string, isActive: boolean }
  */
-export const updateSupportedCurrencies = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+const updateSupportedCurrencies = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   logger.info('[Controller] Solicitud para actualizar monedas fiat soportadas recibida.');
   const { currencies } = req.body; // Espera un objeto { currencies: [ { code: string, isActive: boolean }, ... ] }
 
@@ -92,42 +92,158 @@ export const updateSupportedCurrencies = async (req: Request, res: Response, nex
   }
 
   try {
-    const settings = await AppSettingsModel.findOne({ configIdentifier: 'global_settings' });
+    const userId = req.user?._id?.toString();
+    const updatedSettings = await appSettingsService.updateSupportedCurrencies(currencies, userId);
 
-    if (!settings) {
-      logger.error('[Controller] AppSettings no encontradas al intentar actualizar monedas.');
-      res.status(404).json({ message: 'Configuración de la aplicación no encontrada.' });
-      return;
-    }
-
-    let updatedCount = 0;
-    currencies.forEach(currencyUpdate => {
-      const currencyToUpdate = settings.supportedFiatCurrencies.find(c => c.code === currencyUpdate.code);
-      if (currencyToUpdate) {
-        if (currencyToUpdate.isActive !== currencyUpdate.isActive) {
-          currencyToUpdate.isActive = currencyUpdate.isActive;
-          updatedCount++;
-        }
-      } else {
-        logger.warn(`[Controller] Moneda con código ${currencyUpdate.code} no encontrada en la configuración para actualizar.`);
-        // Opcionalmente, se podría decidir añadirla si no existe, pero por ahora solo actualizamos existentes.
-      }
-    });
-
-    if (updatedCount > 0) {
-      if (req.user && req.user._id) {
-        settings.lastModifiedBy = req.user._id as Types.ObjectId;
-      }
-      await settings.save();
-      logger.info(`[Controller] ${updatedCount} monedas fiat soportadas actualizadas.`);
-      res.status(200).json({ message: `${updatedCount} monedas actualizadas exitosamente.`, settings: settings });
-    } else {
-      logger.info('[Controller] No hubo cambios en las monedas fiat soportadas.');
-      res.status(200).json({ message: 'No se realizaron cambios.', settings: settings });
-    }
+    logger.info('[Controller] Monedas fiat soportadas actualizadas a través del servicio.');
+    res.status(200).json({ message: 'Monedas actualizadas exitosamente.', settings: updatedSettings });
 
   } catch (error) {
     logger.error('[Controller] Error al actualizar monedas fiat soportadas:', error);
     next(error);
   }
-}; 
+};
+
+/**
+ * Adds a new Exchange Rate API to AppSettings.
+ * Requires admin role.
+ * Expects ExchangeRateAPI data in req.body.
+ */
+const addExchangeRateAPI = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  logger.info('[Controller] Solicitud para añadir nueva Exchange Rate API recibida.');
+  const apiData: IExchangeRateAPI = req.body; // Asumimos que el body tiene la estructura correcta
+
+  // Basic validation (can be enhanced with a validation middleware/schema)
+  if (!apiData || !apiData.name || typeof apiData.isEnabled !== 'boolean') {
+    logger.warn('[Controller] Datos inválidos para añadir Exchange Rate API.');
+    res.status(400).json({ message: 'Datos inválidos. Se espera al menos name (string) y isEnabled (boolean).' });
+    return;
+  }
+
+  try {
+    const userId = req.user?._id?.toString();
+    const updatedSettings = await appSettingsService.addExchangeRateAPI(apiData, userId);
+
+    logger.info('[Controller] Exchange Rate API añadida a través del servicio.');
+    res.status(201).json({ message: 'Exchange Rate API añadida exitosamente.', settings: updatedSettings });
+
+  } catch (error: any) {
+    logger.error('[Controller] Error al añadir Exchange Rate API:', error);
+    // Check for specific service errors (e.g., API already exists)
+    if (error.message.includes('already exists')) {
+      res.status(409).json({ message: error.message }); // 409 Conflict
+    } else if (error.message.includes('AppSettings not found')) {
+       res.status(404).json({ message: error.message }); // 404 Not Found
+    }
+    else {
+      next(error); // Pass other errors to the global error handler
+    }
+  }
+};
+
+/**
+ * Updates an existing Exchange Rate API in AppSettings.
+ * Requires admin role.
+ * Expects apiName in req.params and updateData (Partial<IExchangeRateAPI>) in req.body.
+ */
+const updateExchangeRateAPI = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  logger.info('[Controller] Solicitud para actualizar Exchange Rate API recibida.');
+  const apiName: string = req.params.apiName; // Obtener el nombre de la API desde la URL
+  const updateData: Partial<IExchangeRateAPI> = req.body; // Asumimos que el body tiene los datos de actualización
+
+  // Basic validation (can be enhanced)
+   if (!apiName || Object.keys(updateData).length === 0) {
+    logger.warn('[Controller] Datos inválidos para actualizar Exchange Rate API.');
+    res.status(400).json({ message: 'Datos inválidos. Se espera un nombre de API en la URL y datos de actualización en el cuerpo.' });
+    return;
+  }
+
+  try {
+    const userId = req.user?._id?.toString();
+    const updatedSettings = await appSettingsService.updateExchangeRateAPI(apiName, updateData, userId);
+
+    logger.info('[Controller] Exchange Rate API actualizada a través del servicio.');
+    res.status(200).json({ message: 'Exchange Rate API actualizada exitosamente.', settings: updatedSettings });
+
+  } catch (error: any) {
+    logger.error('[Controller] Error al actualizar Exchange Rate API:', error);
+     if (error.message.includes('not found')) {
+       res.status(404).json({ message: error.message }); // 404 Not Found
+    }
+    else {
+      next(error); // Pass other errors to the global error handler
+    }
+  }
+};
+
+/**
+ * Deletes an Exchange Rate API from AppSettings.
+ * Requires admin role.
+ * Expects apiName in req.params.
+ */
+const deleteExchangeRateAPI = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  logger.info('[Controller] Solicitud para eliminar Exchange Rate API recibida.');
+  const apiName: string = req.params.apiName; // Obtener el nombre de la API desde la URL
+
+   if (!apiName) {
+    logger.warn('[Controller] Nombre de API no proporcionado para eliminar.');
+    res.status(400).json({ message: 'Nombre de API no proporcionado.' });
+    return;
+  }
+
+  try {
+    const userId = req.user?._id?.toString();
+    const updatedSettings = await appSettingsService.deleteExchangeRateAPI(apiName, userId);
+
+    logger.info('[Controller] Exchange Rate API eliminada a través del servicio.');
+    res.status(200).json({ message: 'Exchange Rate API eliminada exitosamente.', settings: updatedSettings });
+
+  } catch (error: any) {
+    logger.error('[Controller] Error al eliminar Exchange Rate API:', error);
+     if (error.message.includes('not found')) {
+       res.status(404).json({ message: error.message }); // 404 Not Found
+    }
+    else {
+      next(error); // Pass other errors to the global error handler
+    }
+  }
+};
+
+/**
+ * Updates the enabled status of a specific exchange rate pair.
+ * Requires admin role.
+ * Expects pairKey in req.params and { isEnabled: boolean } in req.body.
+ */
+const updateExchangeRatePairStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  logger.info('[Controller] Solicitud para actualizar estado de tasa de cambio recibida.');
+  const pairKey: string = req.params.pairKey; // Obtener el pairKey desde la URL
+  const { isEnabled } = req.body; // Obtener isEnabled desde el cuerpo
+
+  // Basic validation
+   if (!pairKey || typeof isEnabled !== 'boolean') {
+    logger.warn('[Controller] Datos inválidos para actualizar estado de tasa de cambio.');
+    res.status(400).json({ message: 'Datos inválidos. Se espera un pairKey en la URL y { isEnabled: boolean } en el cuerpo.' });
+    return;
+  }
+
+  try {
+    const userId = req.user?._id?.toString();
+    const updatedSettings = await appSettingsService.updateExchangeRatePairStatus(pairKey, isEnabled, userId);
+
+    logger.info(`[Controller] Estado de tasa de cambio ${pairKey} actualizado a ${isEnabled}.`);
+    // Devolvemos las settings completas para que el frontend pueda recargar la vista si es necesario
+    res.status(200).json({ message: 'Estado de tasa de cambio actualizado exitosamente.', settings: updatedSettings });
+
+  } catch (error: any) {
+    logger.error(`[Controller] Error al actualizar estado de tasa de cambio ${pairKey}:`, error);
+     if (error.message.includes('not found')) {
+       res.status(404).json({ message: error.message }); // 404 Not Found si el pairKey no existe
+    }
+    else {
+      next(error); // Pass other errors to the global error handler
+    }
+  }
+};
+
+// Combine existing and new exports
+export { getExchangeRates, refreshExchangeRates, getAppSettings, updateSupportedCurrencies, addExchangeRateAPI, updateExchangeRateAPI, deleteExchangeRateAPI, updateExchangeRatePairStatus }; 

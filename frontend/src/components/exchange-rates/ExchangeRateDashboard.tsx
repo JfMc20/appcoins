@@ -60,6 +60,21 @@ const ExchangeRateDashboard: React.FC = () => {
     }
   }, [successMessage]);
 
+  const handleStatusChange = async (pairKey: string, isEnabled: boolean) => {
+    try {
+      setIsLoading(true); // O un estado de carga más granular si prefieres
+      setError(null);
+      await exchangeRateService.updateExchangeRateStatus(pairKey, isEnabled);
+      setSuccessMessage(`Estado de ${pairKey} actualizado exitosamente.`);
+      await loadExchangeRates(); // Recargar tasas después de actualizar el estado
+    } catch (err: any) {
+      setError(err.response?.data?.message || `Error al actualizar estado de ${pairKey}`);
+      console.error(`Error al actualizar estado de ${pairKey}:`, err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isLoading) {
     return <LoadingSpinner message="Cargando tasas de cambio..." />;
   }
@@ -108,6 +123,7 @@ const ExchangeRateDashboard: React.FC = () => {
               key={pairKey}
               pairKey={pairKey}
               rateDetail={rateDetail}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>

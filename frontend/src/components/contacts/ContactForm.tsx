@@ -37,7 +37,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
     error,
     onCancel,
 }) => {
-    const { register, handleSubmit, formState: { errors }, reset, setError: setFormError } = useForm<ContactFormData>({
+    const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({
         defaultValues: initialData || {
             name: '',
             nickname: '',

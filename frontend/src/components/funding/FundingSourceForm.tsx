@@ -35,7 +35,6 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
   const [notes, setNotes] = useState(initialData?.notes || '');
   const [typeSpecificDetails, setTypeSpecificDetails] = useState<FundingSourceDetails | undefined>(initialData?.typeSpecificDetails || undefined);
   const [internalErrorMessage, setInternalErrorMessage] = useState<string | null>(errorMessage || null); // Estado interno para controlar el mensaje de error
-  const [showTypeSpecificFields, setShowTypeSpecificFields] = useState(false);
   const [duplicateNameError, setDuplicateNameError] = useState<string | null>(null); // Estado para el error de duplicado
 
   const isEditing = !!initialData;
@@ -234,15 +233,7 @@ const FundingSourceForm: React.FC<FundingSourceFormProps> = ({
       {/* Renderizar campos específicos del tipo */}
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Detalles Específicos ({fundingSourceTypes.find(t => t.value === type)?.label || 'Tipo no seleccionado'})</h3>
-          {showTypeSpecificFields && (
-            <div className="space-y-4">
-                {renderTypeSpecificFields()}
-            </div>
-          )}
-          {!showTypeSpecificFields && type !== 'other' && (
-             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Este tipo de fuente no requiere detalles específicos adicionales.</p>
-          )}
-          {type === 'other' && renderTypeSpecificFields()}
+          {renderTypeSpecificFields()}
       </div>
 
       {isEditing && (

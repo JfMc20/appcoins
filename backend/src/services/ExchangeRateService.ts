@@ -78,6 +78,18 @@ export const updateFiatExchangeRates = async (): Promise<void> => {
     return;
   }
 
+  // --- Nueva lógica: Verificar si la API de CriptoYa está habilitada ---
+  const criptoYaApiConfig = appSettings.exchangeRateAPIs?.find(api => api.name === 'CriptoYa');
+  
+  if (!criptoYaApiConfig || !criptoYaApiConfig.isEnabled) {
+    logger.warn('La API de CriptoYa no está configurada o no está habilitada en AppSettings. No se actualizarán las tasas desde esta fuente.');
+    // Si no hay APIs habilitadas o CriptoYa no está, no continuamos con la obtención de tasas.
+    // Podemos optar por no modificar las tasas existentes o limpiarlas si es necesario, 
+    // pero por ahora, simplemente no intentaremos obtener nuevas tasas si la fuente principal está deshabilitada.
+    return; // Salir de la función si la fuente principal no está activa
+  }
+  // --- Fin de la nueva lógica ---
+
   if (!appSettings.supportedFiatCurrencies || appSettings.supportedFiatCurrencies.length === 0) {
     logger.warn('No hay monedas fiat soportadas configuradas en AppSettings. No se actualizarán tasas.');
     return;

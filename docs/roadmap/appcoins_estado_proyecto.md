@@ -70,12 +70,14 @@ AppCoins es una aplicación para facilitar el monitoreo y la administración de 
     - Desarrollo del componente `src/components/games/ItemPriceManager.tsx` para la lógica de visualización, creación, edición y eliminación de precios.
     - Desarrollo del componente `src/components/pricing/PriceForm.tsx` para el formulario de precios.
     - Refinamiento de la interfaz de usuario y experiencia de usuario del `ItemPriceManager.tsx` para mayor intuitividad y claridad.
+- **Backend**: Implementado endpoint `PUT /api/settings/exchange-rates/:pairKey/status` para actualizar el estado habilitado/deshabilitado de tasas de cambio individuales.
+- **Backend**: Actualizado `AppSettingsModel.ts` para incluir el campo `isEnabled` en `ICurrentRateDetail`, permitiendo almacenar el estado de habilitado por par de monedas.
+- **Frontend**: Implementada la funcionalidad en `ExchangeRateDashboard.tsx` y `ExchangeRateCard.tsx` para mostrar el estado de habilitado de cada tasa individual y permitir su modificación a través de un toggle.
+- **Frontend**: Eliminada la sección de gestión de APIs de Tasas de Cambio externas de `AppSettingsPage.tsx`, simplificando la página de Ajustes ya que la gestión de disponibilidad se realiza por tasa individual.
 
 #### ❌ Pendiente:
 - **Frontend**: Interfaz de administración en `AppSettingsPage.tsx` (o una nueva página si se prefiere) para:
-    - Visualizar las `exchangeRateAPIs` configuradas en `AppSettings`.
     - (Opcional Avanzado) CRUD completo para `supportedFiatCurrencies` (actualmente solo activar/desactivar, faltaría añadir/editar/eliminar).
-    - (Opcional Avanzado) Permitir la gestión (CRUD) de `exchangeRateAPIs` (nombre, API key, URL base, prioridad, estado).
 - **Backend y Frontend**: Gestión de precios para `ExternalProducts` (similar a GameItems).
 - **Backend y Frontend**: Estrategias de precios avanzadas (ej. márgenes de ganancia configurables por defecto o por tipo de producto/juego, precios dinámicos basados en tasas de cambio o costos, etc.).
 

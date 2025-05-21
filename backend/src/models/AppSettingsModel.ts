@@ -34,7 +34,7 @@ const DefaultTransactionFeesSchema: Schema<IDefaultTransactionFees> = new Schema
 }, { _id: false });
 
 
-interface IExchangeRateAPI {
+export interface IExchangeRateAPI {
   name: string;
   apiKey?: string; // Debería manejarse de forma segura, no almacenarse directamente si es sensible
   baseUrl?: string;
@@ -81,7 +81,8 @@ export interface ICurrentRateDetail {
   change?: number;      // Diferencia numérica (currentRate - previousRate)
   changePercent?: number; // Cambio porcentual
   lastUpdated?: Date;   // Fecha de currentRate
-  source?: string;       // Fuente (ej: \'CriptoYa - Binance P2P\')
+  source?: string;       // Fuente (ej: 'CriptoYa - Binance P2P')
+  isEnabled?: boolean; // Campo para estado habilitado
 }
 
 const CurrentRateDetailSchema: Schema<ICurrentRateDetail> = new Schema({
@@ -93,6 +94,7 @@ const CurrentRateDetailSchema: Schema<ICurrentRateDetail> = new Schema({
   changePercent: { type: Number },
   lastUpdated: { type: Date },
   source: { type: String, trim: true },
+  isEnabled: { type: Boolean, default: true },
 }, { _id: false });
 
 export interface IAppSettings extends Document {
